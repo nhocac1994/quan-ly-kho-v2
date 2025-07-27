@@ -1,46 +1,123 @@
-# Getting Started with Create React App
+# Hệ Thống Quản Lý Kho - React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Ứng dụng quản lý kho với tính năng auto sync realtime với Google Sheets.
 
-## Available Scripts
+## 🚀 Tính Năng
 
-In the project directory, you can run:
+- ✅ **Quản lý sản phẩm** - Thêm, sửa, xóa sản phẩm
+- ✅ **Quản lý nhà cung cấp** - Quản lý thông tin NCC
+- ✅ **Quản lý khách hàng** - Quản lý thông tin KH
+- ✅ **Quản lý nhập kho** - Theo dõi nhập kho
+- ✅ **Quản lý xuất kho** - Theo dõi xuất kho
+- ✅ **Auto Sync Realtime** - Đồng bộ với Google Sheets mỗi 30s
+- ✅ **Dashboard** - Thống kê tổng quan
+- ✅ **Responsive UI** - Giao diện đẹp, dễ sử dụng
 
-### `npm start`
+## 🛠️ Công Nghệ
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **Frontend:** React 18 + TypeScript
+- **UI Framework:** Material-UI (MUI)
+- **State Management:** React Context + useReducer
+- **Data Fetching:** @tanstack/react-query
+- **Google Sheets Integration:** Service Account JWT
+- **Auto Sync:** Custom Context với localStorage
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## 📦 Cài Đặt
 
-### `npm test`
+```bash
+# Clone repository
+git clone <your-repo-url>
+cd quan-ly-kho-v2
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# Cài đặt dependencies
+npm install
 
-### `npm run build`
+# Tạo file .env
+cp .env.example .env
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# Chạy ứng dụng
+npm start
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## ⚙️ Cấu Hình
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Tạo file `.env` với các biến môi trường:
 
-### `npm run eject`
+```env
+REACT_APP_GOOGLE_SPREADSHEET_ID=your_spreadsheet_id
+REACT_APP_GOOGLE_SERVICE_ACCOUNT_EMAIL=your_service_account_email
+REACT_APP_GOOGLE_PRIVATE_KEY=your_private_key
+REACT_APP_GOOGLE_API_KEY=your_api_key
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## 🔧 Cấu Hình Google Sheets
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. **Tạo Service Account** trong Google Cloud Console
+2. **Bật Google Sheets API**
+3. **Chia sẻ Google Sheet** với Service Account email
+4. **Cấu hình cấu trúc sheet:**
+   - `DM_SAN_PHAM` - Danh mục sản phẩm
+   - `NCC` - Nhà cung cấp
+   - `KHACH_HANG` - Khách hàng
+   - `NHAP_KHO` - Nhập kho
+   - `XUAT_KHO` - Xuất kho
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## 🚀 Auto Sync
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+- **Interval mặc định:** 30 giây
+- **Rate limiting protection:** Tự động dừng khi bị limit
+- **Error handling:** Fallback về mock data
+- **Real-time updates:** UI tự động cập nhật
 
-## Learn More
+## 📁 Cấu Trúc Dự Án
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+src/
+├── components/          # UI Components
+├── contexts/           # React Contexts
+├── hooks/              # Custom Hooks
+├── pages/              # Page Components
+├── services/           # API Services
+├── types/              # TypeScript Types
+└── utils/              # Utility Functions
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🎯 Sử Dụng
+
+1. **Dashboard:** Xem tổng quan hệ thống
+2. **Sản phẩm:** Quản lý danh mục sản phẩm
+3. **Nhà cung cấp:** Quản lý thông tin NCC
+4. **Khách hàng:** Quản lý thông tin KH
+5. **Nhập kho:** Theo dõi nhập kho
+6. **Xuất kho:** Theo dõi xuất kho
+7. **Auto Sync:** Cấu hình đồng bộ
+
+## 📝 Scripts
+
+```bash
+npm start          # Chạy development server
+npm run build      # Build production
+npm test           # Chạy tests
+npm run eject      # Eject CRA (không khuyến khích)
+```
+
+## 🤝 Đóng Góp
+
+1. Fork dự án
+2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Tạo Pull Request
+
+## 📄 License
+
+MIT License - xem file [LICENSE](LICENSE) để biết thêm chi tiết.
+
+## 📞 Liên Hệ
+
+- **Email:** your-email@example.com
+- **GitHub:** [@your-username](https://github.com/your-username)
+
+---
+
+⭐ Nếu dự án này hữu ích, hãy cho một star nhé!
