@@ -37,6 +37,8 @@ import {
 } from '@mui/icons-material';
 import { useInventory } from '../context/InventoryContext';
 import { InboundShipment } from '../types';
+import ImportExcelDialog from '../components/ImportExcelDialog';
+import { useNavigate } from 'react-router-dom';
 
 interface InboundShipmentFormData {
   loai_nhap: string;
@@ -54,12 +56,14 @@ interface InboundShipmentFormData {
 const InboundShipments: React.FC = () => {
   const { state, dispatch } = useInventory();
   const { inboundShipments, customers } = state;
+  const navigate = useNavigate();
   
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [editingShipment, setEditingShipment] = useState<InboundShipment | null>(null);
+  const [openImportDialog, setOpenImportDialog] = useState(false);
   const [formData, setFormData] = useState<InboundShipmentFormData>({
     loai_nhap: '',
     ngay_nhap: new Date().toISOString().split('T')[0],
@@ -142,6 +146,10 @@ const InboundShipments: React.FC = () => {
     }
   };
 
+  const handleViewDetails = (shipmentId: string) => {
+    navigate(`/inbound-details/${shipmentId}`);
+  };
+
   const handleCustomerChange = (customerId: string) => {
     const customer = customers.find((c) => c.id === customerId);
     setFormData({
@@ -149,6 +157,34 @@ const InboundShipments: React.FC = () => {
       khach_hang_id: customerId,
       ten_khach_hang: customer ? customer.ten_khach_hang : '',
     });
+  };
+
+  const handleImportExcel = (importedData: any[]) => {
+    // Convert imported data to InboundShipment format
+    const shipments: InboundShipment[] = importedData.map((data) => ({
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      loai_nhap: data.loai_nhap,
+      ngay_nhap: data.ngay_nhap,
+      khach_hang_id: '',
+      ten_khach_hang: data.ten_khach_hang,
+      ma_hoa_don: data.ma_hoa_don,
+      sl_san_pham: data.sl_san_pham,
+      sl_xuat: data.sl_xuat,
+      tai_xe: data.tai_xe,
+      noi_dung_nhap: data.noi_dung_nhap,
+      ghi_chu: data.ghi_chu,
+      ngay_tao: new Date().toISOString(),
+      nguoi_tao: 'Admin',
+      update: new Date().toISOString(),
+    }));
+
+    // Add all imported shipments
+    shipments.forEach((shipment) => {
+      dispatch({ type: 'ADD_INBOUND_SHIPMENT', payload: shipment });
+    });
+
+    // Hiển thị thông báo thành công
+    alert(`✅ Đã import thành công ${importedData.length} phiếu nhập kho!`);
   };
 
   const totalProducts = useMemo(() => 
@@ -169,11 +205,13 @@ const InboundShipments: React.FC = () => {
   }, [inboundShipments]);
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Quản Lý Nhập Kho
-      </Typography>
-
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Header Section */}
+      <Box sx={{ p: 3, pb: 2 }}>
+        <Typography variant="h4" gutterBottom>
+          Quản Lý Nhập Kho
+        </Typography>
+      
       {/* Thống kê */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <Card sx={{ minWidth: 200 }}>
@@ -239,15 +277,16 @@ const InboundShipments: React.FC = () => {
         <Button
           variant="outlined"
           startIcon={<UploadIcon />}
+          onClick={() => setOpenImportDialog(true)}
         >
           Nhập Excel
         </Button>
       </Box>
 
       {/* Bảng phiếu nhập */}
-      <Paper>
-        <TableContainer>
-          <Table>
+      <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', mx: 3, mb: 3 }}>
+        <TableContainer sx={{ flex: 1, maxHeight: 'none' }}>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
                 <TableCell>Mã Phiếu</TableCell>
@@ -297,20 +336,24 @@ const InboundShipments: React.FC = () => {
                     <TableCell align="center">
                       <IconButton
                         size="small"
-                        onClick={() => handleOpenDialog(shipment)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        color="info"
+                        color="primary"
+                        onClick={() => handleViewDetails(shipment.id)}
+                        title="Xem chi tiết"
                       >
                         <ViewIcon />
                       </IconButton>
                       <IconButton
                         size="small"
+                        onClick={() => handleOpenDialog(shipment)}
+                        title="Sửa phiếu"
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
                         color="error"
                         onClick={() => handleDelete(shipment.id)}
+                        title="Xóa phiếu"
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -321,7 +364,7 @@ const InboundShipments: React.FC = () => {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
+          rowsPerPageOptions={[10, 25, 50, 100]}
           component="div"
           count={filteredShipments.length}
           rowsPerPage={rowsPerPage}
@@ -332,13 +375,31 @@ const InboundShipments: React.FC = () => {
             setPage(0);
           }}
           labelRowsPerPage="Số hàng mỗi trang:"
+          sx={{ borderTop: 1, borderColor: 'divider' }}
         />
       </Paper>
 
       {/* Dialog thêm/sửa phiếu nhập */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>
-          {editingShipment ? 'Sửa Phiếu Nhập Kho' : 'Tạo Phiếu Nhập Kho Mới'}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">
+              {editingShipment ? 'Sửa Phiếu Nhập Kho' : 'Tạo Phiếu Nhập Kho Mới'}
+            </Typography>
+            {!editingShipment && (
+              <Button
+                variant="outlined"
+                startIcon={<UploadIcon />}
+                onClick={() => {
+                  setOpenImportDialog(true);
+                  setOpenDialog(false); // Đóng form chính khi mở import dialog
+                }}
+                size="small"
+              >
+                Nhập Excel
+              </Button>
+            )}
+          </Box>
         </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
@@ -433,6 +494,15 @@ const InboundShipments: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Import Excel Dialog */}
+      <ImportExcelDialog
+        open={openImportDialog}
+        onClose={() => setOpenImportDialog(false)}
+        onImport={handleImportExcel}
+        customers={customers}
+      />
+      </Box>
     </Box>
   );
 };

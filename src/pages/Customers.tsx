@@ -34,6 +34,7 @@ import {
 } from '@mui/icons-material';
 import { useInventory } from '../context/InventoryContext';
 import { Customer } from '../types';
+import { customersAPI } from '../services/googleSheetsService';
 
 interface CustomerFormData {
   ten_khach_hang: string;
@@ -116,26 +117,39 @@ const Customers: React.FC = () => {
     setEditingCustomer(null);
   };
 
-  const handleSubmit = () => {
-    const customerData: Customer = {
-      id: editingCustomer?.id || Date.now().toString(),
-      ...formData,
-      ngay_tao: editingCustomer?.ngay_tao || new Date().toISOString(),
-      nguoi_tao: editingCustomer?.nguoi_tao || 'Admin',
-      update: new Date().toISOString(),
-    };
+  const handleSubmit = async () => {
+    try {
+      const customerData: Customer = {
+        id: editingCustomer?.id || Date.now().toString(),
+        ...formData,
+        ngay_tao: editingCustomer?.ngay_tao || new Date().toISOString(),
+        nguoi_tao: editingCustomer?.nguoi_tao || 'Admin',
+        update: new Date().toISOString(),
+      };
 
-    if (editingCustomer) {
-      dispatch({ type: 'UPDATE_CUSTOMER', payload: customerData });
-    } else {
-      dispatch({ type: 'ADD_CUSTOMER', payload: customerData });
+      if (editingCustomer) {
+        await customersAPI.update(customerData.id, customerData);
+        dispatch({ type: 'UPDATE_CUSTOMER', payload: customerData });
+      } else {
+        const newCustomer = await customersAPI.create(customerData);
+        dispatch({ type: 'ADD_CUSTOMER', payload: newCustomer });
+      }
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Error saving customer:', error);
+      alert('Có lỗi khi lưu khách hàng');
     }
-    handleCloseDialog();
   };
 
-  const handleDelete = (customerId: string) => {
+  const handleDelete = async (customerId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa khách hàng này?')) {
-      dispatch({ type: 'DELETE_CUSTOMER', payload: customerId });
+      try {
+        await customersAPI.delete(customerId);
+        dispatch({ type: 'DELETE_CUSTOMER', payload: customerId });
+      } catch (error) {
+        console.error('Error deleting customer:', error);
+        alert('Có lỗi khi xóa khách hàng');
+      }
     }
   };
 
@@ -145,10 +159,12 @@ const Customers: React.FC = () => {
   );
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Quản Lý Khách Hàng
-      </Typography>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Header Section */}
+      <Box sx={{ p: 3, pb: 2 }}>
+        <Typography variant="h4" gutterBottom>
+          Quản Lý Khách Hàng
+        </Typography>
 
       {/* Thống kê */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
@@ -184,30 +200,31 @@ const Customers: React.FC = () => {
         </Card>
       </Box>
 
-      {/* Thanh tìm kiếm và thêm mới */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <TextField
-          placeholder="Tìm kiếm khách hàng..."
-          value={searchTerm}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-          }}
-          sx={{ flexGrow: 1 }}
-        />
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-        >
-          Thêm Khách Hàng
-        </Button>
+        {/* Thanh tìm kiếm và thêm mới */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <TextField
+            placeholder="Tìm kiếm khách hàng..."
+            value={searchTerm}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+            }}
+            sx={{ flexGrow: 1 }}
+          />
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+          >
+            Thêm Khách Hàng
+          </Button>
+        </Box>
       </Box>
 
       {/* Bảng khách hàng */}
-      <Paper>
-        <TableContainer>
-          <Table>
+      <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', mx: 3, mb: 3 }}>
+        <TableContainer sx={{ flex: 1, maxHeight: 'none' }}>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
                 <TableCell>Mã KH</TableCell>

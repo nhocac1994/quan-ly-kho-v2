@@ -23,6 +23,9 @@ import {
   Input as InputIcon,
   Output as OutputIcon,
   Sync as SyncIcon,
+  Person as PersonIcon,
+  ListAlt as ListAltIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { AutoSyncStatusIcon } from './AutoSyncStatus';
 
@@ -37,8 +40,11 @@ const menuItems = [
   { text: 'Sản phẩm', icon: <InventoryIcon />, path: '/products' },
   { text: 'Nhà cung cấp', icon: <BusinessIcon />, path: '/suppliers' },
   { text: 'Khách hàng', icon: <PeopleIcon />, path: '/customers' },
+  { text: 'Thông tin công ty', icon: <BusinessIcon />, path: '/company-info' },
+  { text: 'Người dùng', icon: <PersonIcon />, path: '/users' },
   { text: 'Nhập kho', icon: <InputIcon />, path: '/inbound' },
   { text: 'Xuất kho', icon: <OutputIcon />, path: '/outbound' },
+  { text: 'Lịch sử giao dịch', icon: <HistoryIcon />, path: '/transaction-history' },
   { text: 'Auto Sync', icon: <SyncIcon />, path: '/auto-sync' },
 ];
 
@@ -135,17 +141,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {drawer}
         </Drawer>
       </Box>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-        }}
-      >
-        <Toolbar />
-        {children}
-      </Box>
+              <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 0,
+            width: { sm: `calc(100vw - ${drawerWidth}px)` },
+            height: '100vh',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <Toolbar />
+          <Box sx={{ flex: 1, overflow: 'hidden' }}>
+            {children}
+          </Box>
+        </Box>
     </Box>
   );
 };

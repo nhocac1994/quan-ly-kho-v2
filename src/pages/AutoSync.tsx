@@ -49,7 +49,7 @@ const AutoSync: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 3 }}>
       <Typography variant="h4" gutterBottom>
         <SyncIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
         Quản lý Auto Sync
@@ -60,6 +60,25 @@ const AutoSync: React.FC = () => {
           🔄 Dữ liệu đã được cập nhật từ Google Sheets!
         </Box>
       )}
+
+      {/* Thông báo về Rate Limiting */}
+      <Box sx={{ mb: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1, color: 'warning.contrastText' }}>
+        <Typography variant="subtitle2" gutterBottom>
+          ⚠️ Lưu ý về Google Sheets API:
+        </Typography>
+        <Typography variant="body2">
+          • API Key có giới hạn 100 requests/phút
+        </Typography>
+        <Typography variant="body2">
+          • Auto sync mặc định TẮT để tránh rate limiting
+        </Typography>
+        <Typography variant="body2">
+          • Nên set interval ≥ 60 giây để an toàn
+        </Typography>
+        <Typography variant="body2">
+          • Nếu gặp lỗi 429, đợi 2 phút rồi thử lại
+        </Typography>
+      </Box>
 
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, mb: 3 }}>
         {/* Cài đặt Auto Sync */}
@@ -88,10 +107,15 @@ const AutoSync: React.FC = () => {
             <Slider
               value={config.interval}
               onChange={handleIntervalChange}
-              min={5}
-              max={60}
-              step={5}
-              marks
+              min={30}
+              max={300}
+              step={30}
+              marks={[
+                { value: 30, label: '30s' },
+                { value: 60, label: '1m' },
+                { value: 120, label: '2m' },
+                { value: 300, label: '5m' }
+              ]}
               valueLabelDisplay="auto"
               disabled={!config.isEnabled}
             />

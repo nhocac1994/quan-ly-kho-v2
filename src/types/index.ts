@@ -3,11 +3,15 @@
 export interface CompanyInfo {
   id: string;
   ten_cong_ty: string;
+  hien_thi: string;
   ten_day_du: string;
+  loai_cong_ty: string;
+  logo: string;
   nguoi_dai_dien: string;
-  dia_chi: string;
   sdt: string;
-  email: string;
+  tinh_trang: string;
+  nv_phu_trach: string;
+  ghi_chu: string;
   ngay_tao: string;
   nguoi_tao: string;
   update: string;
@@ -24,7 +28,10 @@ export interface User {
   quyen_them: string;
   quyen_sua: string;
   quyen_xoa: string;
-  ghi_chu: string;
+  quyen_xuat: string;
+  quyen_nhap: string;
+  quyen_bao_cao: string;
+  quyen_cai_dat: string;
   ngay_tao: string;
   nguoi_tao: string;
   update: string;
@@ -96,27 +103,6 @@ export interface InboundShipment {
   update: string;
 }
 
-export interface InboundShipmentDetail {
-  id: string;
-  nhap_kho_id: string;
-  ngay_nhap: string;
-  san_pham_id: string;
-  ten_san_pham: string;
-  nhom_san_pham: string;
-  hang_sx: string;
-  hinh_anh: string;
-  thong_tin: string;
-  quy_cach: string;
-  dvt: string;
-  sl_ton: number;
-  kho_id: string;
-  sl_xuat: number;
-  ghi_chu: string;
-  ngay_tao: string;
-  nguoi_tao: string;
-  update: string;
-}
-
 export interface OutboundShipment {
   id: string;
   loai_xuat: string;
@@ -134,22 +120,29 @@ export interface OutboundShipment {
   update: string;
 }
 
-export interface OutboundShipmentDetail {
+export interface InboundDetail {
   id: string;
   xuat_kho_id: string;
-  ngay_xuat: string;
   san_pham_id: string;
   ten_san_pham: string;
-  nhom_san_pham: string;
-  hang_sx: string;
-  hinh_anh: string;
-  thong_tin: string;
-  quy_cach: string;
-  dvt: string;
-  sl_ton: number;
-  kho_id: string;
-  sl_xuat: number;
-  ghi_chu: string;
+  so_luong: number;
+  don_gia: number;
+  thanh_tien: number;
+  chat_luong: string;
+  ngay_tao: string;
+  nguoi_tao: string;
+  update: string;
+}
+
+export interface OutboundDetail {
+  id: string;
+  xuat_kho_id: string;
+  san_pham_id: string;
+  ten_san_pham: string;
+  so_luong: number;
+  don_gia: number;
+  thanh_tien: number;
+  chat_luong: string;
   ngay_tao: string;
   nguoi_tao: string;
   update: string;
@@ -188,6 +181,10 @@ export interface NxtData {
   customers: Customer[];
   inboundShipments: InboundShipment[];
   outboundShipments: OutboundShipment[];
+  companyInfo: CompanyInfo[];
+  users: User[];
+  inboundDetails: InboundDetail[];
+  outboundDetails: OutboundDetail[];
 }
 
 export interface ReportRow {

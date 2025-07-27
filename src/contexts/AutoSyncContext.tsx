@@ -78,7 +78,7 @@ const getConfigFromStorage = (): AutoSyncConfig => {
   // Default config
   return {
     isEnabled: false, // Tắt mặc định để tránh rate limiting
-    interval: 30, // 30 giây để tránh rate limiting
+    interval: 60, // 60 giây để tránh rate limiting
     syncDirection: 'download',
     lastDataHash: ''
   };
@@ -131,6 +131,10 @@ export const AutoSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       localStorage.setItem('customers', JSON.stringify(syncedData.customers));
       localStorage.setItem('inboundShipments', JSON.stringify(syncedData.inboundShipments));
       localStorage.setItem('outboundShipments', JSON.stringify(syncedData.outboundShipments));
+      localStorage.setItem('companyInfo', JSON.stringify(syncedData.companyInfo));
+      localStorage.setItem('users', JSON.stringify(syncedData.users));
+      localStorage.setItem('inboundDetails', JSON.stringify(syncedData.inboundDetails));
+      localStorage.setItem('outboundDetails', JSON.stringify(syncedData.outboundDetails));
 
       // Tạo hash mới
       const newHash = createDataHash(syncedData);
@@ -218,15 +222,15 @@ export const AutoSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setIsRateLimited(true);
         setStatus(prev => ({ 
           ...prev, 
-          error: 'Rate limited - Đợi 1 phút trước khi thử lại',
+          error: 'Rate limited - Đợi 2 phút trước khi thử lại (Google Sheets API quota)',
           isProcessing: false 
         }));
         
-        // Tự động reset rate limit sau 1 phút
+        // Tự động reset rate limit sau 2 phút
         setTimeout(() => {
           setIsRateLimited(false);
           setStatus(prev => ({ ...prev, error: null }));
-        }, 60000);
+        }, 120000);
       } else {
         setStatus(prev => ({ 
           ...prev, 
@@ -331,9 +335,11 @@ export const AutoSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           console.log('⚠️ Không thể tải dữ liệu từ Google Sheets, sử dụng dữ liệu local');
         }
         
-        // Bắt đầu auto-sync sau khi tải dữ liệu
+        // Bắt đầu auto-sync sau khi tải dữ liệu (chỉ khi được bật)
         if (config.isEnabled) {
           startAutoSync();
+        } else {
+          console.log('⏸️ Auto sync đã tắt mặc định để tránh rate limiting');
         }
       });
     }

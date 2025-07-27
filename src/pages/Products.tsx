@@ -171,13 +171,15 @@ const Products: React.FC = () => {
   );
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Quản Lý Sản Phẩm
-      </Typography>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Header Section */}
+      <Box sx={{ p: 3, pb: 2 }}>
+        <Typography variant="h4" gutterBottom>
+          Quản Lý Sản Phẩm
+        </Typography>
 
-      {/* Thống kê */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+        {/* Thống kê */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
         <Card sx={{ minWidth: 200, flex: 1 }}>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -220,31 +222,32 @@ const Products: React.FC = () => {
         </Card>
       </Box>
 
-      {/* Thanh tìm kiếm và thêm mới */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <TextField
-          placeholder="Tìm kiếm sản phẩm..."
-          value={searchTerm}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-          }}
-          sx={{ flexGrow: 1 }}
-        />
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-          disabled={loading}
-        >
-          Thêm Sản Phẩm
-        </Button>
+              {/* Thanh tìm kiếm và thêm mới */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <TextField
+            placeholder="Tìm kiếm sản phẩm..."
+            value={searchTerm}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+            }}
+            sx={{ flexGrow: 1 }}
+          />
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+            disabled={loading}
+          >
+            Thêm Sản Phẩm
+          </Button>
+        </Box>
       </Box>
 
       {/* Bảng sản phẩm */}
-      <Paper>
-        <TableContainer>
-          <Table>
+      <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', mx: 3, mb: 3 }}>
+        <TableContainer sx={{ flex: 1, maxHeight: 'none' }}>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
                 <TableCell>Mã SP</TableCell>
@@ -302,7 +305,7 @@ const Products: React.FC = () => {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
+          rowsPerPageOptions={[10, 25, 50, 100]}
           component="div"
           count={filteredProducts.length}
           rowsPerPage={rowsPerPage}
@@ -313,6 +316,7 @@ const Products: React.FC = () => {
             setPage(0);
           }}
           labelRowsPerPage="Số hàng mỗi trang:"
+          sx={{ borderTop: 1, borderColor: 'divider' }}
         />
       </Paper>
 

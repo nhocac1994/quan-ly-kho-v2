@@ -18,6 +18,13 @@ import Suppliers from './pages/Suppliers';
 import Customers from './pages/Customers';
 import InboundShipments from './pages/InboundShipments';
 import OutboundShipments from './pages/OutboundShipments';
+import CompanyInfoPage from './pages/CompanyInfo';
+import Users from './pages/Users';
+import InboundDetails from './pages/InboundDetails';
+import InboundShipmentDetails from './pages/InboundShipmentDetails';
+import OutboundDetails from './pages/OutboundDetails';
+import OutboundShipmentDetails from './pages/OutboundShipmentDetails';
+import TransactionHistory from './pages/TransactionHistory';
 import AutoSync from './pages/AutoSync';
 
 // Create a theme instance
@@ -54,19 +61,24 @@ function App() {
           <AutoSyncProvider>
             <InventoryProvider>
               <Router>
-                <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+                <Box sx={{ display: 'flex', height: '100vh' }}>
                   <Layout>
-                    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                      <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/products" element={<Products />} />
-                        <Route path="/suppliers" element={<Suppliers />} />
-                                              <Route path="/customers" element={<Customers />} />
+                    <Routes>
+                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/products" element={<Products />} />
+                      <Route path="/suppliers" element={<Suppliers />} />
+                      <Route path="/customers" element={<Customers />} />
                       <Route path="/inbound" element={<InboundShipments />} />
                       <Route path="/outbound" element={<OutboundShipments />} />
+                      <Route path="/company-info" element={<CompanyInfoPage />} />
+                      <Route path="/users" element={<Users />} />
+                      <Route path="/inbound-details" element={<InboundDetails />} />
+                      <Route path="/inbound-details/:shipmentId" element={<InboundShipmentDetails />} />
+                      <Route path="/outbound-details" element={<OutboundDetails />} />
+                      <Route path="/outbound-details/:shipmentId" element={<OutboundShipmentDetails />} />
+                      <Route path="/transaction-history" element={<TransactionHistory />} />
                       <Route path="/auto-sync" element={<AutoSync />} />
-                      </Routes>
-                    </Container>
+                    </Routes>
                   </Layout>
                 </Box>
               </Router>

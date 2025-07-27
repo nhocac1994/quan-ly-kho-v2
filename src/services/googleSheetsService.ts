@@ -5,7 +5,11 @@ import {
   Supplier,
   Customer,
   InboundShipment,
-  OutboundShipment
+  OutboundShipment,
+  CompanyInfo,
+  User,
+  InboundDetail,
+  OutboundDetail
 } from '../types';
 
 // Re-export types
@@ -14,7 +18,11 @@ export type {
   Supplier,
   Customer,
   InboundShipment,
-  OutboundShipment
+  OutboundShipment,
+  CompanyInfo,
+  User,
+  InboundDetail,
+  OutboundDetail
 };
 
 // Cấu hình từ environment variables
@@ -158,6 +166,25 @@ const mockData = {
   outboundShipments: [
     ['1', 'Xuất bán', '2024-01-20', '1', 'Công ty ABC', 'HD003', '2', '2', 'Tài xế C', 'Xuất laptop Dell cho khách hàng', 'Giao hàng thành công', '2024-01-20', 'Admin', '2024-01-20'],
     ['2', 'Xuất trả', '2024-01-21', '2', 'Cửa hàng XYZ', 'HD004', '5', '5', 'Tài xế D', 'Xuất chuột Logitech trả nhà cung cấp', 'Khách hàng hài lòng', '2024-01-21', 'Admin', '2024-01-21']
+  ],
+  // THONG_TIN_CTY
+  companyInfo: [
+    ['1', 'Công ty TNHH ABC', 'Có', 'Công ty TNHH ABC', 'Công ty công nghệ', '', 'Nguyễn Văn A', '0123456789', 'Hoạt động', 'NV001', 'Thông tin công ty chính', '2024-01-01', 'Admin', '2024-01-01']
+  ],
+  // NGUOI_DUNG
+  users: [
+    ['1', 'admin', 'admin@company.com', 'Quản trị viên', 'Admin', 'password123', 'Có', 'Có', 'Có', 'Có', 'Có', 'Có', 'Có', 'Có', '2024-01-01', 'Admin', '2024-01-01'],
+    ['2', 'user1', 'user1@company.com', 'Nhân viên kho', 'User', 'password123', 'Có', 'Có', 'Có', 'Không', 'Có', 'Có', 'Có', 'Không', '2024-01-01', 'Admin', '2024-01-01']
+  ],
+  // NHAP_KHO_CT
+  inboundDetails: [
+    ['1', '1', 'SP001', 'Laptop Dell Inspiron', '5', '15000000', '75000000', 'Tốt', '2024-01-15', 'Admin', '2024-01-15'],
+    ['2', '1', 'SP002', 'Chuột Logitech MX Master', '10', '2000000', '20000000', 'Tốt', '2024-01-15', 'Admin', '2024-01-15']
+  ],
+  // XUAT_KHO_CT
+  outboundDetails: [
+    ['1', '1', 'SP001', 'Laptop Dell Inspiron', '2', '15000000', '30000000', 'Tốt', '2024-01-20', 'Admin', '2024-01-20'],
+    ['2', '1', 'SP002', 'Chuột Logitech MX Master', '5', '2000000', '10000000', 'Tốt', '2024-01-20', 'Admin', '2024-01-20']
   ]
 };
 
@@ -203,6 +230,10 @@ export const getSheetData = async (range: string): Promise<any[]> => {
   if (range.includes('KHACH_HANG') || range.includes('Customers')) return mockData.customers;
   if (range.includes('NHAP_KHO') || range.includes('InboundShipments')) return mockData.inboundShipments;
   if (range.includes('XUAT_KHO') || range.includes('OutboundShipments')) return mockData.outboundShipments;
+  if (range.includes('THONG_TIN_CTY') || range.includes('CompanyInfo')) return mockData.companyInfo;
+  if (range.includes('NGUOI_DUNG') || range.includes('Users')) return mockData.users;
+  if (range.includes('NHAP_KHO_CT') || range.includes('InboundDetails')) return mockData.inboundDetails;
+  if (range.includes('XUAT_KHO_CT') || range.includes('OutboundDetails')) return mockData.outboundDetails;
   return [];
 };
 
@@ -252,13 +283,39 @@ const appendSheetData = async (range: string, values: any[][]): Promise<void> =>
 // Đồng bộ dữ liệu từ Google Sheets
 export const syncDataFromGoogleSheets = async () => {
   try {
-    const [products, suppliers, customers, inboundShipments, outboundShipments] = await Promise.all([
-      getSheetData('DM_SAN_PHAM!A2:L'),
-      getSheetData('NCC!A2:N'),
-      getSheetData('KHACH_HANG!A2:N'),
-      getSheetData('NHAP_KHO!A2:N'),
-      getSheetData('XUAT_KHO!A2:N')
-    ]);
+    // Thêm delay giữa các request để tránh rate limiting
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    
+    // Gọi từng sheet một thay vì Promise.all để tránh rate limiting
+    console.log('🔄 Bắt đầu đồng bộ từng sheet...');
+    
+    const products = await getSheetData('DM_SAN_PHAM!A2:L');
+    await delay(1000); // Delay 1 giây
+    
+    const suppliers = await getSheetData('NCC!A2:N');
+    await delay(1000);
+    
+    const customers = await getSheetData('KHACH_HANG!A2:N');
+    await delay(1000);
+    
+    const inboundShipments = await getSheetData('NHAP_KHO!A2:N');
+    await delay(1000);
+    
+    const outboundShipments = await getSheetData('XUAT_KHO!A2:N');
+    await delay(1000);
+    
+    const companyInfo = await getSheetData('THONG_TIN_CTY!A2:N');
+    await delay(1000);
+    
+    const users = await getSheetData('NGUOI_DUNG!A2:Q');
+    await delay(1000);
+    
+    const inboundDetails = await getSheetData('NHAP_KHO_CT!A2:K');
+    await delay(1000);
+    
+    const outboundDetails = await getSheetData('XUAT_KHO_CT!A2:K');
+    
+    console.log('✅ Đã đồng bộ tất cả 9 sheet thành công');
 
     return {
       products: products.map((row, index) => ({
@@ -338,6 +395,67 @@ export const syncDataFromGoogleSheets = async () => {
         ngay_tao: row[11] || new Date().toISOString(),
         nguoi_tao: row[12] || 'Admin',
         update: row[13] || new Date().toISOString(),
+      })),
+      companyInfo: companyInfo.map((row, index) => ({
+        id: row[0] || `company_${index + 1}`,
+        ten_cong_ty: row[1] || '',
+        hien_thi: row[2] || 'Có',
+        ten_day_du: row[3] || '',
+        loai_cong_ty: row[4] || '',
+        logo: row[5] || '',
+        nguoi_dai_dien: row[6] || '',
+        sdt: row[7] || '',
+        tinh_trang: row[8] || 'Hoạt động',
+        nv_phu_trach: row[9] || '',
+        ghi_chu: row[10] || '',
+        ngay_tao: row[11] || new Date().toISOString(),
+        nguoi_tao: row[12] || 'Admin',
+        update: row[13] || new Date().toISOString(),
+      })),
+      users: users.map((row, index) => ({
+        id: row[0] || `user_${index + 1}`,
+        ho_va_ten: row[1] || '',
+        email: row[2] || '',
+        chuc_vu: row[3] || '',
+        phan_quyen: row[4] || '',
+        password: row[5] || '',
+        quyen_xem: row[6] || 'Có',
+        quyen_them: row[7] || 'Có',
+        quyen_sua: row[8] || 'Có',
+        quyen_xoa: row[9] || 'Có',
+        quyen_xuat: row[10] || 'Có',
+        quyen_nhap: row[11] || 'Có',
+        quyen_bao_cao: row[12] || 'Có',
+        quyen_cai_dat: row[13] || 'Có',
+        ngay_tao: row[14] || new Date().toISOString(),
+        nguoi_tao: row[15] || 'Admin',
+        update: row[16] || new Date().toISOString(),
+      })),
+      inboundDetails: inboundDetails.map((row, index) => ({
+        id: row[0] || `inbound_detail_${index + 1}`,
+        xuat_kho_id: row[1] || '',
+        san_pham_id: row[2] || '',
+        ten_san_pham: row[3] || '',
+        so_luong: parseInt(row[4]) || 0,
+        don_gia: parseFloat(row[5]) || 0,
+        thanh_tien: parseFloat(row[6]) || 0,
+        chat_luong: row[7] || '',
+        ngay_tao: row[8] || new Date().toISOString(),
+        nguoi_tao: row[9] || 'Admin',
+        update: row[10] || new Date().toISOString(),
+      })),
+      outboundDetails: outboundDetails.map((row, index) => ({
+        id: row[0] || `outbound_detail_${index + 1}`,
+        xuat_kho_id: row[1] || '',
+        san_pham_id: row[2] || '',
+        ten_san_pham: row[3] || '',
+        so_luong: parseInt(row[4]) || 0,
+        don_gia: parseFloat(row[5]) || 0,
+        thanh_tien: parseFloat(row[6]) || 0,
+        chat_luong: row[7] || '',
+        ngay_tao: row[8] || new Date().toISOString(),
+        nguoi_tao: row[9] || 'Admin',
+        update: row[10] || new Date().toISOString(),
       }))
     };
   } catch (error) {
@@ -540,7 +658,7 @@ export const suppliersAPI = {
 export const customersAPI = {
   getAll: async (): Promise<Customer[]> => {
     const data = await syncDataFromGoogleSheets();
-    return data.customers;
+    return data.customers || [];
   },
   create: async (customer: Omit<Customer, 'id'>): Promise<Customer> => {
     if (!hasServiceAccount) {
@@ -575,14 +693,17 @@ export const customersAPI = {
       console.warn('Update operation requires Service Account. Using mock data.');
       return { ...customer, id, update: new Date().toISOString() } as Customer;
     }
-    throw new Error('Update operation not implemented yet');
+    // TODO: Implement actual Google Sheets update
+    console.warn('Update operation not fully implemented yet. Using mock data.');
+    return { ...customer, id, update: new Date().toISOString() } as Customer;
   },
   delete: async (id: string): Promise<void> => {
     if (!hasServiceAccount) {
       console.warn('Delete operation requires Service Account. Using mock data.');
       return;
     }
-    throw new Error('Delete operation not implemented yet');
+    // TODO: Implement actual Google Sheets delete
+    console.warn('Delete operation not fully implemented yet. Using mock data.');
   },
 };
 
@@ -674,6 +795,203 @@ export const outboundShipmentsAPI = {
     if (!hasServiceAccount) {
       console.warn('Update operation requires Service Account. Using mock data.');
       return { ...shipment, id, update: new Date().toISOString() } as OutboundShipment;
+    }
+    throw new Error('Update operation not implemented yet');
+  },
+  delete: async (id: string): Promise<void> => {
+    if (!hasServiceAccount) {
+      console.warn('Delete operation requires Service Account. Using mock data.');
+      return;
+    }
+    throw new Error('Delete operation not implemented yet');
+  },
+};
+
+// Company Info API
+export const companyInfoAPI = {
+  getAll: async (): Promise<CompanyInfo[]> => {
+    const data = await syncDataFromGoogleSheets();
+    return data.companyInfo || [];
+  },
+  create: async (company: Omit<CompanyInfo, 'id'>): Promise<CompanyInfo> => {
+    if (!hasServiceAccount) {
+      console.warn('Create operation requires Service Account. Using mock data.');
+      const mockCompany = { ...company, id: Date.now().toString(), update: new Date().toISOString() };
+      return mockCompany as CompanyInfo;
+    }
+    
+    const id = Date.now().toString();
+    const now = new Date().toISOString();
+    const newRow = [
+      id,
+      company.ten_cong_ty,
+      company.hien_thi,
+      company.ten_day_du,
+      company.loai_cong_ty,
+      company.logo,
+      company.nguoi_dai_dien,
+      company.sdt,
+      company.tinh_trang,
+      company.nv_phu_trach,
+      company.ghi_chu,
+      now,
+      'Admin',
+      now
+    ];
+    await appendSheetData('THONG_TIN_CTY!A:N', [newRow]);
+    return { ...company, id, update: now };
+  },
+  update: async (id: string, company: Partial<CompanyInfo>): Promise<CompanyInfo> => {
+    if (!hasServiceAccount) {
+      console.warn('Update operation requires Service Account. Using mock data.');
+      return { ...company, id, update: new Date().toISOString() } as CompanyInfo;
+    }
+    throw new Error('Update operation not implemented yet');
+  },
+  delete: async (id: string): Promise<void> => {
+    if (!hasServiceAccount) {
+      console.warn('Delete operation requires Service Account. Using mock data.');
+      return;
+    }
+    throw new Error('Delete operation not implemented yet');
+  },
+};
+
+// Users API
+export const usersAPI = {
+  getAll: async (): Promise<User[]> => {
+    const data = await syncDataFromGoogleSheets();
+    return data.users || [];
+  },
+  create: async (user: Omit<User, 'id'>): Promise<User> => {
+    if (!hasServiceAccount) {
+      console.warn('Create operation requires Service Account. Using mock data.');
+      const mockUser = { ...user, id: Date.now().toString(), update: new Date().toISOString() };
+      return mockUser as User;
+    }
+    
+    const id = Date.now().toString();
+    const now = new Date().toISOString();
+    const newRow = [
+      id,
+      user.ho_va_ten,
+      user.email,
+      user.chuc_vu,
+      user.phan_quyen,
+      user.password,
+      user.quyen_xem,
+      user.quyen_them,
+      user.quyen_sua,
+      user.quyen_xoa,
+      user.quyen_xuat,
+      user.quyen_nhap,
+      user.quyen_bao_cao,
+      user.quyen_cai_dat,
+      now,
+      'Admin',
+      now
+    ];
+    await appendSheetData('NGUOI_DUNG!A:Q', [newRow]);
+    return { ...user, id, update: now };
+  },
+  update: async (id: string, user: Partial<User>): Promise<User> => {
+    if (!hasServiceAccount) {
+      console.warn('Update operation requires Service Account. Using mock data.');
+      return { ...user, id, update: new Date().toISOString() } as User;
+    }
+    throw new Error('Update operation not implemented yet');
+  },
+  delete: async (id: string): Promise<void> => {
+    if (!hasServiceAccount) {
+      console.warn('Delete operation requires Service Account. Using mock data.');
+      return;
+    }
+    throw new Error('Delete operation not implemented yet');
+  },
+};
+
+// Inbound Details API
+export const inboundDetailsAPI = {
+  getAll: async (): Promise<InboundDetail[]> => {
+    const data = await syncDataFromGoogleSheets();
+    return data.inboundDetails || [];
+  },
+  create: async (detail: Omit<InboundDetail, 'id'>): Promise<InboundDetail> => {
+    if (!hasServiceAccount) {
+      console.warn('Create operation requires Service Account. Using mock data.');
+      const mockDetail = { ...detail, id: Date.now().toString(), update: new Date().toISOString() };
+      return mockDetail as InboundDetail;
+    }
+    
+    const id = Date.now().toString();
+    const now = new Date().toISOString();
+    const newRow = [
+      id,
+      detail.xuat_kho_id,
+      detail.san_pham_id,
+      detail.ten_san_pham,
+      detail.so_luong,
+      detail.don_gia,
+      detail.thanh_tien,
+      detail.chat_luong,
+      now,
+      'Admin',
+      now
+    ];
+    await appendSheetData('NHAP_KHO_CT!A:K', [newRow]);
+    return { ...detail, id, update: now };
+  },
+  update: async (id: string, detail: Partial<InboundDetail>): Promise<InboundDetail> => {
+    if (!hasServiceAccount) {
+      console.warn('Update operation requires Service Account. Using mock data.');
+      return { ...detail, id, update: new Date().toISOString() } as InboundDetail;
+    }
+    throw new Error('Update operation not implemented yet');
+  },
+  delete: async (id: string): Promise<void> => {
+    if (!hasServiceAccount) {
+      console.warn('Delete operation requires Service Account. Using mock data.');
+      return;
+    }
+    throw new Error('Delete operation not implemented yet');
+  },
+};
+
+// Outbound Details API
+export const outboundDetailsAPI = {
+  getAll: async (): Promise<OutboundDetail[]> => {
+    const data = await syncDataFromGoogleSheets();
+    return data.outboundDetails || [];
+  },
+  create: async (detail: Omit<OutboundDetail, 'id'>): Promise<OutboundDetail> => {
+    if (!hasServiceAccount) {
+      console.warn('Create operation requires Service Account. Using mock data.');
+      const mockDetail = { ...detail, id: Date.now().toString(), update: new Date().toISOString() };
+      return mockDetail as OutboundDetail;
+    }
+    
+    const id = Date.now().toString();
+    const now = new Date().toISOString();
+    const newRow = [
+      id,
+      detail.xuat_kho_id,
+      detail.san_pham_id,
+      detail.ten_san_pham,
+      detail.so_luong,
+      detail.don_gia,
+      detail.thanh_tien,
+      detail.chat_luong,
+      now,
+      'Admin',
+      now
+    ];
+    await appendSheetData('XUAT_KHO_CT!A:K', [newRow]);
+    return { ...detail, id, update: now };
+  },
+  update: async (id: string, detail: Partial<OutboundDetail>): Promise<OutboundDetail> => {
+    if (!hasServiceAccount) {
+      console.warn('Update operation requires Service Account. Using mock data.');
+      return { ...detail, id, update: new Date().toISOString() } as OutboundDetail;
     }
     throw new Error('Update operation not implemented yet');
   },

@@ -43,7 +43,7 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <Box>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 3 }}>
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
