@@ -414,12 +414,12 @@ export const syncDataFromGoogleSheets = async () => {
     const users = await getSheetData('NGUOI_DUNG!A2:Q');
     await delay(1000);
     
-    const inboundDetails = await getSheetData('NHAP_KHO_CT!A2:K');
-    await delay(1000);
+    // Loại bỏ các sheet chi tiết vì đã gộp vào bảng chính
+    // const inboundDetails = await getSheetData('NHAP_KHO_CT!A2:K');
+    // await delay(1000);
+    // const outboundDetails = await getSheetData('XUAT_KHO_CT!A2:K');
     
-    const outboundDetails = await getSheetData('XUAT_KHO_CT!A2:K');
-    
-    console.log('✅ Đã đồng bộ tất cả 9 sheet thành công');
+    console.log('✅ Đã đồng bộ tất cả 7 sheet thành công');
 
     return {
       products: products.map((row, index) => ({
@@ -550,32 +550,9 @@ export const syncDataFromGoogleSheets = async () => {
         nguoi_tao: row[15] || 'Admin',
         update: row[16] || new Date().toISOString(),
       })),
-      inboundDetails: inboundDetails.map((row, index) => ({
-        id: row[0] || `inbound_detail_${index + 1}`,
-        xuat_kho_id: row[1] || '',
-        san_pham_id: row[2] || '',
-        ten_san_pham: row[3] || '',
-        so_luong: parseInt(row[4]) || 0,
-        don_gia: parseFloat(row[5]) || 0,
-        thanh_tien: parseFloat(row[6]) || 0,
-        chat_luong: row[7] || '',
-        ngay_tao: row[8] || new Date().toISOString(),
-        nguoi_tao: row[9] || 'Admin',
-        update: row[10] || new Date().toISOString(),
-      })),
-      outboundDetails: outboundDetails.map((row, index) => ({
-        id: row[0] || `outbound_detail_${index + 1}`,
-        xuat_kho_id: row[1] || '',
-        san_pham_id: row[2] || '',
-        ten_san_pham: row[3] || '',
-        so_luong: parseInt(row[4]) || 0,
-        don_gia: parseFloat(row[5]) || 0,
-        thanh_tien: parseFloat(row[6]) || 0,
-        chat_luong: row[7] || '',
-        ngay_tao: row[8] || new Date().toISOString(),
-        nguoi_tao: row[9] || 'Admin',
-        update: row[10] || new Date().toISOString(),
-      }))
+      // Tạo mảng rỗng cho inboundDetails và outboundDetails vì đã gộp vào bảng chính
+      inboundDetails: [],
+      outboundDetails: []
     };
   } catch (error) {
     console.error('Error syncing data from Google Sheets:', error);
@@ -674,7 +651,44 @@ export const syncDataFromGoogleSheets = async () => {
         ngay_tao: row.ngay_tao || new Date().toISOString(),
         nguoi_tao: row.nguoi_tao || 'Admin',
         update: row.update || new Date().toISOString(),
-      }))
+      })),
+      companyInfo: mockData.companyInfo?.map((row, index) => ({
+        id: row[0] || `company_${index + 1}`,
+        ten_cong_ty: row[1] || '',
+        hien_thi: row[2] || 'Có',
+        ten_day_du: row[3] || '',
+        loai_cong_ty: row[4] || '',
+        logo: row[5] || '',
+        nguoi_dai_dien: row[6] || '',
+        sdt: row[7] || '',
+        tinh_trang: row[8] || 'Hoạt động',
+        nv_phu_trach: row[9] || '',
+        ghi_chu: row[10] || '',
+        ngay_tao: row[11] || new Date().toISOString(),
+        nguoi_tao: row[12] || 'Admin',
+        update: row[13] || new Date().toISOString(),
+      })) || [],
+      users: mockData.users?.map((row, index) => ({
+        id: row[0] || `user_${index + 1}`,
+        ho_va_ten: row[1] || '',
+        email: row[2] || '',
+        chuc_vu: row[3] || '',
+        phan_quyen: row[4] || '',
+        password: row[5] || '',
+        quyen_xem: row[6] || 'Có',
+        quyen_them: row[7] || 'Có',
+        quyen_sua: row[8] || 'Có',
+        quyen_xoa: row[9] || 'Có',
+        quyen_xuat: row[10] || 'Có',
+        quyen_nhap: row[11] || 'Có',
+        quyen_bao_cao: row[12] || 'Có',
+        quyen_cai_dat: row[13] || 'Có',
+        ngay_tao: row[14] || new Date().toISOString(),
+        nguoi_tao: row[15] || 'Admin',
+        update: row[16] || new Date().toISOString(),
+      })) || [],
+      inboundDetails: [],
+      outboundDetails: []
     };
   }
 };
@@ -1087,7 +1101,8 @@ export const inboundDetailsAPI = {
       'Admin',
       now
     ];
-    await appendSheetData('NHAP_KHO_CT!A:K', [newRow]);
+    // Không thể append vào sheet chi tiết vì đã gộp vào bảng chính
+    // await appendSheetData('NHAP_KHO_CT!A:K', [newRow]);
     return { ...detail, id, update: now };
   },
   update: async (id: string, detail: Partial<InboundDetail>): Promise<InboundDetail> => {
@@ -1134,7 +1149,8 @@ export const outboundDetailsAPI = {
       'Admin',
       now
     ];
-    await appendSheetData('XUAT_KHO_CT!A:K', [newRow]);
+    // Không thể append vào sheet chi tiết vì đã gộp vào bảng chính
+    // await appendSheetData('XUAT_KHO_CT!A:K', [newRow]);
     return { ...detail, id, update: now };
   },
   update: async (id: string, detail: Partial<OutboundDetail>): Promise<OutboundDetail> => {

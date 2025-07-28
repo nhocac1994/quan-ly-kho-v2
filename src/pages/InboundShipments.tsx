@@ -311,18 +311,16 @@ const InboundShipments: React.FC = () => {
 
       {/* Bảng phiếu nhập */}
       <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', mx: 3, mb: 3 }}>
-        <TableContainer sx={{ flex: 1, maxHeight: 'none' }}>
+        <TableContainer sx={{ flex: 1, maxHeight: 'calc(100vh - 400px)', overflow: 'auto' }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
                 <TableCell>Mã Phiếu</TableCell>
-                <TableCell>Loại Nhập</TableCell>
                 <TableCell>Ngày Nhập</TableCell>
-                <TableCell>Khách Hàng</TableCell>
-                <TableCell>Mã Hóa Đơn</TableCell>
-                <TableCell align="right">SL Sản Phẩm</TableCell>
-                <TableCell align="right">SL Xuất</TableCell>
-                <TableCell>Tài Xế</TableCell>
+                <TableCell>Tên Sản Phẩm</TableCell>
+                <TableCell>Nhà Cung Cấp</TableCell>
+                <TableCell align="right">Số Lượng</TableCell>
+                <TableCell>Đơn Vị</TableCell>
                 <TableCell>Nội Dung</TableCell>
                 <TableCell align="center">Thao Tác</TableCell>
               </TableRow>
@@ -332,14 +330,7 @@ const InboundShipments: React.FC = () => {
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((shipment) => (
                   <TableRow key={shipment.id} hover>
-                    <TableCell>{shipment.id}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={shipment.xuat_kho_id}
-                        color="primary"
-                        size="small"
-                      />
-                    </TableCell>
+                    <TableCell>{shipment.xuat_kho_id}</TableCell>
                     <TableCell>{new Date(shipment.ngay_nhap).toLocaleDateString('vi-VN')}</TableCell>
                     <TableCell>{shipment.ten_san_pham}</TableCell>
                     <TableCell>{shipment.Ten_Nha_Cung_Cap}</TableCell>
@@ -544,13 +535,12 @@ const InboundShipments: React.FC = () => {
       </Dialog>
 
       {/* Import Excel Dialog */}
-      {/* Import Excel Dialog - TODO: Update to support suppliers */}
-      {/* <ImportExcelDialog
+      <ImportExcelDialog
         open={openImportDialog}
         onClose={() => setOpenImportDialog(false)}
         onImport={handleImportExcel}
-        suppliers={suppliers}
-      /> */}
+        customers={suppliers} // Sử dụng suppliers thay vì customers cho nhập kho
+      />
       </Box>
     </Box>
   );

@@ -316,18 +316,16 @@ const OutboundShipments: React.FC = () => {
 
       {/* Bảng phiếu xuất */}
       <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', mx: 3, mb: 3 }}>
-        <TableContainer sx={{ flex: 1, maxHeight: 'none' }}>
+        <TableContainer sx={{ flex: 1, maxHeight: 'calc(100vh - 400px)', overflow: 'auto' }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
                 <TableCell>Mã Phiếu</TableCell>
-                <TableCell>Loại Xuất</TableCell>
                 <TableCell>Ngày Xuất</TableCell>
+                <TableCell>Tên Sản Phẩm</TableCell>
                 <TableCell>Khách Hàng</TableCell>
-                <TableCell>Mã Hóa Đơn</TableCell>
-                <TableCell align="right">SL Sản Phẩm</TableCell>
-                <TableCell align="right">SL Xuất</TableCell>
-                <TableCell>Tài Xế</TableCell>
+                <TableCell align="right">Số Lượng</TableCell>
+                <TableCell>Đơn Vị</TableCell>
                 <TableCell>Nội Dung</TableCell>
                 <TableCell align="center">Thao Tác</TableCell>
               </TableRow>
@@ -337,14 +335,7 @@ const OutboundShipments: React.FC = () => {
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((shipment) => (
                   <TableRow key={shipment.id} hover>
-                    <TableCell>{shipment.id}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={shipment.xuat_kho_id}
-                        color="secondary"
-                        size="small"
-                      />
-                    </TableCell>
+                    <TableCell>{shipment.xuat_kho_id}</TableCell>
                     <TableCell>{new Date(shipment.ngay_xuat).toLocaleDateString('vi-VN')}</TableCell>
                     <TableCell>{shipment.ten_san_pham}</TableCell>
                     <TableCell>{shipment.Ten_Khach_Hang}</TableCell>
@@ -557,13 +548,12 @@ const OutboundShipments: React.FC = () => {
       </Dialog>
 
       {/* Import Excel Dialog */}
-      {/* Import Excel Dialog - TODO: Update to support customers */}
-      {/* <ImportExcelOutboundDialog
+      <ImportExcelOutboundDialog
         open={openImportDialog}
         onClose={() => setOpenImportDialog(false)}
         onImport={handleImportExcel}
         customers={customers}
-      /> */}
+      />
       </Box>
     </Box>
   );
