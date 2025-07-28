@@ -209,7 +209,7 @@ const OutboundShipmentDetails: React.FC = () => {
                 Khách Hàng
               </Typography>
               <Typography variant="h6">
-                {shipment.ten_khach_hang}
+                {shipment.Ten_Khach_Hang}
               </Typography>
             </CardContent>
           </Card>

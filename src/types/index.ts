@@ -88,16 +88,23 @@ export interface Product {
 
 export interface InboundShipment {
   id: string;
-  loai_nhap: string;
+  xuat_kho_id: string; // Mã phiếu nhập kho
   ngay_nhap: string;
-  khach_hang_id: string;
-  ten_khach_hang: string;
-  ma_hoa_don: string;
-  sl_san_pham: number;
-  sl_xuat: number;
-  tai_xe: string;
-  noi_dung_nhap: string;
+  san_pham_id: string;
+  ten_san_pham: string;
+  nhom_san_pham: string;
+  hang_sx: string;
+  hinh_anh: string;
+  thong_tin: string;
+  quy_cach: string;
+  dvt: string;
+  SL_Nhap: number;
   ghi_chu: string;
+  Nha_Cung_Cap_id: string;
+  Ten_Nha_Cung_Cap: string;
+  Dia_Chi: string;
+  So_Dt: string;
+  Noi_Dung_Nhap: string;
   ngay_tao: string;
   nguoi_tao: string;
   update: string;
@@ -105,16 +112,24 @@ export interface InboundShipment {
 
 export interface OutboundShipment {
   id: string;
-  loai_xuat: string;
+  xuat_kho_id: string; // Mã phiếu xuất kho
   ngay_xuat: string;
-  khach_hang_id: string;
-  ten_khach_hang: string;
-  ma_hoa_don: string;
-  sl_san_pham: number;
+  san_pham_id: string;
+  ten_san_pham: string;
+  nhom_san_pham: string;
+  hang_sx: string;
+  hinh_anh: string;
+  thong_tin: string;
+  quy_cach: string;
+  dvt: string;
   sl_xuat: number;
-  tai_xe: string;
-  noi_dung_xuat: string;
   ghi_chu: string;
+  So_HD: string;
+  Ma_KH: string;
+  Ten_Khach_Hang: string;
+  Dia_Chi: string;
+  So_Dt: string;
+  Noi_Dung_Xuat: string;
   ngay_tao: string;
   nguoi_tao: string;
   update: string;

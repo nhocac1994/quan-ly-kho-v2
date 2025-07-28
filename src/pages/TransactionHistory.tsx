@@ -79,11 +79,11 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
   const [filterType, setFilterType] = useState('all');
   const [filterCustomer, setFilterCustomer] = useState('all');
 
-  // Lấy danh sách khách hàng unique
+  // Lấy danh sách khách hàng và nhà cung cấp unique
   const allCustomers = useMemo(() => {
     const customers = new Set<string>();
-    inboundShipments.forEach(s => customers.add(s.ten_khach_hang));
-    outboundShipments.forEach(s => customers.add(s.ten_khach_hang));
+    inboundShipments.forEach(s => customers.add(s.Ten_Nha_Cung_Cap));
+    outboundShipments.forEach(s => customers.add(s.Ten_Khach_Hang));
     return Array.from(customers).sort();
   }, [inboundShipments, outboundShipments]);
 
@@ -91,16 +91,16 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
   const filteredInbound = useMemo(() => {
     let filtered = inboundShipments.filter((shipment: InboundShipment) => {
       const matchesSearch = 
-        shipment.ten_khach_hang.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        shipment.ma_hoa_don.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        shipment.loai_nhap.toLowerCase().includes(searchTerm.toLowerCase());
+        shipment.ten_san_pham.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        shipment.xuat_kho_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        shipment.Ten_Nha_Cung_Cap.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesDate = (!dateFrom || shipment.ngay_nhap >= dateFrom) &&
                          (!dateTo || shipment.ngay_nhap <= dateTo);
       
       const matchesType = filterType === 'all' || filterType === 'inbound';
       
-      const matchesCustomer = filterCustomer === 'all' || shipment.ten_khach_hang === filterCustomer;
+      const matchesCustomer = filterCustomer === 'all' || shipment.Ten_Nha_Cung_Cap === filterCustomer;
       
       return matchesSearch && matchesDate && matchesType && matchesCustomer;
     });
@@ -112,16 +112,16 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
   const filteredOutbound = useMemo(() => {
     let filtered = outboundShipments.filter((shipment: OutboundShipment) => {
       const matchesSearch = 
-        shipment.ten_khach_hang.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        shipment.ma_hoa_don.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        shipment.loai_xuat.toLowerCase().includes(searchTerm.toLowerCase());
+        shipment.ten_san_pham.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        shipment.xuat_kho_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        shipment.Ten_Khach_Hang.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesDate = (!dateFrom || shipment.ngay_xuat >= dateFrom) &&
                          (!dateTo || shipment.ngay_xuat <= dateTo);
       
       const matchesType = filterType === 'all' || filterType === 'outbound';
       
-      const matchesCustomer = filterCustomer === 'all' || shipment.ten_khach_hang === filterCustomer;
+      const matchesCustomer = filterCustomer === 'all' || shipment.Ten_Khach_Hang === filterCustomer;
       
       return matchesSearch && matchesDate && matchesType && matchesCustomer;
     });
@@ -311,11 +311,11 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
                     <TableCell>Loại</TableCell>
                     <TableCell>Mã Phiếu</TableCell>
                     <TableCell>Ngày</TableCell>
-                    <TableCell>Khách Hàng</TableCell>
-                    <TableCell>Mã Hóa Đơn</TableCell>
-                    <TableCell align="right">SL Sản Phẩm</TableCell>
-                    <TableCell align="right">SL Giao Dịch</TableCell>
-                    <TableCell>Tài Xế</TableCell>
+                    <TableCell>Tên Sản Phẩm</TableCell>
+                    <TableCell>Đối Tác</TableCell>
+                    <TableCell align="right">Số Lượng</TableCell>
+                    <TableCell>Đơn Vị</TableCell>
+                    <TableCell>Nội Dung</TableCell>
                     <TableCell align="center">Thao Tác</TableCell>
                   </TableRow>
                 </TableHead>
@@ -345,23 +345,17 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
                                                    <TableCell>
                            {new Date(isInbound ? (transactionData as InboundShipment).ngay_nhap : (transactionData as OutboundShipment).ngay_xuat).toLocaleDateString('vi-VN')}
                          </TableCell>
-                          <TableCell>{transactionData.ten_khach_hang}</TableCell>
-                          <TableCell>{transactionData.ma_hoa_don}</TableCell>
+                          <TableCell>{transactionData.ten_san_pham}</TableCell>
+                          <TableCell>{isInbound ? (transactionData as InboundShipment).Ten_Nha_Cung_Cap : (transactionData as OutboundShipment).Ten_Khach_Hang}</TableCell>
                           <TableCell align="right">
                             <Chip
-                              label={transactionData.sl_san_pham}
+                              label={isInbound ? (transactionData as InboundShipment).SL_Nhap : (transactionData as OutboundShipment).sl_xuat}
                               color="info"
                               size="small"
                             />
                           </TableCell>
-                          <TableCell align="right">
-                            <Chip
-                              label={transactionData.sl_xuat}
-                              color={isInbound ? 'success' : 'error'}
-                              size="small"
-                            />
-                          </TableCell>
-                          <TableCell>{transactionData.tai_xe}</TableCell>
+                          <TableCell>{transactionData.dvt}</TableCell>
+                          <TableCell>{isInbound ? (transactionData as InboundShipment).Noi_Dung_Nhap : (transactionData as OutboundShipment).Noi_Dung_Xuat}</TableCell>
                           <TableCell align="center">
                             <IconButton
                               size="small"
@@ -404,12 +398,11 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
                   <TableRow>
                     <TableCell>Mã Phiếu</TableCell>
                     <TableCell>Ngày Nhập</TableCell>
-                    <TableCell>Loại Nhập</TableCell>
-                    <TableCell>Khách Hàng</TableCell>
-                    <TableCell>Mã Hóa Đơn</TableCell>
-                    <TableCell align="right">SL Sản Phẩm</TableCell>
-                    <TableCell align="right">SL Nhập</TableCell>
-                    <TableCell>Tài Xế</TableCell>
+                    <TableCell>Tên Sản Phẩm</TableCell>
+                    <TableCell>Nhà Cung Cấp</TableCell>
+                    <TableCell align="right">Số Lượng</TableCell>
+                    <TableCell>Đơn Vị</TableCell>
+                    <TableCell>Nội Dung</TableCell>
                     <TableCell align="center">Thao Tác</TableCell>
                   </TableRow>
                 </TableHead>
@@ -420,30 +413,17 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
                       <TableRow key={shipment.id} hover>
                         <TableCell>{shipment.id}</TableCell>
                         <TableCell>{new Date(shipment.ngay_nhap).toLocaleDateString('vi-VN')}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={shipment.loai_nhap}
-                            color="success"
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>{shipment.ten_khach_hang}</TableCell>
-                        <TableCell>{shipment.ma_hoa_don}</TableCell>
+                        <TableCell>{shipment.ten_san_pham}</TableCell>
+                        <TableCell>{shipment.Ten_Nha_Cung_Cap}</TableCell>
                         <TableCell align="right">
                           <Chip
-                            label={shipment.sl_san_pham}
+                            label={shipment.SL_Nhap}
                             color="info"
                             size="small"
                           />
                         </TableCell>
-                        <TableCell align="right">
-                          <Chip
-                            label={shipment.sl_xuat}
-                            color="success"
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>{shipment.tai_xe}</TableCell>
+                        <TableCell>{shipment.dvt}</TableCell>
+                        <TableCell>{shipment.Noi_Dung_Nhap}</TableCell>
                         <TableCell align="center">
                           <IconButton
                             size="small"
@@ -485,12 +465,11 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
                   <TableRow>
                     <TableCell>Mã Phiếu</TableCell>
                     <TableCell>Ngày Xuất</TableCell>
-                    <TableCell>Loại Xuất</TableCell>
+                    <TableCell>Tên Sản Phẩm</TableCell>
                     <TableCell>Khách Hàng</TableCell>
-                    <TableCell>Mã Hóa Đơn</TableCell>
-                    <TableCell align="right">SL Sản Phẩm</TableCell>
-                    <TableCell align="right">SL Xuất</TableCell>
-                    <TableCell>Tài Xế</TableCell>
+                    <TableCell align="right">Số Lượng</TableCell>
+                    <TableCell>Đơn Vị</TableCell>
+                    <TableCell>Nội Dung</TableCell>
                     <TableCell align="center">Thao Tác</TableCell>
                   </TableRow>
                 </TableHead>
@@ -501,30 +480,17 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
                       <TableRow key={shipment.id} hover>
                         <TableCell>{shipment.id}</TableCell>
                         <TableCell>{new Date(shipment.ngay_xuat).toLocaleDateString('vi-VN')}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={shipment.loai_xuat}
-                            color="error"
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>{shipment.ten_khach_hang}</TableCell>
-                        <TableCell>{shipment.ma_hoa_don}</TableCell>
+                        <TableCell>{shipment.ten_san_pham}</TableCell>
+                        <TableCell>{shipment.Ten_Khach_Hang}</TableCell>
                         <TableCell align="right">
                           <Chip
-                            label={shipment.sl_san_pham}
+                            label={shipment.sl_xuat}
                             color="info"
                             size="small"
                           />
                         </TableCell>
-                        <TableCell align="right">
-                          <Chip
-                            label={shipment.sl_xuat}
-                            color="error"
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>{shipment.tai_xe}</TableCell>
+                        <TableCell>{shipment.dvt}</TableCell>
+                        <TableCell>{shipment.Noi_Dung_Xuat}</TableCell>
                         <TableCell align="center">
                           <IconButton
                             size="small"

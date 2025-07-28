@@ -206,10 +206,10 @@ const InboundShipmentDetails: React.FC = () => {
           <Card sx={{ minWidth: 200 }}>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Khách Hàng
+                Nhà Cung Cấp
               </Typography>
               <Typography variant="h6">
-                {shipment.ten_khach_hang}
+                {shipment.Ten_Nha_Cung_Cap}
               </Typography>
             </CardContent>
           </Card>

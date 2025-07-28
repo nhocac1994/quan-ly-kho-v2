@@ -77,8 +77,8 @@ const getConfigFromStorage = (): AutoSyncConfig => {
   
   // Default config
   return {
-    isEnabled: false, // Tắt mặc định để tránh rate limiting
-    interval: 60, // 60 giây để tránh rate limiting
+    isEnabled: true, // Bật mặc định để đồng bộ dữ liệu
+    interval: 120, // 120 giây để tránh rate limiting
     syncDirection: 'download',
     lastDataHash: ''
   };

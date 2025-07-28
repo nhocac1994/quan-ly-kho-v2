@@ -39,23 +39,31 @@ import { useInventory } from '../context/InventoryContext';
 import { InboundShipment } from '../types';
 import ImportExcelDialog from '../components/ImportExcelDialog';
 import { useNavigate } from 'react-router-dom';
+import { inboundShipmentsAPI } from '../services/googleSheetsService';
 
 interface InboundShipmentFormData {
-  loai_nhap: string;
+  xuat_kho_id: string;
   ngay_nhap: string;
-  khach_hang_id: string;
-  ten_khach_hang: string;
-  ma_hoa_don: string;
-  sl_san_pham: number;
-  sl_xuat: number;
-  tai_xe: string;
-  noi_dung_nhap: string;
+  san_pham_id: string;
+  ten_san_pham: string;
+  nhom_san_pham: string;
+  hang_sx: string;
+  hinh_anh: string;
+  thong_tin: string;
+  quy_cach: string;
+  dvt: string;
+  SL_Nhap: number;
   ghi_chu: string;
+  Nha_Cung_Cap_id: string;
+  Ten_Nha_Cung_Cap: string;
+  Dia_Chi: string;
+  So_Dt: string;
+  Noi_Dung_Nhap: string;
 }
 
 const InboundShipments: React.FC = () => {
   const { state, dispatch } = useInventory();
-  const { inboundShipments, customers } = state;
+  const { inboundShipments, suppliers } = state;
   const navigate = useNavigate();
   
   const [page, setPage] = useState(0);
@@ -65,23 +73,30 @@ const InboundShipments: React.FC = () => {
   const [editingShipment, setEditingShipment] = useState<InboundShipment | null>(null);
   const [openImportDialog, setOpenImportDialog] = useState(false);
   const [formData, setFormData] = useState<InboundShipmentFormData>({
-    loai_nhap: '',
+    xuat_kho_id: '',
     ngay_nhap: new Date().toISOString().split('T')[0],
-    khach_hang_id: '',
-    ten_khach_hang: '',
-    ma_hoa_don: '',
-    sl_san_pham: 0,
-    sl_xuat: 0,
-    tai_xe: '',
-    noi_dung_nhap: '',
+    san_pham_id: '',
+    ten_san_pham: '',
+    nhom_san_pham: '',
+    hang_sx: '',
+    hinh_anh: '',
+    thong_tin: '',
+    quy_cach: '',
+    dvt: '',
+    SL_Nhap: 0,
     ghi_chu: '',
+    Nha_Cung_Cap_id: '',
+    Ten_Nha_Cung_Cap: '',
+    Dia_Chi: '',
+    So_Dt: '',
+    Noi_Dung_Nhap: '',
   });
 
   const filteredShipments = useMemo(() => {
     return inboundShipments.filter((shipment: InboundShipment) =>
-      shipment.ten_khach_hang.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.ma_hoa_don.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.loai_nhap.toLowerCase().includes(searchTerm.toLowerCase())
+      shipment.ten_san_pham.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      shipment.xuat_kho_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      shipment.Ten_Nha_Cung_Cap.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [inboundShipments, searchTerm]);
 
@@ -89,30 +104,44 @@ const InboundShipments: React.FC = () => {
     if (shipment) {
       setEditingShipment(shipment);
       setFormData({
-        loai_nhap: shipment.loai_nhap,
+        xuat_kho_id: shipment.xuat_kho_id,
         ngay_nhap: shipment.ngay_nhap,
-        khach_hang_id: shipment.khach_hang_id,
-        ten_khach_hang: shipment.ten_khach_hang,
-        ma_hoa_don: shipment.ma_hoa_don,
-        sl_san_pham: shipment.sl_san_pham,
-        sl_xuat: shipment.sl_xuat,
-        tai_xe: shipment.tai_xe,
-        noi_dung_nhap: shipment.noi_dung_nhap,
+        san_pham_id: shipment.san_pham_id,
+        ten_san_pham: shipment.ten_san_pham,
+        nhom_san_pham: shipment.nhom_san_pham,
+        hang_sx: shipment.hang_sx,
+        hinh_anh: shipment.hinh_anh,
+        thong_tin: shipment.thong_tin,
+        quy_cach: shipment.quy_cach,
+        dvt: shipment.dvt,
+        SL_Nhap: shipment.SL_Nhap,
         ghi_chu: shipment.ghi_chu,
+        Nha_Cung_Cap_id: shipment.Nha_Cung_Cap_id,
+        Ten_Nha_Cung_Cap: shipment.Ten_Nha_Cung_Cap,
+        Dia_Chi: shipment.Dia_Chi,
+        So_Dt: shipment.So_Dt,
+        Noi_Dung_Nhap: shipment.Noi_Dung_Nhap,
       });
     } else {
       setEditingShipment(null);
       setFormData({
-        loai_nhap: '',
+        xuat_kho_id: '',
         ngay_nhap: new Date().toISOString().split('T')[0],
-        khach_hang_id: '',
-        ten_khach_hang: '',
-        ma_hoa_don: '',
-        sl_san_pham: 0,
-        sl_xuat: 0,
-        tai_xe: '',
-        noi_dung_nhap: '',
+        san_pham_id: '',
+        ten_san_pham: '',
+        nhom_san_pham: '',
+        hang_sx: '',
+        hinh_anh: '',
+        thong_tin: '',
+        quy_cach: '',
+        dvt: '',
+        SL_Nhap: 0,
         ghi_chu: '',
+        Nha_Cung_Cap_id: '',
+        Ten_Nha_Cung_Cap: '',
+        Dia_Chi: '',
+        So_Dt: '',
+        Noi_Dung_Nhap: '',
       });
     }
     setOpenDialog(true);
@@ -123,86 +152,83 @@ const InboundShipments: React.FC = () => {
     setEditingShipment(null);
   };
 
-  const handleSubmit = () => {
-    const shipmentData: InboundShipment = {
-      id: editingShipment?.id || Date.now().toString(),
-      ...formData,
-      ngay_tao: editingShipment?.ngay_tao || new Date().toISOString(),
-      nguoi_tao: editingShipment?.nguoi_tao || 'Admin',
-      update: new Date().toISOString(),
-    };
+  const handleSubmit = async () => {
+    try {
+      const shipmentData: InboundShipment = {
+        id: editingShipment?.id || Date.now().toString(),
+        ...formData,
+        ngay_tao: editingShipment?.ngay_tao || new Date().toISOString(),
+        nguoi_tao: editingShipment?.nguoi_tao || 'Admin',
+        update: new Date().toISOString(),
+      };
 
-    if (editingShipment) {
-      dispatch({ type: 'UPDATE_INBOUND_SHIPMENT', payload: shipmentData });
-    } else {
-      dispatch({ type: 'ADD_INBOUND_SHIPMENT', payload: shipmentData });
+      if (editingShipment) {
+        await inboundShipmentsAPI.update(shipmentData.id, shipmentData);
+        dispatch({ type: 'UPDATE_INBOUND_SHIPMENT', payload: shipmentData });
+      } else {
+        const newShipment = await inboundShipmentsAPI.create(shipmentData);
+        dispatch({ type: 'ADD_INBOUND_SHIPMENT', payload: newShipment });
+      }
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Error saving inbound shipment:', error);
+      alert('Có lỗi khi lưu phiếu nhập kho');
     }
-    handleCloseDialog();
   };
 
-  const handleDelete = (shipmentId: string) => {
+  const handleDelete = async (shipmentId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa phiếu nhập kho này?')) {
-      dispatch({ type: 'DELETE_INBOUND_SHIPMENT', payload: shipmentId });
+      try {
+        await inboundShipmentsAPI.delete(shipmentId);
+        dispatch({ type: 'DELETE_INBOUND_SHIPMENT', payload: shipmentId });
+      } catch (error) {
+        console.error('Error deleting inbound shipment:', error);
+        alert('Có lỗi khi xóa phiếu nhập kho');
+      }
     }
   };
 
   const handleViewDetails = (shipmentId: string) => {
-    navigate(`/inbound-details/${shipmentId}`);
+    // TODO: Implement view details functionality if needed
+    console.log('View details for shipment:', shipmentId);
   };
 
-  const handleCustomerChange = (customerId: string) => {
-    const customer = customers.find((c) => c.id === customerId);
-    setFormData({
-      ...formData,
-      khach_hang_id: customerId,
-      ten_khach_hang: customer ? customer.ten_khach_hang : '',
-    });
+  const handleSupplierChange = (supplierId: string) => {
+    const supplier = suppliers.find((s: any) => s.id === supplierId);
+    if (supplier) {
+      setFormData(prev => ({
+        ...prev,
+        Nha_Cung_Cap_id: supplier.id,
+        Ten_Nha_Cung_Cap: supplier.ten_day_du || supplier.ten_ncc || '',
+        Dia_Chi: supplier.ghi_chu || '', // Supplier không có dia_chi field
+        So_Dt: supplier.sdt || '',
+      }));
+    }
   };
 
   const handleImportExcel = (importedData: any[]) => {
-    // Convert imported data to InboundShipment format
-    const shipments: InboundShipment[] = importedData.map((data) => ({
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      loai_nhap: data.loai_nhap,
-      ngay_nhap: data.ngay_nhap,
-      khach_hang_id: '',
-      ten_khach_hang: data.ten_khach_hang,
-      ma_hoa_don: data.ma_hoa_don,
-      sl_san_pham: data.sl_san_pham,
-      sl_xuat: data.sl_xuat,
-      tai_xe: data.tai_xe,
-      noi_dung_nhap: data.noi_dung_nhap,
-      ghi_chu: data.ghi_chu,
-      ngay_tao: new Date().toISOString(),
-      nguoi_tao: 'Admin',
-      update: new Date().toISOString(),
-    }));
-
-    // Add all imported shipments
-    shipments.forEach((shipment) => {
-      dispatch({ type: 'ADD_INBOUND_SHIPMENT', payload: shipment });
-    });
-
-    // Hiển thị thông báo thành công
-    alert(`✅ Đã import thành công ${importedData.length} phiếu nhập kho!`);
+    // TODO: Implement Excel import logic
+    console.log('Import data:', importedData);
+    setOpenImportDialog(false);
   };
 
-  const totalProducts = useMemo(() => 
-    inboundShipments.reduce((sum: number, shipment: InboundShipment) => sum + shipment.sl_san_pham, 0), 
-    [inboundShipments]
-  );
-
-  const totalQuantity = useMemo(() => 
-    inboundShipments.reduce((sum: number, shipment: InboundShipment) => sum + shipment.sl_xuat, 0), 
-    [inboundShipments]
-  );
-
-  const todayShipments = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return inboundShipments.filter((shipment: InboundShipment) => 
-      shipment.ngay_nhap === today
-    );
+  // Group shipments by xuat_kho_id for statistics
+  const groupedShipments = useMemo(() => {
+    const groups: { [key: string]: InboundShipment[] } = {};
+    inboundShipments.forEach((shipment: InboundShipment) => {
+      if (!groups[shipment.xuat_kho_id]) {
+        groups[shipment.xuat_kho_id] = [];
+      }
+      groups[shipment.xuat_kho_id].push(shipment);
+    });
+    return groups;
   }, [inboundShipments]);
+
+  const totalShipments = Object.keys(groupedShipments).length;
+  const totalQuantity = inboundShipments.reduce((sum: number, shipment: InboundShipment) => sum + shipment.SL_Nhap, 0);
+  const todayShipments = inboundShipments.filter((shipment: InboundShipment) => 
+    shipment.ngay_nhap === new Date().toISOString().split('T')[0]
+  ).length;
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -220,7 +246,7 @@ const InboundShipments: React.FC = () => {
               Tổng Phiếu Nhập
             </Typography>
             <Typography variant="h4">
-              {inboundShipments.length}
+              {totalShipments}
             </Typography>
           </CardContent>
         </Card>
@@ -230,7 +256,7 @@ const InboundShipments: React.FC = () => {
               Tổng Sản Phẩm Nhập
             </Typography>
             <Typography variant="h4" color="primary.main">
-              {totalProducts}
+              {inboundShipments.length}
             </Typography>
           </CardContent>
         </Card>
@@ -250,7 +276,7 @@ const InboundShipments: React.FC = () => {
               Nhập Hôm Nay
             </Typography>
             <Typography variant="h4" color="warning.main">
-              {todayShipments.length}
+              {todayShipments}
             </Typography>
           </CardContent>
         </Card>
@@ -309,30 +335,23 @@ const InboundShipments: React.FC = () => {
                     <TableCell>{shipment.id}</TableCell>
                     <TableCell>
                       <Chip
-                        label={shipment.loai_nhap}
+                        label={shipment.xuat_kho_id}
                         color="primary"
                         size="small"
                       />
                     </TableCell>
                     <TableCell>{new Date(shipment.ngay_nhap).toLocaleDateString('vi-VN')}</TableCell>
-                    <TableCell>{shipment.ten_khach_hang}</TableCell>
-                    <TableCell>{shipment.ma_hoa_don}</TableCell>
+                    <TableCell>{shipment.ten_san_pham}</TableCell>
+                    <TableCell>{shipment.Ten_Nha_Cung_Cap}</TableCell>
                     <TableCell align="right">
                       <Chip
-                        label={shipment.sl_san_pham}
+                        label={shipment.SL_Nhap}
                         color="info"
                         size="small"
                       />
                     </TableCell>
-                    <TableCell align="right">
-                      <Chip
-                        label={shipment.sl_xuat}
-                        color="success"
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>{shipment.tai_xe}</TableCell>
-                    <TableCell>{shipment.noi_dung_nhap}</TableCell>
+                    <TableCell>{shipment.dvt}</TableCell>
+                    <TableCell>{shipment.Noi_Dung_Nhap}</TableCell>
                     <TableCell align="center">
                       <IconButton
                         size="small"
@@ -404,18 +423,12 @@ const InboundShipments: React.FC = () => {
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel>Loại Nhập</InputLabel>
-                <Select
-                  value={formData.loai_nhap}
-                  label="Loại Nhập"
-                  onChange={(e) => setFormData({ ...formData, loai_nhap: e.target.value })}
-                >
-                  <MenuItem value="Nhập hàng">Nhập hàng</MenuItem>
-                  <MenuItem value="Nhập trả">Nhập trả</MenuItem>
-                  <MenuItem value="Nhập khác">Nhập khác</MenuItem>
-                </Select>
-              </FormControl>
+              <TextField
+                fullWidth
+                label="Mã Phiếu Nhập"
+                value={formData.xuat_kho_id}
+                onChange={(e) => setFormData({ ...formData, xuat_kho_id: e.target.value })}
+              />
               <TextField
                 fullWidth
                 type="date"
@@ -426,56 +439,91 @@ const InboundShipments: React.FC = () => {
               />
             </Box>
             <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Mã Sản Phẩm"
+                value={formData.san_pham_id}
+                onChange={(e) => setFormData({ ...formData, san_pham_id: e.target.value })}
+              />
+              <TextField
+                fullWidth
+                label="Tên Sản Phẩm"
+                value={formData.ten_san_pham}
+                onChange={(e) => setFormData({ ...formData, ten_san_pham: e.target.value })}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Nhóm Sản Phẩm"
+                value={formData.nhom_san_pham}
+                onChange={(e) => setFormData({ ...formData, nhom_san_pham: e.target.value })}
+              />
+              <TextField
+                fullWidth
+                label="Hãng Sản Xuất"
+                value={formData.hang_sx}
+                onChange={(e) => setFormData({ ...formData, hang_sx: e.target.value })}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Đơn Vị Tính"
+                value={formData.dvt}
+                onChange={(e) => setFormData({ ...formData, dvt: e.target.value })}
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="Số Lượng Nhập"
+                value={formData.SL_Nhap}
+                onChange={(e) => setFormData({ ...formData, SL_Nhap: parseInt(e.target.value) || 0 })}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
               <FormControl fullWidth>
-                <InputLabel>Khách Hàng</InputLabel>
+                <InputLabel>Nhà Cung Cấp</InputLabel>
                 <Select
-                  value={formData.khach_hang_id}
-                  label="Khách Hàng"
-                  onChange={(e) => handleCustomerChange(e.target.value)}
+                  value={formData.Nha_Cung_Cap_id}
+                  label="Nhà Cung Cấp"
+                  onChange={(e) => handleSupplierChange(e.target.value)}
                 >
-                  {customers.map((customer) => (
-                    <MenuItem key={customer.id} value={customer.id}>
-                      {customer.ten_khach_hang}
+                  {suppliers.map((supplier: any) => (
+                    <MenuItem key={supplier.id} value={supplier.id}>
+                      {supplier.ten_day_du || supplier.ten_ncc || supplier.id}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
               <TextField
                 fullWidth
-                label="Mã Hóa Đơn"
-                value={formData.ma_hoa_don}
-                onChange={(e) => setFormData({ ...formData, ma_hoa_don: e.target.value })}
+                label="Tên Nhà Cung Cấp"
+                value={formData.Ten_Nha_Cung_Cap}
+                onChange={(e) => setFormData({ ...formData, Ten_Nha_Cung_Cap: e.target.value })}
               />
             </Box>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
                 fullWidth
-                type="number"
-                label="Số Lượng Sản Phẩm"
-                value={formData.sl_san_pham}
-                onChange={(e) => setFormData({ ...formData, sl_san_pham: parseInt(e.target.value) || 0 })}
+                label="Địa Chỉ"
+                value={formData.Dia_Chi}
+                onChange={(e) => setFormData({ ...formData, Dia_Chi: e.target.value })}
               />
               <TextField
                 fullWidth
-                type="number"
-                label="Số Lượng Xuất"
-                value={formData.sl_xuat}
-                onChange={(e) => setFormData({ ...formData, sl_xuat: parseInt(e.target.value) || 0 })}
+                label="Số Điện Thoại"
+                value={formData.So_Dt}
+                onChange={(e) => setFormData({ ...formData, So_Dt: e.target.value })}
               />
             </Box>
-            <TextField
-              fullWidth
-              label="Tài Xế"
-              value={formData.tai_xe}
-              onChange={(e) => setFormData({ ...formData, tai_xe: e.target.value })}
-            />
             <TextField
               fullWidth
               multiline
               rows={2}
               label="Nội Dung Nhập"
-              value={formData.noi_dung_nhap}
-              onChange={(e) => setFormData({ ...formData, noi_dung_nhap: e.target.value })}
+              value={formData.Noi_Dung_Nhap}
+              onChange={(e) => setFormData({ ...formData, Noi_Dung_Nhap: e.target.value })}
             />
             <TextField
               fullWidth
@@ -496,12 +544,13 @@ const InboundShipments: React.FC = () => {
       </Dialog>
 
       {/* Import Excel Dialog */}
-      <ImportExcelDialog
+      {/* Import Excel Dialog - TODO: Update to support suppliers */}
+      {/* <ImportExcelDialog
         open={openImportDialog}
         onClose={() => setOpenImportDialog(false)}
         onImport={handleImportExcel}
-        customers={customers}
-      />
+        suppliers={suppliers}
+      /> */}
       </Box>
     </Box>
   );

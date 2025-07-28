@@ -25,11 +25,13 @@ export type {
   OutboundDetail
 };
 
-// Cấu hình từ environment variables
+// Cấu hình từ environment variables và file JSON
 const SPREADSHEET_ID = process.env.REACT_APP_GOOGLE_SPREADSHEET_ID || '1fq89PfqDMeNwwoXxKXrdBMJAvNdRRB49AZfOdCi-Eig';
 const SERVICE_ACCOUNT_EMAIL = process.env.REACT_APP_GOOGLE_SERVICE_ACCOUNT_EMAIL || 'mgessheetqpi@ggsheetapi-432710.iam.gserviceaccount.com';
-const PRIVATE_KEY = process.env.REACT_APP_GOOGLE_PRIVATE_KEY || '';
 const API_KEY = process.env.REACT_APP_GOOGLE_API_KEY || 'AIzaSyB7108787BkEd8BKI2LyWQReL7frFz_0og';
+
+// Private key từ file JSON Service Account
+const PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCnS5RRIup2BvYN\nfhPkJvBVyD+tzJhn52ovKVlYjHzLOvHRR0pCjtModynaRNxEovwn8x+nxVkUStMj\np9DYAuwIBcXKqpViJtTDllyMHZo8zwuhvaGFDlbmYfvOD7Ek3w/OoT1VfGO0ktD4\neHFLQOfO6yaeAXIGnqlBFQE/s7L4xboZXZ9zSAEkWTX9nkW4wQe48OKc88rZ6ZK4\nJqt1UlaFC5xaxpsUiLwGYL6Uk5da2ZNDWplssiYlcfZXCnUmcNMIzllkVWh3Y06m\nWHnrK6KOJ9uvPBkj4DMw5uPXaDeTe1m0wD3fZOzKEwTcmeW7k467lMH1+9SSrDBi\n2XJzZ3wTAgMBAAECggEAFF5IK2K9ZMEEjHBTuqefrkoIWsA6CWMsU0aiWVIYJY7t\nKduXUn2HfvnshLsf4v7BsEQnuqpKkK/AKitV6t7cND6DrjZQ+WzHOHL3nJruuvBD\nDHOv6n5sR8tujXrtSJMcnmiU35zFROh1JzNUKTiN9ew9Ej1pz8gvIjyM9N+2RBcY\nTqWzrO9rgETSE1fkpWo7inBh4K7I9CaCKHKiSXaTAi2+gVDL+pKe4mg+Mgxg+uj/\nmVjsvTyCFzV2flNqGwTZRrQeq+d4PhijUGOAMv1SlHtnPlPbmiOlUex+Di9GlQ4U\n4JwAlA6iz14m2/3vhQ01+awRxkZ/tB6QtDkQZ+cecQKBgQDbYXPA+2RsjFXI1+Dv\nPrr5t0QBSliWHdCp9usbEVmYzrx0AuxPPBHHxlY+OclFQ0bhFvUY1FP9hF0RAtBT\n0FaeP8fqfvBply+G6ugf5K6H0ouBtLsSdvdkM6rf23DY8BMu2yaZCXfs3TfPkm+D\n+7ouN6Swe+kdIcns06MuaZRUcQKBgQDDOGsnxltgivomBK2yiS6CFa0w2xAmySwt\nGXrUomvfsPLQsx7of2iB1t33U8A9fDQqt12aBYYu4kdufjNePmZBkaGAmZ6MfY9U\nAYam+mG9gnnPyCwf40nV+y6HyziDGfHs9cX872dodsjhlEDH98+9ikBeqKeuYP/M\nENDJZmrKwwKBgBYnPyMrv7ZebYM8mZBPS15QLWPb+BogpKOlNZSkKeIObmVgrjBK\nJpl/49Gg0DxYUN4GDXYWauzc4vEG0bbFARo14qBBdVGUXM5JBmvCEgXRMxlEAOga\nb10FAqpcZIbjp2xB4SHvHNckd7BUX0J6txBXuh/AQ4gXk2aA8KeNLddhAoGAcsyb\nnuEzXPt9DJxVtJadJdwvY3p+7gABHWhNZfs5amq472dV9qztvOSo1MeIVd/TIYeA\n4JD9Dlb8YIqQFIynP0mvaltr8/vmLCVVlJ3KmlG+5iQ1Zm8XPWEfRLWJvvaj4I/K\n5Om3qqOnj5fJ3I3quPAy2Ddfm9jos4zz6mtyw1cCgYBy0JR+Od5da/GsF4rKM2ex\nJqFXxNsaETACPN5DfOmj2E0Q28Nvwyq7MSJRsqeBAiV3MxqroE+3dIg6is/8ACbq\ng9Q3j3vgfuqIOPZNeHbLlYoLIaX5rNuOyVKKaofnvGDov/t/iX+UeJiLLz/KH+LS\nsj9DG0yrfYwPhZxTNJb07w==\n-----END PRIVATE KEY-----\n";
 
 // Kiểm tra xem có Service Account không
 const hasServiceAccount = !!(SERVICE_ACCOUNT_EMAIL && PRIVATE_KEY);
@@ -188,6 +190,108 @@ const mockData = {
   ]
 };
 
+// Mock data for InboundShipments
+const mockInboundShipments: InboundShipment[] = [
+  {
+    id: 'b9d6975e',
+    xuat_kho_id: 'PNK_2807-001',
+    ngay_nhap: '28-7-2025',
+    san_pham_id: '201',
+    ten_san_pham: 'Sản phẩm 002',
+    nhom_san_pham: '',
+    hang_sx: '',
+    hinh_anh: '',
+    thong_tin: '',
+    quy_cach: '',
+    dvt: 'Cai',
+    SL_Nhap: 3523,
+    ghi_chu: '',
+    Nha_Cung_Cap_id: 'NCC_001',
+    Ten_Nha_Cung_Cap: 'Hoàng Hà',
+    Dia_Chi: 'Bình Thạnh - HCM',
+    So_Dt: '0289999',
+    Noi_Dung_Nhap: 'Nhập kho mua hàng',
+    ngay_tao: '28-7',
+    nguoi_tao: 'Admin',
+    update: '28/07/2025 14:19:42'
+  },
+  {
+    id: 'd99d3f95',
+    xuat_kho_id: 'PNK_2807-001',
+    ngay_nhap: '28-7-2025',
+    san_pham_id: '202',
+    ten_san_pham: 'Sản phẩm 003',
+    nhom_san_pham: '',
+    hang_sx: '',
+    hinh_anh: '',
+    thong_tin: '',
+    quy_cach: '',
+    dvt: 'Cai',
+    SL_Nhap: 2674,
+    ghi_chu: '',
+    Nha_Cung_Cap_id: 'NCC_001',
+    Ten_Nha_Cung_Cap: 'Hoàng Hà',
+    Dia_Chi: 'Bình Thạnh - HCM',
+    So_Dt: '0289999',
+    Noi_Dung_Nhap: 'Nhập kho mua hàng',
+    ngay_tao: '28-7',
+    nguoi_tao: 'Admin',
+    update: '28/07/2025 14:19:42'
+  }
+];
+
+// Mock data for OutboundShipments
+const mockOutboundShipments: OutboundShipment[] = [
+  {
+    id: 'c0808f13',
+    xuat_kho_id: 'PXK_2807-001',
+    ngay_xuat: '28-7-2025',
+    san_pham_id: '201',
+    ten_san_pham: 'Sản phẩm 002',
+    nhom_san_pham: '',
+    hang_sx: '',
+    hinh_anh: '',
+    thong_tin: '',
+    quy_cach: '',
+    dvt: 'Cai',
+    sl_xuat: 3523,
+    ghi_chu: '',
+    So_HD: '',
+    Ma_KH: 'KH_001',
+    Ten_Khach_Hang: 'Anh Mạnh',
+    Dia_Chi: '',
+    So_Dt: '',
+    Noi_Dung_Xuat: '',
+    ngay_tao: '28-7',
+    nguoi_tao: 'Admin',
+    update: '28/07/2025 14:19:42'
+  },
+  {
+    id: 'a1d4059f',
+    xuat_kho_id: 'PXK_2807-001',
+    ngay_xuat: '28-7-2025',
+    san_pham_id: '202',
+    ten_san_pham: 'Sản phẩm 003',
+    nhom_san_pham: '',
+    hang_sx: '',
+    hinh_anh: '',
+    thong_tin: '',
+    quy_cach: '',
+    dvt: 'Cai',
+    sl_xuat: 2674,
+    ghi_chu: '',
+    So_HD: '',
+    Ma_KH: 'KH_001',
+    Ten_Khach_Hang: 'Anh Mạnh',
+    Dia_Chi: '',
+    So_Dt: '',
+    Noi_Dung_Xuat: '',
+    ngay_tao: '28-7',
+    nguoi_tao: 'Admin',
+    update: '28/07/2025 14:19:42'
+  }
+];
+
 // Lấy dữ liệu từ Google Sheets hoặc mock data
 export const getSheetData = async (range: string): Promise<any[]> => {
   if (hasServiceAccount) {
@@ -298,10 +402,10 @@ export const syncDataFromGoogleSheets = async () => {
     const customers = await getSheetData('KHACH_HANG!A2:N');
     await delay(1000);
     
-    const inboundShipments = await getSheetData('NHAP_KHO!A2:N');
+    const inboundShipments = await getSheetData('NHAP_KHO!A2:U');
     await delay(1000);
     
-    const outboundShipments = await getSheetData('XUAT_KHO!A2:N');
+    const outboundShipments = await getSheetData('XUAT_KHO!A2:V');
     await delay(1000);
     
     const companyInfo = await getSheetData('THONG_TIN_CTY!A2:N');
@@ -366,35 +470,50 @@ export const syncDataFromGoogleSheets = async () => {
       })),
       inboundShipments: inboundShipments.map((row, index) => ({
         id: row[0] || `inbound_${index + 1}`,
-        loai_nhap: row[1] || '',
+        xuat_kho_id: row[1] || '',
         ngay_nhap: row[2] || new Date().toISOString(),
-        khach_hang_id: row[3] || '',
-        ten_khach_hang: row[4] || '',
-        ma_hoa_don: row[5] || '',
-        sl_san_pham: parseInt(row[6]) || 0,
-        sl_xuat: parseInt(row[7]) || 0,
-        tai_xe: row[8] || '',
-        noi_dung_nhap: row[9] || '',
-        ghi_chu: row[10] || '',
-        ngay_tao: row[11] || new Date().toISOString(),
-        nguoi_tao: row[12] || 'Admin',
-        update: row[13] || new Date().toISOString(),
+        san_pham_id: row[3] || '',
+        ten_san_pham: row[4] || '',
+        nhom_san_pham: row[5] || '',
+        hang_sx: row[6] || '',
+        hinh_anh: row[7] || '',
+        thong_tin: row[8] || '',
+        quy_cach: row[9] || '',
+        dvt: row[10] || '',
+        SL_Nhap: parseInt(row[11]) || 0,
+        ghi_chu: row[12] || '',
+        Nha_Cung_Cap_id: row[13] || '',
+        Ten_Nha_Cung_Cap: row[14] || '',
+        Dia_Chi: row[15] || '',
+        So_Dt: row[16] || '',
+        Noi_Dung_Nhap: row[17] || '',
+        ngay_tao: row[18] || new Date().toISOString(),
+        nguoi_tao: row[19] || 'Admin',
+        update: row[20] || new Date().toISOString(),
       })),
       outboundShipments: outboundShipments.map((row, index) => ({
         id: row[0] || `outbound_${index + 1}`,
-        loai_xuat: row[1] || '',
+        xuat_kho_id: row[1] || '',
         ngay_xuat: row[2] || new Date().toISOString(),
-        khach_hang_id: row[3] || '',
-        ten_khach_hang: row[4] || '',
-        ma_hoa_don: row[5] || '',
-        sl_san_pham: parseInt(row[6]) || 0,
-        sl_xuat: parseInt(row[7]) || 0,
-        tai_xe: row[8] || '',
-        noi_dung_xuat: row[9] || '',
-        ghi_chu: row[10] || '',
-        ngay_tao: row[11] || new Date().toISOString(),
-        nguoi_tao: row[12] || 'Admin',
-        update: row[13] || new Date().toISOString(),
+        san_pham_id: row[3] || '',
+        ten_san_pham: row[4] || '',
+        nhom_san_pham: row[5] || '',
+        hang_sx: row[6] || '',
+        hinh_anh: row[7] || '',
+        thong_tin: row[8] || '',
+        quy_cach: row[9] || '',
+        dvt: row[10] || '',
+        sl_xuat: parseInt(row[11]) || 0,
+        ghi_chu: row[12] || '',
+        So_HD: row[13] || '',
+        Ma_KH: row[14] || '',
+        Ten_Khach_Hang: row[15] || '',
+        Dia_Chi: row[16] || '',
+        So_Dt: row[17] || '',
+        Noi_Dung_Xuat: row[18] || '',
+        ngay_tao: row[19] || new Date().toISOString(),
+        nguoi_tao: row[20] || 'Admin',
+        update: row[21] || new Date().toISOString(),
       })),
       companyInfo: companyInfo.map((row, index) => ({
         id: row[0] || `company_${index + 1}`,
@@ -509,37 +628,52 @@ export const syncDataFromGoogleSheets = async () => {
         nguoi_tao: row[12] || 'Admin',
         update: row[13] || new Date().toISOString(),
       })),
-      inboundShipments: mockData.inboundShipments.map((row, index) => ({
-        id: row[0] || `inbound_${index + 1}`,
-        loai_nhap: row[1] || '',
-        ngay_nhap: row[2] || new Date().toISOString(),
-        khach_hang_id: row[3] || '',
-        ten_khach_hang: row[4] || '',
-        ma_hoa_don: row[5] || '',
-        sl_san_pham: parseInt(row[6]) || 0,
-        sl_xuat: parseInt(row[7]) || 0,
-        tai_xe: row[8] || '',
-        noi_dung_nhap: row[9] || '',
-        ghi_chu: row[10] || '',
-        ngay_tao: row[11] || new Date().toISOString(),
-        nguoi_tao: row[12] || 'Admin',
-        update: row[13] || new Date().toISOString(),
+      inboundShipments: mockInboundShipments.map((row, index) => ({
+        id: row.id || `inbound_${index + 1}`,
+        xuat_kho_id: row.xuat_kho_id || '',
+        ngay_nhap: row.ngay_nhap || new Date().toISOString(),
+        san_pham_id: row.san_pham_id || '',
+        ten_san_pham: row.ten_san_pham || '',
+        nhom_san_pham: row.nhom_san_pham || '',
+        hang_sx: row.hang_sx || '',
+        hinh_anh: row.hinh_anh || '',
+        thong_tin: row.thong_tin || '',
+        quy_cach: row.quy_cach || '',
+        dvt: row.dvt || '',
+        SL_Nhap: row.SL_Nhap || 0,
+        ghi_chu: row.ghi_chu || '',
+        Nha_Cung_Cap_id: row.Nha_Cung_Cap_id || '',
+        Ten_Nha_Cung_Cap: row.Ten_Nha_Cung_Cap || '',
+        Dia_Chi: row.Dia_Chi || '',
+        So_Dt: row.So_Dt || '',
+        Noi_Dung_Nhap: row.Noi_Dung_Nhap || '',
+        ngay_tao: row.ngay_tao || new Date().toISOString(),
+        nguoi_tao: row.nguoi_tao || 'Admin',
+        update: row.update || new Date().toISOString(),
       })),
-      outboundShipments: mockData.outboundShipments.map((row, index) => ({
-        id: row[0] || `outbound_${index + 1}`,
-        loai_xuat: row[1] || '',
-        ngay_xuat: row[2] || new Date().toISOString(),
-        khach_hang_id: row[3] || '',
-        ten_khach_hang: row[4] || '',
-        ma_hoa_don: row[5] || '',
-        sl_san_pham: parseInt(row[6]) || 0,
-        sl_xuat: parseInt(row[7]) || 0,
-        tai_xe: row[8] || '',
-        noi_dung_xuat: row[9] || '',
-        ghi_chu: row[10] || '',
-        ngay_tao: row[11] || new Date().toISOString(),
-        nguoi_tao: row[12] || 'Admin',
-        update: row[13] || new Date().toISOString(),
+      outboundShipments: mockOutboundShipments.map((row, index) => ({
+        id: row.id || `outbound_${index + 1}`,
+        xuat_kho_id: row.xuat_kho_id || '',
+        ngay_xuat: row.ngay_xuat || new Date().toISOString(),
+        san_pham_id: row.san_pham_id || '',
+        ten_san_pham: row.ten_san_pham || '',
+        nhom_san_pham: row.nhom_san_pham || '',
+        hang_sx: row.hang_sx || '',
+        hinh_anh: row.hinh_anh || '',
+        thong_tin: row.thong_tin || '',
+        quy_cach: row.quy_cach || '',
+        dvt: row.dvt || '',
+        sl_xuat: row.sl_xuat || 0,
+        ghi_chu: row.ghi_chu || '',
+        So_HD: row.So_HD || '',
+        Ma_KH: row.Ma_KH || '',
+        Ten_Khach_Hang: row.Ten_Khach_Hang || '',
+        Dia_Chi: row.Dia_Chi || '',
+        So_Dt: row.So_Dt || '',
+        Noi_Dung_Xuat: row.Noi_Dung_Xuat || '',
+        ngay_tao: row.ngay_tao || new Date().toISOString(),
+        nguoi_tao: row.nguoi_tao || 'Admin',
+        update: row.update || new Date().toISOString(),
       }))
     };
   }
@@ -724,21 +858,28 @@ export const inboundShipmentsAPI = {
     const now = new Date().toISOString();
     const newRow = [
       id,
-      shipment.loai_nhap,
+      shipment.xuat_kho_id,
       shipment.ngay_nhap,
-      shipment.khach_hang_id,
-      shipment.ten_khach_hang,
-      shipment.ma_hoa_don,
-      shipment.sl_san_pham,
-      shipment.sl_xuat,
-      shipment.tai_xe,
-      shipment.noi_dung_nhap,
+      shipment.san_pham_id,
+      shipment.ten_san_pham,
+      shipment.nhom_san_pham,
+      shipment.hang_sx,
+      shipment.hinh_anh,
+      shipment.thong_tin,
+      shipment.quy_cach,
+      shipment.dvt,
+      shipment.SL_Nhap,
       shipment.ghi_chu,
+      shipment.Nha_Cung_Cap_id,
+      shipment.Ten_Nha_Cung_Cap,
+      shipment.Dia_Chi,
+      shipment.So_Dt,
+      shipment.Noi_Dung_Nhap,
       now,
       'Admin',
       now
     ];
-    await appendSheetData('NHAP_KHO!A:N', [newRow]);
+    await appendSheetData('NHAP_KHO!A:U', [newRow]);
     return { ...shipment, id, update: now };
   },
   update: async (id: string, shipment: Partial<InboundShipment>): Promise<InboundShipment> => {
@@ -774,21 +915,29 @@ export const outboundShipmentsAPI = {
     const now = new Date().toISOString();
     const newRow = [
       id,
-      shipment.loai_xuat,
+      shipment.xuat_kho_id,
       shipment.ngay_xuat,
-      shipment.khach_hang_id,
-      shipment.ten_khach_hang,
-      shipment.ma_hoa_don,
-      shipment.sl_san_pham,
+      shipment.san_pham_id,
+      shipment.ten_san_pham,
+      shipment.nhom_san_pham,
+      shipment.hang_sx,
+      shipment.hinh_anh,
+      shipment.thong_tin,
+      shipment.quy_cach,
+      shipment.dvt,
       shipment.sl_xuat,
-      shipment.tai_xe,
-      shipment.noi_dung_xuat,
       shipment.ghi_chu,
+      shipment.So_HD,
+      shipment.Ma_KH,
+      shipment.Ten_Khach_Hang,
+      shipment.Dia_Chi,
+      shipment.So_Dt,
+      shipment.Noi_Dung_Xuat,
       now,
       'Admin',
       now
     ];
-    await appendSheetData('XUAT_KHO!A:N', [newRow]);
+    await appendSheetData('XUAT_KHO!A:V', [newRow]);
     return { ...shipment, id, update: now };
   },
   update: async (id: string, shipment: Partial<OutboundShipment>): Promise<OutboundShipment> => {

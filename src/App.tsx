@@ -20,9 +20,7 @@ import InboundShipments from './pages/InboundShipments';
 import OutboundShipments from './pages/OutboundShipments';
 import CompanyInfoPage from './pages/CompanyInfo';
 import Users from './pages/Users';
-import InboundDetails from './pages/InboundDetails';
 import InboundShipmentDetails from './pages/InboundShipmentDetails';
-import OutboundDetails from './pages/OutboundDetails';
 import OutboundShipmentDetails from './pages/OutboundShipmentDetails';
 import TransactionHistory from './pages/TransactionHistory';
 import AutoSync from './pages/AutoSync';
@@ -72,9 +70,7 @@ function App() {
                       <Route path="/outbound" element={<OutboundShipments />} />
                       <Route path="/company-info" element={<CompanyInfoPage />} />
                       <Route path="/users" element={<Users />} />
-                      <Route path="/inbound-details" element={<InboundDetails />} />
                       <Route path="/inbound-details/:shipmentId" element={<InboundShipmentDetails />} />
-                      <Route path="/outbound-details" element={<OutboundDetails />} />
                       <Route path="/outbound-details/:shipmentId" element={<OutboundShipmentDetails />} />
                       <Route path="/transaction-history" element={<TransactionHistory />} />
                       <Route path="/auto-sync" element={<AutoSync />} />
