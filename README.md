@@ -1,123 +1,145 @@
-# Hệ Thống Quản Lý Kho - React App
+# Quản Lý Kho V2 - React + Supabase
 
-Ứng dụng quản lý kho với tính năng auto sync realtime với Google Sheets.
+Ứng dụng quản lý kho hàng với realtime sync, được xây dựng bằng React và Supabase.
 
-## 🚀 Tính Năng
+## 🚀 Tính năng
 
 - ✅ **Quản lý sản phẩm** - Thêm, sửa, xóa sản phẩm
-- ✅ **Quản lý nhà cung cấp** - Quản lý thông tin NCC
-- ✅ **Quản lý khách hàng** - Quản lý thông tin KH
-- ✅ **Quản lý nhập kho** - Theo dõi nhập kho
-- ✅ **Quản lý xuất kho** - Theo dõi xuất kho
-- ✅ **Auto Sync Realtime** - Đồng bộ với Google Sheets mỗi 30s
-- ✅ **Dashboard** - Thống kê tổng quan
-- ✅ **Responsive UI** - Giao diện đẹp, dễ sử dụng
+- ✅ **Quản lý nhà cung cấp** - Thông tin nhà cung cấp
+- ✅ **Quản lý khách hàng** - Thông tin khách hàng
+- ✅ **Quản lý nhập kho** - Theo dõi hàng nhập
+- ✅ **Quản lý xuất kho** - Theo dõi hàng xuất
+- ✅ **Quản lý người dùng** - Phân quyền người dùng
+- ✅ **Realtime Sync** - Đồng bộ realtime giữa các thiết bị
+- ✅ **Responsive Design** - Tương thích mobile và desktop
+- ✅ **Material-UI** - Giao diện đẹp và hiện đại
 
-## 🛠️ Công Nghệ
+## 📋 Yêu cầu hệ thống
 
-- **Frontend:** React 18 + TypeScript
-- **UI Framework:** Material-UI (MUI)
-- **State Management:** React Context + useReducer
-- **Data Fetching:** @tanstack/react-query
-- **Google Sheets Integration:** Service Account JWT
-- **Auto Sync:** Custom Context với localStorage
+- Node.js 16+ 
+- npm hoặc yarn
+- Supabase account
 
-## 📦 Cài Đặt
+## 🛠️ Cài đặt
 
+### 1. Clone repository
 ```bash
-# Clone repository
-git clone <your-repo-url>
+git clone <repository-url>
 cd quan-ly-kho-v2
+```
 
-# Cài đặt dependencies
+### 2. Cài đặt dependencies
+```bash
 npm install
+```
 
-# Tạo file .env
-cp .env.example .env
+### 3. Thiết lập Supabase
 
-# Chạy ứng dụng
+#### Tạo project Supabase
+1. Vào [Supabase Dashboard](https://supabase.com/dashboard)
+2. Tạo project mới
+3. Lưu lại URL và API Key
+
+#### Tạo file .env
+```bash
+cp env-template.txt .env
+```
+
+Chỉnh sửa file `.env`:
+```env
+REACT_APP_SUPABASE_URL=your_supabase_url
+REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+#### Thiết lập Database
+1. Vào Supabase Dashboard > SQL Editor
+2. Chạy script setup database (xem file `SUPABASE_SETUP.md`)
+3. Bật realtime (xem file `REALTIME_SETUP.md`)
+
+### 4. Chạy ứng dụng
+```bash
 npm start
 ```
 
-## ⚙️ Cấu Hình
+Ứng dụng sẽ chạy tại: http://localhost:3000
 
-Tạo file `.env` với các biến môi trường:
-
-```env
-REACT_APP_GOOGLE_SPREADSHEET_ID=your_spreadsheet_id
-REACT_APP_GOOGLE_SERVICE_ACCOUNT_EMAIL=your_service_account_email
-REACT_APP_GOOGLE_PRIVATE_KEY=your_private_key
-REACT_APP_GOOGLE_API_KEY=your_api_key
-```
-
-## 🔧 Cấu Hình Google Sheets
-
-1. **Tạo Service Account** trong Google Cloud Console
-2. **Bật Google Sheets API**
-3. **Chia sẻ Google Sheet** với Service Account email
-4. **Cấu hình cấu trúc sheet:**
-   - `DM_SAN_PHAM` - Danh mục sản phẩm
-   - `NCC` - Nhà cung cấp
-   - `KHACH_HANG` - Khách hàng
-   - `NHAP_KHO` - Nhập kho
-   - `XUAT_KHO` - Xuất kho
-
-## 🚀 Auto Sync
-
-- **Interval mặc định:** 30 giây
-- **Rate limiting protection:** Tự động dừng khi bị limit
-- **Error handling:** Fallback về mock data
-- **Real-time updates:** UI tự động cập nhật
-
-## 📁 Cấu Trúc Dự Án
+## 📁 Cấu trúc project
 
 ```
 src/
-├── components/          # UI Components
-├── contexts/           # React Contexts
-├── hooks/              # Custom Hooks
-├── pages/              # Page Components
-├── services/           # API Services
-├── types/              # TypeScript Types
-└── utils/              # Utility Functions
+├── components/          # React components
+├── contexts/           # React contexts
+├── pages/              # Các trang chính
+├── services/           # API services
+├── types/              # TypeScript types
+└── utils/              # Utility functions
 ```
 
-## 🎯 Sử Dụng
+## 🔧 Cấu hình
 
-1. **Dashboard:** Xem tổng quan hệ thống
-2. **Sản phẩm:** Quản lý danh mục sản phẩm
-3. **Nhà cung cấp:** Quản lý thông tin NCC
-4. **Khách hàng:** Quản lý thông tin KH
-5. **Nhập kho:** Theo dõi nhập kho
-6. **Xuất kho:** Theo dõi xuất kho
-7. **Auto Sync:** Cấu hình đồng bộ
+### Environment Variables
+- `REACT_APP_SUPABASE_URL`: URL của Supabase project
+- `REACT_APP_SUPABASE_ANON_KEY`: Anon key của Supabase
 
-## 📝 Scripts
+### Database Schema
+Xem file `SUPABASE_SETUP.md` để biết chi tiết về cấu trúc database.
 
+## 🚀 Deployment
+
+### Build production
 ```bash
-npm start          # Chạy development server
-npm run build      # Build production
-npm test           # Chạy tests
-npm run eject      # Eject CRA (không khuyến khích)
+npm run build
 ```
 
-## 🤝 Đóng Góp
+### Deploy lên Vercel/Netlify
+1. Push code lên GitHub
+2. Kết nối với Vercel/Netlify
+3. Cấu hình environment variables
+4. Deploy
 
-1. Fork dự án
-2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Tạo Pull Request
+## 📱 Sử dụng
+
+### Đăng nhập
+- Sử dụng tài khoản mặc định: `admin@company.com`
+
+### Quản lý dữ liệu
+- **Sản phẩm**: Thêm, sửa, xóa sản phẩm
+- **Nhà cung cấp**: Quản lý thông tin nhà cung cấp
+- **Khách hàng**: Quản lý thông tin khách hàng
+- **Nhập/Xuất kho**: Theo dõi hàng hóa
+
+### Realtime Sync
+- Dữ liệu tự động đồng bộ giữa các thiết bị
+- Không cần refresh trang để thấy thay đổi
+
+## 🐛 Troubleshooting
+
+### Lỗi kết nối Supabase
+- Kiểm tra URL và API Key trong file `.env`
+- Đảm bảo Supabase project đang hoạt động
+
+### Lỗi realtime
+- Chạy script bật realtime (xem `REALTIME_SETUP.md`)
+- Kiểm tra component `RealtimeStatus` trong Dashboard
+
+### Lỗi build
+```bash
+npm run build
+```
+Kiểm tra console để xem lỗi chi tiết.
 
 ## 📄 License
 
-MIT License - xem file [LICENSE](LICENSE) để biết thêm chi tiết.
+MIT License
 
-## 📞 Liên Hệ
+## 🤝 Đóng góp
 
-- **Email:** your-email@example.com
-- **GitHub:** [@your-username](https://github.com/your-username)
+1. Fork project
+2. Tạo feature branch
+3. Commit changes
+4. Push to branch
+5. Tạo Pull Request
 
----
+## 📞 Hỗ trợ
 
-⭐ Nếu dự án này hữu ích, hãy cho một star nhé!
+Nếu gặp vấn đề, vui lòng tạo issue trên GitHub.

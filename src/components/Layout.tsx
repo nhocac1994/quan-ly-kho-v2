@@ -148,13 +148,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             p: 0,
             width: { sm: `calc(100vw - ${drawerWidth}px)` },
             height: '100vh',
-            overflow: 'hidden',
+            overflow: 'auto',
             display: 'flex',
             flexDirection: 'column',
           }}
         >
           <Toolbar />
-          <Box sx={{ flex: 1, overflow: 'hidden' }}>
+          <Box sx={{ flex: 1, overflow: 'auto' }}>
             {children}
           </Box>
         </Box>

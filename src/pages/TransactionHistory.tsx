@@ -82,8 +82,8 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
   // Lấy danh sách khách hàng và nhà cung cấp unique
   const allCustomers = useMemo(() => {
     const customers = new Set<string>();
-    inboundShipments.forEach(s => customers.add(s.Ten_Nha_Cung_Cap));
-    outboundShipments.forEach(s => customers.add(s.Ten_Khach_Hang));
+            inboundShipments.forEach(s => customers.add(s.ten_nha_cung_cap));
+          outboundShipments.forEach(s => customers.add(s.ten_khach_hang));
     return Array.from(customers).sort();
   }, [inboundShipments, outboundShipments]);
 
@@ -93,14 +93,14 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
       const matchesSearch = 
         shipment.ten_san_pham.toLowerCase().includes(searchTerm.toLowerCase()) ||
         shipment.xuat_kho_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        shipment.Ten_Nha_Cung_Cap.toLowerCase().includes(searchTerm.toLowerCase());
+        shipment.ten_nha_cung_cap.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesDate = (!dateFrom || shipment.ngay_nhap >= dateFrom) &&
                          (!dateTo || shipment.ngay_nhap <= dateTo);
       
       const matchesType = filterType === 'all' || filterType === 'inbound';
       
-      const matchesCustomer = filterCustomer === 'all' || shipment.Ten_Nha_Cung_Cap === filterCustomer;
+      const matchesCustomer = filterCustomer === 'all' || shipment.ten_nha_cung_cap === filterCustomer;
       
       return matchesSearch && matchesDate && matchesType && matchesCustomer;
     });
@@ -114,14 +114,14 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
       const matchesSearch = 
         shipment.ten_san_pham.toLowerCase().includes(searchTerm.toLowerCase()) ||
         shipment.xuat_kho_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        shipment.Ten_Khach_Hang.toLowerCase().includes(searchTerm.toLowerCase());
+        shipment.ten_khach_hang.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesDate = (!dateFrom || shipment.ngay_xuat >= dateFrom) &&
                          (!dateTo || shipment.ngay_xuat <= dateTo);
       
       const matchesType = filterType === 'all' || filterType === 'outbound';
       
-      const matchesCustomer = filterCustomer === 'all' || shipment.Ten_Khach_Hang === filterCustomer;
+      const matchesCustomer = filterCustomer === 'all' || shipment.ten_khach_hang === filterCustomer;
       
       return matchesSearch && matchesDate && matchesType && matchesCustomer;
     });
@@ -346,16 +346,16 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
                            {new Date(isInbound ? (transactionData as InboundShipment).ngay_nhap : (transactionData as OutboundShipment).ngay_xuat).toLocaleDateString('vi-VN')}
                          </TableCell>
                           <TableCell>{transactionData.ten_san_pham}</TableCell>
-                          <TableCell>{isInbound ? (transactionData as InboundShipment).Ten_Nha_Cung_Cap : (transactionData as OutboundShipment).Ten_Khach_Hang}</TableCell>
+                          <TableCell>{isInbound ? (transactionData as InboundShipment).ten_nha_cung_cap : (transactionData as OutboundShipment).ten_khach_hang}</TableCell>
                           <TableCell align="right">
                             <Chip
-                              label={isInbound ? (transactionData as InboundShipment).SL_Nhap : (transactionData as OutboundShipment).sl_xuat}
+                              label={isInbound ? (transactionData as InboundShipment).sl_nhap : (transactionData as OutboundShipment).sl_xuat}
                               color="info"
                               size="small"
                             />
                           </TableCell>
                           <TableCell>{transactionData.dvt}</TableCell>
-                          <TableCell>{isInbound ? (transactionData as InboundShipment).Noi_Dung_Nhap : (transactionData as OutboundShipment).Noi_Dung_Xuat}</TableCell>
+                          <TableCell>{isInbound ? (transactionData as InboundShipment).noi_dung_nhap : (transactionData as OutboundShipment).noi_dung_xuat}</TableCell>
                           <TableCell align="center">
                             <IconButton
                               size="small"
@@ -414,16 +414,16 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
                         <TableCell>{shipment.id}</TableCell>
                         <TableCell>{new Date(shipment.ngay_nhap).toLocaleDateString('vi-VN')}</TableCell>
                         <TableCell>{shipment.ten_san_pham}</TableCell>
-                        <TableCell>{shipment.Ten_Nha_Cung_Cap}</TableCell>
+                        <TableCell>{shipment.ten_nha_cung_cap}</TableCell>
                         <TableCell align="right">
                           <Chip
-                            label={shipment.SL_Nhap}
+                            label={shipment.sl_nhap}
                             color="info"
                             size="small"
                           />
                         </TableCell>
                         <TableCell>{shipment.dvt}</TableCell>
-                        <TableCell>{shipment.Noi_Dung_Nhap}</TableCell>
+                        <TableCell>{shipment.noi_dung_nhap}</TableCell>
                         <TableCell align="center">
                           <IconButton
                             size="small"
@@ -481,7 +481,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
                         <TableCell>{shipment.id}</TableCell>
                         <TableCell>{new Date(shipment.ngay_xuat).toLocaleDateString('vi-VN')}</TableCell>
                         <TableCell>{shipment.ten_san_pham}</TableCell>
-                        <TableCell>{shipment.Ten_Khach_Hang}</TableCell>
+                        <TableCell>{shipment.ten_khach_hang}</TableCell>
                         <TableCell align="right">
                           <Chip
                             label={shipment.sl_xuat}
@@ -490,7 +490,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
                           />
                         </TableCell>
                         <TableCell>{shipment.dvt}</TableCell>
-                        <TableCell>{shipment.Noi_Dung_Xuat}</TableCell>
+                        <TableCell>{shipment.noi_dung_xuat}</TableCell>
                         <TableCell align="center">
                           <IconButton
                             size="small"

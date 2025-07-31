@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { dataService } from '../services/dataService';
 import {
   Box,
   Typography,
@@ -54,7 +55,7 @@ import { useInventory } from '../context/InventoryContext';
 import { InboundShipment } from '../types';
 import ImportExcelDialog from '../components/ImportExcelDialog';
 import { useNavigate } from 'react-router-dom';
-import { inboundShipmentsAPI } from '../services/googleSheetsService';
+
 
 interface InboundShipmentFormData {
   xuat_kho_id: string;
@@ -67,13 +68,13 @@ interface InboundShipmentFormData {
   thong_tin: string;
   quy_cach: string;
   dvt: string;
-  SL_Nhap: number;
+  sl_nhap: number;
   ghi_chu: string;
-  Nha_Cung_Cap_id: string;
-  Ten_Nha_Cung_Cap: string;
-  Dia_Chi: string;
-  So_Dt: string;
-  Noi_Dung_Nhap: string;
+  nha_cung_cap_id: string;
+  ten_nha_cung_cap: string;
+  dia_chi: string;
+  so_dt: string;
+  noi_dung_nhap: string;
 }
 
 const InboundShipments: React.FC = () => {
@@ -104,20 +105,20 @@ const InboundShipments: React.FC = () => {
     thong_tin: '',
     quy_cach: '',
     dvt: '',
-    SL_Nhap: 0,
+    sl_nhap: 0,
     ghi_chu: '',
-    Nha_Cung_Cap_id: '',
-    Ten_Nha_Cung_Cap: '',
-    Dia_Chi: '',
-    So_Dt: '',
-    Noi_Dung_Nhap: '',
+    nha_cung_cap_id: '',
+    ten_nha_cung_cap: '',
+    dia_chi: '',
+    so_dt: '',
+    noi_dung_nhap: '',
   });
 
   const filteredShipments = useMemo(() => {
     return inboundShipments.filter((shipment: InboundShipment) =>
       shipment.ten_san_pham?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       shipment.xuat_kho_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.Ten_Nha_Cung_Cap?.toLowerCase().includes(searchTerm.toLowerCase())
+      shipment.ten_nha_cung_cap?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [inboundShipments, searchTerm]);
 
@@ -163,13 +164,13 @@ const InboundShipments: React.FC = () => {
         thong_tin: shipment.thong_tin || '',
         quy_cach: shipment.quy_cach || '',
         dvt: shipment.dvt || '',
-        SL_Nhap: shipment.SL_Nhap || 0,
+        sl_nhap: shipment.sl_nhap || 0,
         ghi_chu: shipment.ghi_chu || '',
-        Nha_Cung_Cap_id: shipment.Nha_Cung_Cap_id || '',
-        Ten_Nha_Cung_Cap: shipment.Ten_Nha_Cung_Cap || '',
-        Dia_Chi: shipment.Dia_Chi || '',
-        So_Dt: shipment.So_Dt || '',
-        Noi_Dung_Nhap: shipment.Noi_Dung_Nhap || '',
+        nha_cung_cap_id: shipment.nha_cung_cap_id || '',
+        ten_nha_cung_cap: shipment.ten_nha_cung_cap || '',
+        dia_chi: shipment.dia_chi || '',
+        so_dt: shipment.so_dt || '',
+        noi_dung_nhap: shipment.noi_dung_nhap || '',
       });
     } else {
       setEditingShipment(null);
@@ -184,13 +185,13 @@ const InboundShipments: React.FC = () => {
         thong_tin: '',
         quy_cach: '',
         dvt: '',
-        SL_Nhap: 0,
+        sl_nhap: 0,
         ghi_chu: '',
-        Nha_Cung_Cap_id: '',
-        Ten_Nha_Cung_Cap: '',
-        Dia_Chi: '',
-        So_Dt: '',
-        Noi_Dung_Nhap: '',
+        nha_cung_cap_id: '',
+        ten_nha_cung_cap: '',
+        dia_chi: '',
+        so_dt: '',
+        noi_dung_nhap: '',
       });
     }
     setOpenDialog(true);
@@ -204,20 +205,21 @@ const InboundShipments: React.FC = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const shipmentData: InboundShipment = {
-        id: editingShipment?.id || Date.now().toString(),
+      const shipmentData: Omit<InboundShipment, 'id'> & { id?: string } = {
+        id: editingShipment?.id,
         ...formData,
         ngay_tao: editingShipment?.ngay_tao || new Date().toISOString(),
         nguoi_tao: editingShipment?.nguoi_tao || 'Admin',
-        update: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       if (editingShipment) {
-        await inboundShipmentsAPI.update(shipmentData.id, shipmentData);
-        dispatch({ type: 'UPDATE_INBOUND_SHIPMENT', payload: shipmentData });
+        await dataService.inboundShipments.update(shipmentData.id!, shipmentData);
+        dispatch({ type: 'UPDATE_INBOUND_SHIPMENT', payload: shipmentData as InboundShipment });
         setSnackbar({ open: true, message: 'Cập nhật phiếu nhập kho thành công!', severity: 'success' });
       } else {
-        const newShipment = await inboundShipmentsAPI.create(shipmentData);
+        const { id, ...createData } = shipmentData;
+        const newShipment = await dataService.inboundShipments.create(createData);
         dispatch({ type: 'ADD_INBOUND_SHIPMENT', payload: newShipment });
         setSnackbar({ open: true, message: 'Tạo phiếu nhập kho thành công!', severity: 'success' });
       }
@@ -234,7 +236,7 @@ const InboundShipments: React.FC = () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa phiếu nhập kho này?')) {
       setLoading(true);
       try {
-        await inboundShipmentsAPI.delete(shipmentId);
+        await dataService.inboundShipments.delete(shipmentId);
         dispatch({ type: 'DELETE_INBOUND_SHIPMENT', payload: shipmentId });
         setSnackbar({ open: true, message: 'Xóa phiếu nhập kho thành công!', severity: 'success' });
       } catch (error) {
@@ -255,10 +257,10 @@ const InboundShipments: React.FC = () => {
     if (supplier) {
       setFormData(prev => ({
         ...prev,
-        Nha_Cung_Cap_id: supplier.id,
-        Ten_Nha_Cung_Cap: supplier.ten_ncc,
-        Dia_Chi: supplier.ghi_chu || '', // Sử dụng ghi_chu thay vì dia_chi
-        So_Dt: supplier.sdt,
+        nha_cung_cap_id: supplier.id,
+        ten_nha_cung_cap: supplier.ten_ncc,
+        dia_chi: supplier.ghi_chu || '', // Sử dụng ghi_chu thay vì dia_chi
+        so_dt: supplier.sdt,
       }));
     }
   };
@@ -282,7 +284,7 @@ const InboundShipments: React.FC = () => {
   }, [inboundShipments]);
 
   const totalShipments = Object.keys(groupedShipments).length;
-  const totalQuantity = inboundShipments.reduce((sum: number, shipment: InboundShipment) => sum + (shipment.SL_Nhap || 0), 0);
+  const totalQuantity = inboundShipments.reduce((sum: number, shipment: InboundShipment) => sum + (shipment.sl_nhap || 0), 0);
   const todayShipments = inboundShipments.filter((shipment: InboundShipment) => 
     shipment.ngay_nhap === new Date().toISOString().split('T')[0]
   ).length;
@@ -542,12 +544,12 @@ const InboundShipments: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
-                          {shipment.Ten_Nha_Cung_Cap || 'N/A'}
+                          {shipment.ten_nha_cung_cap || 'N/A'}
                         </Typography>
                       </TableCell>
                       <TableCell align="right">
                         <Chip
-                          label={shipment.SL_Nhap?.toLocaleString() || '0'}
+                          label={shipment.sl_nhap?.toLocaleString() || '0'}
                           color="info"
                           size="small"
                           sx={{ fontWeight: 600 }}
@@ -560,7 +562,7 @@ const InboundShipments: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {shipment.Noi_Dung_Nhap || 'N/A'}
+                          {shipment.noi_dung_nhap || 'N/A'}
                         </Typography>
                       </TableCell>
                       <TableCell align="center">
@@ -684,7 +686,7 @@ const InboundShipments: React.FC = () => {
               <FormControl fullWidth sx={{ minWidth: 200, flex: '1 1 200px' }}>
                 <InputLabel>Nhà Cung Cấp</InputLabel>
                 <Select
-                  value={formData.Nha_Cung_Cap_id}
+                  value={formData.nha_cung_cap_id}
                   label="Nhà Cung Cấp"
                   onChange={(e) => handleSupplierChange(e.target.value)}
                 >
@@ -699,8 +701,8 @@ const InboundShipments: React.FC = () => {
                 fullWidth
                 label="Số Lượng"
                 type="number"
-                value={formData.SL_Nhap}
-                onChange={(e) => setFormData({ ...formData, SL_Nhap: parseInt(e.target.value) || 0 })}
+                value={formData.sl_nhap}
+                onChange={(e) => setFormData({ ...formData, sl_nhap: parseInt(e.target.value) || 0 })}
                 sx={{ minWidth: 200, flex: '1 1 200px' }}
               />
             </Box>
@@ -718,8 +720,8 @@ const InboundShipments: React.FC = () => {
               multiline
               rows={3}
               label="Nội Dung Nhập"
-              value={formData.Noi_Dung_Nhap}
-              onChange={(e) => setFormData({ ...formData, Noi_Dung_Nhap: e.target.value })}
+              value={formData.noi_dung_nhap}
+              onChange={(e) => setFormData({ ...formData, noi_dung_nhap: e.target.value })}
             />
           </Box>
         </DialogContent>

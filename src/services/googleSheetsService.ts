@@ -204,16 +204,16 @@ const mockInboundShipments: InboundShipment[] = [
     thong_tin: '',
     quy_cach: '',
     dvt: 'Cai',
-    SL_Nhap: 3523,
+    sl_nhap: 3523,
     ghi_chu: '',
-    Nha_Cung_Cap_id: 'NCC_001',
-    Ten_Nha_Cung_Cap: 'Hoàng Hà',
-    Dia_Chi: 'Bình Thạnh - HCM',
-    So_Dt: '0289999',
-    Noi_Dung_Nhap: 'Nhập kho mua hàng',
+    nha_cung_cap_id: 'NCC_001',
+    ten_nha_cung_cap: 'Hoàng Hà',
+    dia_chi: 'Bình Thạnh - HCM',
+    so_dt: '0289999',
+    noi_dung_nhap: 'Nhập kho mua hàng',
     ngay_tao: '28-7',
     nguoi_tao: 'Admin',
-    update: '28/07/2025 14:19:42'
+    updated_at: '28/07/2025 14:19:42'
   },
   {
     id: 'd99d3f95',
@@ -227,16 +227,16 @@ const mockInboundShipments: InboundShipment[] = [
     thong_tin: '',
     quy_cach: '',
     dvt: 'Cai',
-    SL_Nhap: 2674,
+    sl_nhap: 2674,
     ghi_chu: '',
-    Nha_Cung_Cap_id: 'NCC_001',
-    Ten_Nha_Cung_Cap: 'Hoàng Hà',
-    Dia_Chi: 'Bình Thạnh - HCM',
-    So_Dt: '0289999',
-    Noi_Dung_Nhap: 'Nhập kho mua hàng',
+    nha_cung_cap_id: 'NCC_001',
+    ten_nha_cung_cap: 'Hoàng Hà',
+    dia_chi: 'Bình Thạnh - HCM',
+    so_dt: '0289999',
+    noi_dung_nhap: 'Nhập kho mua hàng',
     ngay_tao: '28-7',
     nguoi_tao: 'Admin',
-    update: '28/07/2025 14:19:42'
+    updated_at: '28/07/2025 14:19:42'
   }
 ];
 
@@ -256,15 +256,15 @@ const mockOutboundShipments: OutboundShipment[] = [
     dvt: 'Cai',
     sl_xuat: 3523,
     ghi_chu: '',
-    So_HD: '',
-    Ma_KH: 'KH_001',
-    Ten_Khach_Hang: 'Anh Mạnh',
-    Dia_Chi: '',
-    So_Dt: '',
-    Noi_Dung_Xuat: '',
+    so_hd: '',
+    ma_kh: 'KH_001',
+    ten_khach_hang: 'Anh Mạnh',
+    dia_chi: '',
+    so_dt: '',
+    noi_dung_xuat: '',
     ngay_tao: '28-7',
     nguoi_tao: 'Admin',
-    update: '28/07/2025 14:19:42'
+    updated_at: '28/07/2025 14:19:42'
   },
   {
     id: 'a1d4059f',
@@ -280,15 +280,15 @@ const mockOutboundShipments: OutboundShipment[] = [
     dvt: 'Cai',
     sl_xuat: 2674,
     ghi_chu: '',
-    So_HD: '',
-    Ma_KH: 'KH_001',
-    Ten_Khach_Hang: 'Anh Mạnh',
-    Dia_Chi: '',
-    So_Dt: '',
-    Noi_Dung_Xuat: '',
+    so_hd: '',
+    ma_kh: 'KH_001',
+    ten_khach_hang: 'Anh Mạnh',
+    dia_chi: '',
+    so_dt: '',
+    noi_dung_xuat: '',
     ngay_tao: '28-7',
     nguoi_tao: 'Admin',
-    update: '28/07/2025 14:19:42'
+    updated_at: '28/07/2025 14:19:42'
   }
 ];
 
@@ -434,7 +434,7 @@ export const syncDataFromGoogleSheets = async () => {
         ghi_chu: row[8] || '',
         ngay_tao: row[9] || new Date().toISOString(),
         nguoi_tao: row[10] || 'Admin',
-        update: row[11] || new Date().toISOString(),
+        updated_at: row[11] || new Date().toISOString(),
       })),
       suppliers: suppliers.map((row, index) => ({
         id: row[0] || `supplier_${index + 1}`,
@@ -450,7 +450,7 @@ export const syncDataFromGoogleSheets = async () => {
         ghi_chu: row[10] || '',
         ngay_tao: row[11] || new Date().toISOString(),
         nguoi_tao: row[12] || 'Admin',
-        update: row[13] || new Date().toISOString(),
+        updated_at: row[13] || new Date().toISOString(),
       })),
       customers: customers.map((row, index) => ({
         id: row[0] || `customer_${index + 1}`,
@@ -466,7 +466,7 @@ export const syncDataFromGoogleSheets = async () => {
         ghi_chu: row[10] || '',
         ngay_tao: row[11] || new Date().toISOString(),
         nguoi_tao: row[12] || 'Admin',
-        update: row[13] || new Date().toISOString(),
+        updated_at: row[13] || new Date().toISOString(),
       })),
       inboundShipments: inboundShipments.map((row, index) => ({
         id: row[0] || `inbound_${index + 1}`,
@@ -480,16 +480,16 @@ export const syncDataFromGoogleSheets = async () => {
         thong_tin: row[8] || '',
         quy_cach: row[9] || '',
         dvt: row[10] || '',
-        SL_Nhap: parseInt(row[11]) || 0,
+        sl_nhap: parseInt(row[11]) || 0,
         ghi_chu: row[12] || '',
-        Nha_Cung_Cap_id: row[13] || '',
-        Ten_Nha_Cung_Cap: row[14] || '',
-        Dia_Chi: row[15] || '',
-        So_Dt: row[16] || '',
-        Noi_Dung_Nhap: row[17] || '',
+        nha_cung_cap_id: row[13] || '',
+        ten_nha_cung_cap: row[14] || '',
+        dia_chi: row[15] || '',
+        so_dt: row[16] || '',
+        noi_dung_nhap: row[17] || '',
         ngay_tao: row[18] || new Date().toISOString(),
         nguoi_tao: row[19] || 'Admin',
-        update: row[20] || new Date().toISOString(),
+        updated_at: row[20] || new Date().toISOString(),
       })),
       outboundShipments: outboundShipments.map((row, index) => ({
         id: row[0] || `outbound_${index + 1}`,
@@ -505,15 +505,15 @@ export const syncDataFromGoogleSheets = async () => {
         dvt: row[10] || '',
         sl_xuat: parseInt(row[11]) || 0,
         ghi_chu: row[12] || '',
-        So_HD: row[13] || '',
-        Ma_KH: row[14] || '',
-        Ten_Khach_Hang: row[15] || '',
-        Dia_Chi: row[16] || '',
-        So_Dt: row[17] || '',
-        Noi_Dung_Xuat: row[18] || '',
+        so_hd: row[13] || '',
+        ma_kh: row[14] || '',
+        ten_khach_hang: row[15] || '',
+        dia_chi: row[16] || '',
+        so_dt: row[17] || '',
+        noi_dung_xuat: row[18] || '',
         ngay_tao: row[19] || new Date().toISOString(),
         nguoi_tao: row[20] || 'Admin',
-        update: row[21] || new Date().toISOString(),
+        updated_at: row[21] || new Date().toISOString(),
       })),
       companyInfo: companyInfo.map((row, index) => ({
         id: row[0] || `company_${index + 1}`,
@@ -529,7 +529,7 @@ export const syncDataFromGoogleSheets = async () => {
         ghi_chu: row[10] || '',
         ngay_tao: row[11] || new Date().toISOString(),
         nguoi_tao: row[12] || 'Admin',
-        update: row[13] || new Date().toISOString(),
+        updated_at: row[13] || new Date().toISOString(),
       })),
       users: users.map((row, index) => ({
         id: row[0] || `user_${index + 1}`,
@@ -548,7 +548,7 @@ export const syncDataFromGoogleSheets = async () => {
         quyen_cai_dat: row[13] || 'Có',
         ngay_tao: row[14] || new Date().toISOString(),
         nguoi_tao: row[15] || 'Admin',
-        update: row[16] || new Date().toISOString(),
+        updated_at: row[16] || new Date().toISOString(),
       })),
       // Tạo mảng rỗng cho inboundDetails và outboundDetails vì đã gộp vào bảng chính
       inboundDetails: [],
@@ -571,7 +571,7 @@ export const syncDataFromGoogleSheets = async () => {
         ghi_chu: row[8] || '',
         ngay_tao: row[9] || new Date().toISOString(),
         nguoi_tao: row[10] || 'Admin',
-        update: row[11] || new Date().toISOString(),
+        updated_at: row[11] || new Date().toISOString(),
       })),
       suppliers: mockData.suppliers.map((row, index) => ({
         id: row[0] || `supplier_${index + 1}`,
@@ -587,7 +587,7 @@ export const syncDataFromGoogleSheets = async () => {
         ghi_chu: row[10] || '',
         ngay_tao: row[11] || new Date().toISOString(),
         nguoi_tao: row[12] || 'Admin',
-        update: row[13] || new Date().toISOString(),
+        updated_at: row[13] || new Date().toISOString(),
       })),
       customers: mockData.customers.map((row, index) => ({
         id: row[0] || `customer_${index + 1}`,
@@ -603,7 +603,7 @@ export const syncDataFromGoogleSheets = async () => {
         ghi_chu: row[10] || '',
         ngay_tao: row[11] || new Date().toISOString(),
         nguoi_tao: row[12] || 'Admin',
-        update: row[13] || new Date().toISOString(),
+        updated_at: row[13] || new Date().toISOString(),
       })),
       inboundShipments: mockInboundShipments.map((row, index) => ({
         id: row.id || `inbound_${index + 1}`,
@@ -617,16 +617,16 @@ export const syncDataFromGoogleSheets = async () => {
         thong_tin: row.thong_tin || '',
         quy_cach: row.quy_cach || '',
         dvt: row.dvt || '',
-        SL_Nhap: row.SL_Nhap || 0,
+        sl_nhap: row.sl_nhap || 0,
         ghi_chu: row.ghi_chu || '',
-        Nha_Cung_Cap_id: row.Nha_Cung_Cap_id || '',
-        Ten_Nha_Cung_Cap: row.Ten_Nha_Cung_Cap || '',
-        Dia_Chi: row.Dia_Chi || '',
-        So_Dt: row.So_Dt || '',
-        Noi_Dung_Nhap: row.Noi_Dung_Nhap || '',
+        nha_cung_cap_id: row.nha_cung_cap_id || '',
+        ten_nha_cung_cap: row.ten_nha_cung_cap || '',
+        dia_chi: row.dia_chi || '',
+        so_dt: row.so_dt || '',
+        noi_dung_nhap: row.noi_dung_nhap || '',
         ngay_tao: row.ngay_tao || new Date().toISOString(),
         nguoi_tao: row.nguoi_tao || 'Admin',
-        update: row.update || new Date().toISOString(),
+        updated_at: row.updated_at || new Date().toISOString(),
       })),
       outboundShipments: mockOutboundShipments.map((row, index) => ({
         id: row.id || `outbound_${index + 1}`,
@@ -642,15 +642,15 @@ export const syncDataFromGoogleSheets = async () => {
         dvt: row.dvt || '',
         sl_xuat: row.sl_xuat || 0,
         ghi_chu: row.ghi_chu || '',
-        So_HD: row.So_HD || '',
-        Ma_KH: row.Ma_KH || '',
-        Ten_Khach_Hang: row.Ten_Khach_Hang || '',
-        Dia_Chi: row.Dia_Chi || '',
-        So_Dt: row.So_Dt || '',
-        Noi_Dung_Xuat: row.Noi_Dung_Xuat || '',
+        so_hd: row.so_hd || '',
+        ma_kh: row.ma_kh || '',
+        ten_khach_hang: row.ten_khach_hang || '',
+        dia_chi: row.dia_chi || '',
+        so_dt: row.so_dt || '',
+        noi_dung_xuat: row.noi_dung_xuat || '',
         ngay_tao: row.ngay_tao || new Date().toISOString(),
         nguoi_tao: row.nguoi_tao || 'Admin',
-        update: row.update || new Date().toISOString(),
+        updated_at: row.updated_at || new Date().toISOString(),
       })),
       companyInfo: mockData.companyInfo?.map((row, index) => ({
         id: row[0] || `company_${index + 1}`,
@@ -666,7 +666,7 @@ export const syncDataFromGoogleSheets = async () => {
         ghi_chu: row[10] || '',
         ngay_tao: row[11] || new Date().toISOString(),
         nguoi_tao: row[12] || 'Admin',
-        update: row[13] || new Date().toISOString(),
+        updated_at: row[13] || new Date().toISOString(),
       })) || [],
       users: mockData.users?.map((row, index) => ({
         id: row[0] || `user_${index + 1}`,
@@ -685,7 +685,7 @@ export const syncDataFromGoogleSheets = async () => {
         quyen_cai_dat: row[13] || 'Có',
         ngay_tao: row[14] || new Date().toISOString(),
         nguoi_tao: row[15] || 'Admin',
-        update: row[16] || new Date().toISOString(),
+        updated_at: row[16] || new Date().toISOString(),
       })) || [],
       inboundDetails: [],
       outboundDetails: []
@@ -713,7 +713,7 @@ export const productsAPI = {
   create: async (product: Omit<Product, 'id'>): Promise<Product> => {
     if (!hasServiceAccount) {
       console.warn('Create operation requires Service Account. Using mock data.');
-      const mockProduct = { ...product, id: Date.now().toString(), update: new Date().toISOString() };
+      const mockProduct = { ...product, id: Date.now().toString(), updated_at: new Date().toISOString() };
       return mockProduct as Product;
     }
     
@@ -734,12 +734,12 @@ export const productsAPI = {
       now
     ];
     await appendSheetData('DM_SAN_PHAM!A:L', [newRow]);
-    return { ...product, id, update: now };
+    return { ...product, id, updated_at: now };
   },
   update: async (id: string, product: Partial<Product>): Promise<Product> => {
     if (!hasServiceAccount) {
       console.warn('Update operation requires Service Account. Using mock data.');
-      return { ...product, id, update: new Date().toISOString() } as Product;
+      return { ...product, id, updated_at: new Date().toISOString() } as Product;
     }
     throw new Error('Update operation not implemented yet');
   },
@@ -761,7 +761,7 @@ export const suppliersAPI = {
   create: async (supplier: Omit<Supplier, 'id'>): Promise<Supplier> => {
     if (!hasServiceAccount) {
       console.warn('Create operation requires Service Account. Using mock data.');
-      const mockSupplier = { ...supplier, id: Date.now().toString(), update: new Date().toISOString() };
+      const mockSupplier = { ...supplier, id: Date.now().toString(), updated_at: new Date().toISOString() };
       return mockSupplier as Supplier;
     }
     
@@ -784,12 +784,12 @@ export const suppliersAPI = {
       now
     ];
     await appendSheetData('NCC!A:N', [newRow]);
-    return { ...supplier, id, update: now };
+    return { ...supplier, id, updated_at: now };
   },
   update: async (id: string, supplier: Partial<Supplier>): Promise<Supplier> => {
     if (!hasServiceAccount) {
       console.warn('Update operation requires Service Account. Using mock data.');
-      return { ...supplier, id, update: new Date().toISOString() } as Supplier;
+      return { ...supplier, id, updated_at: new Date().toISOString() } as Supplier;
     }
     throw new Error('Update operation not implemented yet');
   },
@@ -811,7 +811,7 @@ export const customersAPI = {
   create: async (customer: Omit<Customer, 'id'>): Promise<Customer> => {
     if (!hasServiceAccount) {
       console.warn('Create operation requires Service Account. Using mock data.');
-      const mockCustomer = { ...customer, id: Date.now().toString(), update: new Date().toISOString() };
+      const mockCustomer = { ...customer, id: Date.now().toString(), updated_at: new Date().toISOString() };
       return mockCustomer as Customer;
     }
     
@@ -834,16 +834,16 @@ export const customersAPI = {
       now
     ];
     await appendSheetData('KHACH_HANG!A:N', [newRow]);
-    return { ...customer, id, update: now };
+    return { ...customer, id, updated_at: now };
   },
   update: async (id: string, customer: Partial<Customer>): Promise<Customer> => {
     if (!hasServiceAccount) {
       console.warn('Update operation requires Service Account. Using mock data.');
-      return { ...customer, id, update: new Date().toISOString() } as Customer;
+      return { ...customer, id, updated_at: new Date().toISOString() } as Customer;
     }
     // TODO: Implement actual Google Sheets update
     console.warn('Update operation not fully implemented yet. Using mock data.');
-    return { ...customer, id, update: new Date().toISOString() } as Customer;
+    return { ...customer, id, updated_at: new Date().toISOString() } as Customer;
   },
   delete: async (id: string): Promise<void> => {
     if (!hasServiceAccount) {
@@ -864,7 +864,7 @@ export const inboundShipmentsAPI = {
   create: async (shipment: Omit<InboundShipment, 'id'>): Promise<InboundShipment> => {
     if (!hasServiceAccount) {
       console.warn('Create operation requires Service Account. Using mock data.');
-      const mockShipment = { ...shipment, id: Date.now().toString(), update: new Date().toISOString() };
+      const mockShipment = { ...shipment, id: Date.now().toString(), updated_at: new Date().toISOString() };
       return mockShipment as InboundShipment;
     }
     
@@ -882,24 +882,24 @@ export const inboundShipmentsAPI = {
       shipment.thong_tin,
       shipment.quy_cach,
       shipment.dvt,
-      shipment.SL_Nhap,
+      shipment.sl_nhap,
       shipment.ghi_chu,
-      shipment.Nha_Cung_Cap_id,
-      shipment.Ten_Nha_Cung_Cap,
-      shipment.Dia_Chi,
-      shipment.So_Dt,
-      shipment.Noi_Dung_Nhap,
+      shipment.nha_cung_cap_id,
+      shipment.ten_nha_cung_cap,
+      shipment.dia_chi,
+      shipment.so_dt,
+      shipment.noi_dung_nhap,
       now,
       'Admin',
       now
     ];
     await appendSheetData('NHAP_KHO!A:U', [newRow]);
-    return { ...shipment, id, update: now };
+    return { ...shipment, id, updated_at: now };
   },
   update: async (id: string, shipment: Partial<InboundShipment>): Promise<InboundShipment> => {
     if (!hasServiceAccount) {
       console.warn('Update operation requires Service Account. Using mock data.');
-      return { ...shipment, id, update: new Date().toISOString() } as InboundShipment;
+      return { ...shipment, id, updated_at: new Date().toISOString() } as InboundShipment;
     }
     throw new Error('Update operation not implemented yet');
   },
@@ -921,7 +921,7 @@ export const outboundShipmentsAPI = {
   create: async (shipment: Omit<OutboundShipment, 'id'>): Promise<OutboundShipment> => {
     if (!hasServiceAccount) {
       console.warn('Create operation requires Service Account. Using mock data.');
-      const mockShipment = { ...shipment, id: Date.now().toString(), update: new Date().toISOString() };
+      const mockShipment = { ...shipment, id: Date.now().toString(), updated_at: new Date().toISOString() };
       return mockShipment as OutboundShipment;
     }
     
@@ -941,23 +941,23 @@ export const outboundShipmentsAPI = {
       shipment.dvt,
       shipment.sl_xuat,
       shipment.ghi_chu,
-      shipment.So_HD,
-      shipment.Ma_KH,
-      shipment.Ten_Khach_Hang,
-      shipment.Dia_Chi,
-      shipment.So_Dt,
-      shipment.Noi_Dung_Xuat,
+      shipment.so_hd,
+      shipment.ma_kh,
+      shipment.ten_khach_hang,
+      shipment.dia_chi,
+      shipment.so_dt,
+      shipment.noi_dung_xuat,
       now,
       'Admin',
       now
     ];
     await appendSheetData('XUAT_KHO!A:V', [newRow]);
-    return { ...shipment, id, update: now };
+    return { ...shipment, id, updated_at: now };
   },
   update: async (id: string, shipment: Partial<OutboundShipment>): Promise<OutboundShipment> => {
     if (!hasServiceAccount) {
       console.warn('Update operation requires Service Account. Using mock data.');
-      return { ...shipment, id, update: new Date().toISOString() } as OutboundShipment;
+      return { ...shipment, id, updated_at: new Date().toISOString() } as OutboundShipment;
     }
     throw new Error('Update operation not implemented yet');
   },
@@ -979,7 +979,7 @@ export const companyInfoAPI = {
   create: async (company: Omit<CompanyInfo, 'id'>): Promise<CompanyInfo> => {
     if (!hasServiceAccount) {
       console.warn('Create operation requires Service Account. Using mock data.');
-      const mockCompany = { ...company, id: Date.now().toString(), update: new Date().toISOString() };
+      const mockCompany = { ...company, id: Date.now().toString(), updated_at: new Date().toISOString() };
       return mockCompany as CompanyInfo;
     }
     
@@ -1002,12 +1002,12 @@ export const companyInfoAPI = {
       now
     ];
     await appendSheetData('THONG_TIN_CTY!A:N', [newRow]);
-    return { ...company, id, update: now };
+    return { ...company, id, updated_at: now };
   },
   update: async (id: string, company: Partial<CompanyInfo>): Promise<CompanyInfo> => {
     if (!hasServiceAccount) {
       console.warn('Update operation requires Service Account. Using mock data.');
-      return { ...company, id, update: new Date().toISOString() } as CompanyInfo;
+      return { ...company, id, updated_at: new Date().toISOString() } as CompanyInfo;
     }
     throw new Error('Update operation not implemented yet');
   },
@@ -1029,7 +1029,7 @@ export const usersAPI = {
   create: async (user: Omit<User, 'id'>): Promise<User> => {
     if (!hasServiceAccount) {
       console.warn('Create operation requires Service Account. Using mock data.');
-      const mockUser = { ...user, id: Date.now().toString(), update: new Date().toISOString() };
+      const mockUser = { ...user, id: Date.now().toString(), updated_at: new Date().toISOString() };
       return mockUser as User;
     }
     
@@ -1055,12 +1055,12 @@ export const usersAPI = {
       now
     ];
     await appendSheetData('NGUOI_DUNG!A:Q', [newRow]);
-    return { ...user, id, update: now };
+    return { ...user, id, updated_at: now };
   },
   update: async (id: string, user: Partial<User>): Promise<User> => {
     if (!hasServiceAccount) {
       console.warn('Update operation requires Service Account. Using mock data.');
-      return { ...user, id, update: new Date().toISOString() } as User;
+      return { ...user, id, updated_at: new Date().toISOString() } as User;
     }
     throw new Error('Update operation not implemented yet');
   },
@@ -1082,7 +1082,7 @@ export const inboundDetailsAPI = {
   create: async (detail: Omit<InboundDetail, 'id'>): Promise<InboundDetail> => {
     if (!hasServiceAccount) {
       console.warn('Create operation requires Service Account. Using mock data.');
-      const mockDetail = { ...detail, id: Date.now().toString(), update: new Date().toISOString() };
+      const mockDetail = { ...detail, id: Date.now().toString(), updated_at: new Date().toISOString() };
       return mockDetail as InboundDetail;
     }
     
@@ -1103,12 +1103,12 @@ export const inboundDetailsAPI = {
     ];
     // Không thể append vào sheet chi tiết vì đã gộp vào bảng chính
     // await appendSheetData('NHAP_KHO_CT!A:K', [newRow]);
-    return { ...detail, id, update: now };
+    return { ...detail, id, updated_at: now };
   },
   update: async (id: string, detail: Partial<InboundDetail>): Promise<InboundDetail> => {
     if (!hasServiceAccount) {
       console.warn('Update operation requires Service Account. Using mock data.');
-      return { ...detail, id, update: new Date().toISOString() } as InboundDetail;
+      return { ...detail, id, updated_at: new Date().toISOString() } as InboundDetail;
     }
     throw new Error('Update operation not implemented yet');
   },
@@ -1130,7 +1130,7 @@ export const outboundDetailsAPI = {
   create: async (detail: Omit<OutboundDetail, 'id'>): Promise<OutboundDetail> => {
     if (!hasServiceAccount) {
       console.warn('Create operation requires Service Account. Using mock data.');
-      const mockDetail = { ...detail, id: Date.now().toString(), update: new Date().toISOString() };
+      const mockDetail = { ...detail, id: Date.now().toString(), updated_at: new Date().toISOString() };
       return mockDetail as OutboundDetail;
     }
     
@@ -1151,12 +1151,12 @@ export const outboundDetailsAPI = {
     ];
     // Không thể append vào sheet chi tiết vì đã gộp vào bảng chính
     // await appendSheetData('XUAT_KHO_CT!A:K', [newRow]);
-    return { ...detail, id, update: now };
+    return { ...detail, id, updated_at: now };
   },
   update: async (id: string, detail: Partial<OutboundDetail>): Promise<OutboundDetail> => {
     if (!hasServiceAccount) {
       console.warn('Update operation requires Service Account. Using mock data.');
-      return { ...detail, id, update: new Date().toISOString() } as OutboundDetail;
+      return { ...detail, id, updated_at: new Date().toISOString() } as OutboundDetail;
     }
     throw new Error('Update operation not implemented yet');
   },

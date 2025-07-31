@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { dataService } from '../services/dataService';
 import {
   Box,
   Typography,
@@ -34,7 +35,7 @@ import {
 } from '@mui/icons-material';
 import { useInventory } from '../context/InventoryContext';
 import { CompanyInfo } from '../types';
-import { companyInfoAPI } from '../services/googleSheetsService';
+
 
 interface CompanyInfoFormData {
   ten_cong_ty: string;
@@ -119,21 +120,22 @@ const CompanyInfoPage: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      const companyData: CompanyInfo = {
-        id: editingCompany?.id || Date.now().toString(),
+      const companyData: Omit<CompanyInfo, 'id'> & { id?: string } = {
+        id: editingCompany?.id,
         ...formData,
         ngay_tao: editingCompany?.ngay_tao || new Date().toISOString(),
         nguoi_tao: editingCompany?.nguoi_tao || 'Admin',
-        update: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       if (editingCompany) {
         // Update
-        await companyInfoAPI.update(companyData.id, companyData);
-        dispatch({ type: 'UPDATE_COMPANY_INFO', payload: companyData });
+        await dataService.companyInfo.update(companyData.id!, companyData);
+        dispatch({ type: 'UPDATE_COMPANY_INFO', payload: companyData as CompanyInfo });
       } else {
         // Create
-        const newCompany = await companyInfoAPI.create(companyData);
+        const { id, ...createData } = companyData;
+        const newCompany = await dataService.companyInfo.create(createData);
         dispatch({ type: 'ADD_COMPANY_INFO', payload: newCompany });
       }
       handleCloseDialog();
@@ -146,7 +148,7 @@ const CompanyInfoPage: React.FC = () => {
   const handleDelete = async (companyId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa thông tin công ty này?')) {
       try {
-        await companyInfoAPI.delete(companyId);
+        await dataService.companyInfo.delete(companyId);
         dispatch({ type: 'DELETE_COMPANY_INFO', payload: companyId });
       } catch (error) {
         console.error('Error deleting company info:', error);

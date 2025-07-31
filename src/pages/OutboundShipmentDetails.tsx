@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { dataService } from '../services/dataService';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -38,7 +39,7 @@ import {
 } from '@mui/icons-material';
 import { useInventory } from '../context/InventoryContext';
 import { OutboundDetail, OutboundShipment } from '../types';
-import { outboundDetailsAPI } from '../services/googleSheetsService';
+
 
 interface OutboundDetailFormData {
   san_pham_id: string;
@@ -126,14 +127,14 @@ const OutboundShipmentDetails: React.FC = () => {
         ...formData,
         ngay_tao: editingDetail?.ngay_tao || new Date().toISOString(),
         nguoi_tao: editingDetail?.nguoi_tao || 'Admin',
-        update: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       if (editingDetail) {
-        await outboundDetailsAPI.update(detailData.id, detailData);
+        await dataService.outboundDetails.update(detailData.id, detailData);
         dispatch({ type: 'UPDATE_OUTBOUND_DETAIL', payload: detailData });
       } else {
-        const newDetail = await outboundDetailsAPI.create(detailData);
+        const newDetail = await dataService.outboundDetails.create(detailData);
         dispatch({ type: 'ADD_OUTBOUND_DETAIL', payload: newDetail });
       }
       handleCloseDialog();
@@ -146,7 +147,7 @@ const OutboundShipmentDetails: React.FC = () => {
   const handleDelete = async (detailId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa chi tiết này?')) {
       try {
-        await outboundDetailsAPI.delete(detailId);
+        await dataService.outboundDetails.delete(detailId);
         dispatch({ type: 'DELETE_OUTBOUND_DETAIL', payload: detailId });
       } catch (error) {
         console.error('Error deleting outbound detail:', error);
@@ -209,7 +210,7 @@ const OutboundShipmentDetails: React.FC = () => {
                 Khách Hàng
               </Typography>
               <Typography variant="h6">
-                {shipment.Ten_Khach_Hang}
+                {shipment.ten_khach_hang}
               </Typography>
             </CardContent>
           </Card>

@@ -8,6 +8,7 @@ import { Box, Container } from '@mui/material';
 // Context
 import { InventoryProvider } from './context/InventoryContext';
 import { AutoSyncProvider } from './contexts/AutoSyncContext';
+import { SupabaseProvider } from './contexts/SupabaseContext';
 
 // Components
 import Layout from './components/Layout';
@@ -56,8 +57,9 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <GoogleSheetsProvider>
-          <AutoSyncProvider>
-            <InventoryProvider>
+          <SupabaseProvider>
+            <AutoSyncProvider>
+              <InventoryProvider>
               <Router>
                 <Box sx={{ display: 'flex', height: '100vh' }}>
                   <Layout>
@@ -80,6 +82,7 @@ function App() {
               </Router>
             </InventoryProvider>
           </AutoSyncProvider>
+          </SupabaseProvider>
         </GoogleSheetsProvider>
       </ThemeProvider>
     </QueryClientProvider>

@@ -1,9 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  initializeGoogleSheets, 
-  getSheetData,
-  syncDataFromGoogleSheets
-} from '../services/googleSheetsService';
+import { dataService } from '../services/dataService';
 import { 
   Product,
   Supplier,
@@ -40,7 +36,7 @@ interface AutoSyncContextType {
   resetStats: () => void;
   forceSync: () => Promise<void>;
   refreshData: () => Promise<void>;
-  forceDownloadFromSheets: () => Promise<boolean>;
+  forceDownloadFromSource: () => Promise<boolean>;
   showUpdateNotification: boolean;
   isRateLimited: boolean;
 }
@@ -75,10 +71,10 @@ const getConfigFromStorage = (): AutoSyncConfig => {
     }
   }
   
-  // Default config
+  // Default config cho Supabase
   return {
     isEnabled: true, // Bật mặc định để đồng bộ dữ liệu
-    interval: 120, // 120 giây để tránh rate limiting
+    interval: 5, // 10 giây cho Supabase (không có rate limiting)
     syncDirection: 'download',
     lastDataHash: ''
   };
@@ -104,10 +100,11 @@ export const AutoSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const syncLockRef = useRef(false);
   const isInitializedRef = useRef(false);
 
-  // Kiểm tra kết nối Google Sheets
+  // Kiểm tra kết nối data source
   const checkConnection = useCallback(async () => {
     try {
-      await initializeGoogleSheets();
+      // Kiểm tra kết nối bằng cách lấy dữ liệu sản phẩm
+      await dataService.products.getAll();
       setStatus(prev => ({ ...prev, isConnected: true }));
       return true;
     } catch (error) {
@@ -117,15 +114,33 @@ export const AutoSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  // Tải dữ liệu từ Google Sheets
-  const downloadDataFromSheets = useCallback(async (): Promise<boolean> => {
+  // Tải dữ liệu từ data source
+  const downloadDataFromSource = useCallback(async (): Promise<boolean> => {
     try {
-      console.log('🔄 Đang tải dữ liệu từ Google Sheets...');
+      console.log('🔄 Đang tải dữ liệu từ data source...');
 
-      // Sử dụng syncDataFromGoogleSheets để map dữ liệu đúng cách
-      const syncedData = await syncDataFromGoogleSheets();
+      // Lấy dữ liệu từ dataService
+      const products = await dataService.products.getAll();
+      const suppliers = await dataService.suppliers.getAll();
+      const customers = await dataService.customers.getAll();
+      const inboundShipments = await dataService.inboundShipments.getAll();
+      const outboundShipments = await dataService.outboundShipments.getAll();
+      const companyInfo = await dataService.companyInfo.getAll();
+      const users = await dataService.users.getAll();
 
-      // Lưu vào localStorage với dữ liệu đã được map
+      const syncedData = {
+        products,
+        suppliers,
+        customers,
+        inboundShipments,
+        outboundShipments,
+        companyInfo,
+        users,
+        inboundDetails: [],
+        outboundDetails: []
+      };
+
+      // Lưu vào localStorage
       localStorage.setItem('products', JSON.stringify(syncedData.products));
       localStorage.setItem('suppliers', JSON.stringify(syncedData.suppliers));
       localStorage.setItem('customers', JSON.stringify(syncedData.customers));
@@ -155,14 +170,14 @@ export const AutoSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         error: null
       }));
 
-      console.log('✅ Tải dữ liệu thành công từ Google Sheets với mapping đúng');
+      console.log('✅ Tải dữ liệu thành công từ data source');
       return true;
 
     } catch (error) {
       console.error('❌ Lỗi tải dữ liệu:', error);
       setStatus(prev => ({
         ...prev,
-        error: 'Lỗi tải dữ liệu từ Google Sheets'
+        error: 'Lỗi tải dữ liệu từ data source'
       }));
       return false;
     }
@@ -194,8 +209,8 @@ export const AutoSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return;
       }
 
-      // Tải dữ liệu từ Google Sheets (không cần lock vì đã được quản lý ở đây)
-      const success = await downloadDataFromSheets();
+      // Tải dữ liệu từ data source (không cần lock vì đã được quản lý ở đây)
+      const success = await downloadDataFromSource();
       if (success) {
         setStatus(prev => ({ 
           ...prev, 
@@ -241,17 +256,17 @@ export const AutoSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } finally {
       syncLockRef.current = false;
     }
-  }, [checkConnection, downloadDataFromSheets, isRateLimited]);
+  }, [checkConnection, downloadDataFromSource, isRateLimited]);
 
   // Refresh data
   const refreshData = useCallback(async () => {
-    await downloadDataFromSheets();
-  }, [downloadDataFromSheets]);
+    await downloadDataFromSource();
+  }, [downloadDataFromSource]);
 
-  // Force download từ Google Sheets
-  const forceDownloadFromSheets = useCallback(async (): Promise<boolean> => {
-    return await downloadDataFromSheets();
-  }, [downloadDataFromSheets]);
+  // Force download từ data source
+  const forceDownloadFromSource = useCallback(async (): Promise<boolean> => {
+    return await downloadDataFromSource();
+  }, [downloadDataFromSource]);
 
   // Bắt đầu auto-sync
   const startAutoSync = useCallback(() => {
@@ -327,12 +342,12 @@ export const AutoSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Kiểm tra kết nối ban đầu
       checkConnection();
       
-      // Tải dữ liệu từ Google Sheets khi khởi động
-      downloadDataFromSheets().then((success) => {
-        if (success) {
-          console.log('✅ Khởi tạo dữ liệu thành công từ Google Sheets');
-        } else {
-          console.log('⚠️ Không thể tải dữ liệu từ Google Sheets, sử dụng dữ liệu local');
+              // Tải dữ liệu từ data source khi khởi động
+        downloadDataFromSource().then((success: boolean) => {
+          if (success) {
+            console.log('✅ Khởi tạo dữ liệu thành công từ data source');
+                  } else {
+            console.log('⚠️ Không thể tải dữ liệu từ data source, sử dụng dữ liệu local');
         }
         
         // Bắt đầu auto-sync sau khi tải dữ liệu (chỉ khi được bật)
@@ -343,7 +358,7 @@ export const AutoSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       });
     }
-  }, [config.isEnabled, checkConnection, downloadDataFromSheets, startAutoSync]);
+  }, [config.isEnabled, checkConnection, downloadDataFromSource, startAutoSync]);
 
   // Cleanup khi unmount
   useEffect(() => {
@@ -364,7 +379,7 @@ export const AutoSyncProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     resetStats,
     forceSync,
     refreshData,
-    forceDownloadFromSheets,
+    forceDownloadFromSource,
     showUpdateNotification,
     isRateLimited
   };

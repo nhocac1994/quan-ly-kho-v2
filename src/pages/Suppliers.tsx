@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { dataService } from '../services/dataService';
 import {
   Box,
   Typography,
@@ -41,7 +42,7 @@ import {
 } from '@mui/icons-material';
 import { useInventory } from '../context/InventoryContext';
 import { Supplier } from '../types';
-import { suppliersAPI } from '../services/googleSheetsService';
+
 import * as XLSX from 'xlsx';
 
 interface SupplierFormData {
@@ -140,20 +141,21 @@ const Suppliers: React.FC = () => {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      const supplierData: Supplier = {
-        id: editingSupplier?.id || Date.now().toString(),
+      const supplierData: Omit<Supplier, 'id'> & { id?: string } = {
+        id: editingSupplier?.id,
         ...formData,
         ngay_tao: editingSupplier?.ngay_tao || new Date().toISOString(),
         nguoi_tao: editingSupplier?.nguoi_tao || 'Admin',
-        update: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       if (editingSupplier) {
-        await suppliersAPI.update(supplierData.id, supplierData);
-        dispatch({ type: 'UPDATE_SUPPLIER', payload: supplierData });
+        await dataService.suppliers.update(supplierData.id!, supplierData);
+        dispatch({ type: 'UPDATE_SUPPLIER', payload: supplierData as Supplier });
         setSnackbar({ open: true, message: 'Cập nhật nhà cung cấp thành công!', severity: 'success' });
       } else {
-        const newSupplier = await suppliersAPI.create(supplierData);
+        const { id, ...createData } = supplierData;
+        const newSupplier = await dataService.suppliers.create(createData);
         dispatch({ type: 'ADD_SUPPLIER', payload: newSupplier });
         setSnackbar({ open: true, message: 'Thêm nhà cung cấp thành công!', severity: 'success' });
       }
@@ -170,7 +172,7 @@ const Suppliers: React.FC = () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa nhà cung cấp này?')) {
       setLoading(true);
       try {
-        await suppliersAPI.delete(supplierId);
+        await dataService.suppliers.delete(supplierId);
         dispatch({ type: 'DELETE_SUPPLIER', payload: supplierId });
         setSnackbar({ open: true, message: 'Xóa nhà cung cấp thành công!', severity: 'success' });
       } catch (error) {
@@ -343,12 +345,12 @@ const Suppliers: React.FC = () => {
             tinh_trang: item.Tinh_Trang,
             nv_phu_trach: item.NV_Phu_Trach,
             ghi_chu: item.Ghi_Chu,
-            ngay_tao: new Date().toISOString(),
-            nguoi_tao: 'Admin',
-            update: new Date().toISOString(),
+                          ngay_tao: new Date().toISOString(),
+              nguoi_tao: 'Admin',
+              updated_at: new Date().toISOString(),
           };
 
-          const newSupplier = await suppliersAPI.create(supplierData);
+          const newSupplier = await dataService.suppliers.create(supplierData);
           dispatch({ type: 'ADD_SUPPLIER', payload: newSupplier });
           successCount++;
         } catch (error) {

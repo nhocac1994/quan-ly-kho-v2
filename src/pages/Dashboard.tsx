@@ -13,6 +13,7 @@ import {
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import { useProducts, useSuppliers, useCustomers } from '../hooks/useInventoryQueries';
+import RealtimeStatus from '../components/RealtimeStatus';
 
 const Dashboard: React.FC = () => {
   const { data: products = [] } = useProducts();
@@ -47,6 +48,8 @@ const Dashboard: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
+      
+      <RealtimeStatus />
       
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
         {stats.map((stat, index) => (

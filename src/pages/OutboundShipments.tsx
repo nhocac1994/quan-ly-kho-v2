@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { dataService } from '../services/dataService';
 import {
   Box,
   Typography,
@@ -39,7 +40,7 @@ import { useInventory } from '../context/InventoryContext';
 import { OutboundShipment } from '../types';
 import ImportExcelOutboundDialog from '../components/ImportExcelOutboundDialog';
 import { useNavigate } from 'react-router-dom';
-import { outboundShipmentsAPI } from '../services/googleSheetsService';
+
 
 interface OutboundShipmentFormData {
   xuat_kho_id: string;
@@ -54,12 +55,12 @@ interface OutboundShipmentFormData {
   dvt: string;
   sl_xuat: number;
   ghi_chu: string;
-  So_HD: string;
-  Ma_KH: string;
-  Ten_Khach_Hang: string;
-  Dia_Chi: string;
-  So_Dt: string;
-  Noi_Dung_Xuat: string;
+  so_hd: string;
+  ma_kh: string;
+  ten_khach_hang: string;
+  dia_chi: string;
+  so_dt: string;
+  noi_dung_xuat: string;
 }
 
 const OutboundShipments: React.FC = () => {
@@ -86,19 +87,19 @@ const OutboundShipments: React.FC = () => {
     dvt: '',
     sl_xuat: 0,
     ghi_chu: '',
-    So_HD: '',
-    Ma_KH: '',
-    Ten_Khach_Hang: '',
-    Dia_Chi: '',
-    So_Dt: '',
-    Noi_Dung_Xuat: '',
+    so_hd: '',
+    ma_kh: '',
+    ten_khach_hang: '',
+    dia_chi: '',
+    so_dt: '',
+    noi_dung_xuat: '',
   });
 
   const filteredShipments = useMemo(() => {
     return outboundShipments.filter((shipment: OutboundShipment) =>
       shipment.ten_san_pham.toLowerCase().includes(searchTerm.toLowerCase()) ||
       shipment.xuat_kho_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.Ten_Khach_Hang.toLowerCase().includes(searchTerm.toLowerCase())
+      shipment.ten_khach_hang.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [outboundShipments, searchTerm]);
 
@@ -118,12 +119,12 @@ const OutboundShipments: React.FC = () => {
         dvt: shipment.dvt,
         sl_xuat: shipment.sl_xuat,
         ghi_chu: shipment.ghi_chu,
-        So_HD: shipment.So_HD,
-        Ma_KH: shipment.Ma_KH,
-        Ten_Khach_Hang: shipment.Ten_Khach_Hang,
-        Dia_Chi: shipment.Dia_Chi,
-        So_Dt: shipment.So_Dt,
-        Noi_Dung_Xuat: shipment.Noi_Dung_Xuat,
+        so_hd: shipment.so_hd,
+        ma_kh: shipment.ma_kh,
+        ten_khach_hang: shipment.ten_khach_hang,
+        dia_chi: shipment.dia_chi,
+        so_dt: shipment.so_dt,
+        noi_dung_xuat: shipment.noi_dung_xuat,
       });
     } else {
       setEditingShipment(null);
@@ -140,12 +141,12 @@ const OutboundShipments: React.FC = () => {
         dvt: '',
         sl_xuat: 0,
         ghi_chu: '',
-        So_HD: '',
-        Ma_KH: '',
-        Ten_Khach_Hang: '',
-        Dia_Chi: '',
-        So_Dt: '',
-        Noi_Dung_Xuat: '',
+        so_hd: '',
+        ma_kh: '',
+        ten_khach_hang: '',
+        dia_chi: '',
+        so_dt: '',
+        noi_dung_xuat: '',
       });
     }
     setOpenDialog(true);
@@ -158,19 +159,20 @@ const OutboundShipments: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      const shipmentData: OutboundShipment = {
-        id: editingShipment?.id || Date.now().toString(),
+      const shipmentData: Omit<OutboundShipment, 'id'> & { id?: string } = {
+        id: editingShipment?.id,
         ...formData,
         ngay_tao: editingShipment?.ngay_tao || new Date().toISOString(),
         nguoi_tao: editingShipment?.nguoi_tao || 'Admin',
-        update: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       if (editingShipment) {
-        await outboundShipmentsAPI.update(shipmentData.id, shipmentData);
-        dispatch({ type: 'UPDATE_OUTBOUND_SHIPMENT', payload: shipmentData });
+        await dataService.outboundShipments.update(shipmentData.id!, shipmentData);
+        dispatch({ type: 'UPDATE_OUTBOUND_SHIPMENT', payload: shipmentData as OutboundShipment });
       } else {
-        const newShipment = await outboundShipmentsAPI.create(shipmentData);
+        const { id, ...createData } = shipmentData;
+        const newShipment = await dataService.outboundShipments.create(createData);
         dispatch({ type: 'ADD_OUTBOUND_SHIPMENT', payload: newShipment });
       }
       handleCloseDialog();
@@ -183,7 +185,7 @@ const OutboundShipments: React.FC = () => {
   const handleDelete = async (shipmentId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa phiếu xuất kho này?')) {
       try {
-        await outboundShipmentsAPI.delete(shipmentId);
+        await dataService.outboundShipments.delete(shipmentId);
         dispatch({ type: 'DELETE_OUTBOUND_SHIPMENT', payload: shipmentId });
       } catch (error) {
         console.error('Error deleting outbound shipment:', error);
@@ -202,10 +204,10 @@ const OutboundShipments: React.FC = () => {
     if (customer) {
       setFormData(prev => ({
         ...prev,
-        Ma_KH: customer.id,
-        Ten_Khach_Hang: customer.ten_day_du || customer.ten_khach_hang || '',
-        Dia_Chi: customer.ghi_chu || '', // Customer không có dia_chi field
-        So_Dt: customer.sdt || '',
+        ma_kh: customer.id,
+        ten_khach_hang: customer.ten_day_du || customer.ten_khach_hang || '',
+        dia_chi: customer.ghi_chu || '', // Customer không có dia_chi field
+        so_dt: customer.sdt || '',
       }));
     }
   };
@@ -338,7 +340,7 @@ const OutboundShipments: React.FC = () => {
                     <TableCell>{shipment.xuat_kho_id}</TableCell>
                     <TableCell>{new Date(shipment.ngay_xuat).toLocaleDateString('vi-VN')}</TableCell>
                     <TableCell>{shipment.ten_san_pham}</TableCell>
-                    <TableCell>{shipment.Ten_Khach_Hang}</TableCell>
+                    <TableCell>{shipment.ten_khach_hang}</TableCell>
                     <TableCell align="right">
                       <Chip
                         label={shipment.sl_xuat}
@@ -347,7 +349,7 @@ const OutboundShipments: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell>{shipment.dvt}</TableCell>
-                    <TableCell>{shipment.Noi_Dung_Xuat}</TableCell>
+                    <TableCell>{shipment.noi_dung_xuat}</TableCell>
                     <TableCell align="center">
                       <IconButton
                         size="small"
@@ -481,7 +483,7 @@ const OutboundShipments: React.FC = () => {
               <FormControl fullWidth>
                 <InputLabel>Khách Hàng</InputLabel>
                 <Select
-                  value={formData.Ma_KH}
+                  value={formData.ma_kh}
                   label="Khách Hàng"
                   onChange={(e) => handleCustomerChange(e.target.value)}
                 >
@@ -495,30 +497,30 @@ const OutboundShipments: React.FC = () => {
               <TextField
                 fullWidth
                 label="Tên Khách Hàng"
-                value={formData.Ten_Khach_Hang}
-                onChange={(e) => setFormData({ ...formData, Ten_Khach_Hang: e.target.value })}
+                value={formData.ten_khach_hang}
+                onChange={(e) => setFormData({ ...formData, ten_khach_hang: e.target.value })}
               />
             </Box>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
                 fullWidth
                 label="Số Hóa Đơn"
-                value={formData.So_HD}
-                onChange={(e) => setFormData({ ...formData, So_HD: e.target.value })}
+                value={formData.so_hd}
+                onChange={(e) => setFormData({ ...formData, so_hd: e.target.value })}
               />
               <TextField
                 fullWidth
                 label="Địa Chỉ"
-                value={formData.Dia_Chi}
-                onChange={(e) => setFormData({ ...formData, Dia_Chi: e.target.value })}
+                value={formData.dia_chi}
+                onChange={(e) => setFormData({ ...formData, dia_chi: e.target.value })}
               />
             </Box>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
                 fullWidth
                 label="Số Điện Thoại"
-                value={formData.So_Dt}
-                onChange={(e) => setFormData({ ...formData, So_Dt: e.target.value })}
+                value={formData.so_dt}
+                onChange={(e) => setFormData({ ...formData, so_dt: e.target.value })}
               />
             </Box>
             <TextField
@@ -526,8 +528,8 @@ const OutboundShipments: React.FC = () => {
               multiline
               rows={2}
               label="Nội Dung Xuất"
-              value={formData.Noi_Dung_Xuat}
-              onChange={(e) => setFormData({ ...formData, Noi_Dung_Xuat: e.target.value })}
+              value={formData.noi_dung_xuat}
+              onChange={(e) => setFormData({ ...formData, noi_dung_xuat: e.target.value })}
             />
             <TextField
               fullWidth

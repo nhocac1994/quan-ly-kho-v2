@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { dataService } from '../services/dataService';
 import {
   Box,
   Typography,
@@ -41,9 +42,9 @@ import {
   CloudUpload,
   TableChart,
 } from '@mui/icons-material';
-import { useInventory } from '../context/InventoryContext';
+import { useSupabase } from '../contexts/SupabaseContext';
 import { Product } from '../types';
-import { productsAPI } from '../services/googleSheetsService';
+
 import * as XLSX from 'xlsx';
 
 interface ProductFormData {
@@ -58,8 +59,7 @@ interface ProductFormData {
 }
 
 const Products: React.FC = () => {
-  const { state, dispatch } = useInventory();
-  const { products } = state;
+  const { products, refreshProducts } = useSupabase();
   
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -240,11 +240,11 @@ const Products: React.FC = () => {
             ghi_chu: item.Ghi_Chu,
             ngay_tao: new Date().toISOString(),
             nguoi_tao: 'Admin',
-            update: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           };
 
-          const newProduct = await productsAPI.create(productData);
-          dispatch({ type: 'ADD_PRODUCT', payload: newProduct });
+                  const newProduct = await dataService.products.create(productData);
+        refreshProducts();
           successCount++;
         } catch (error) {
           console.error('Error importing product:', error);
@@ -337,21 +337,22 @@ const Products: React.FC = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const productData: Product = {
-        id: editingProduct?.id || Date.now().toString(),
+      const productData: Omit<Product, 'id'> & { id?: string } = {
+        id: editingProduct?.id,
         ...formData,
         ngay_tao: editingProduct?.ngay_tao || new Date().toISOString(),
         nguoi_tao: editingProduct?.nguoi_tao || 'Admin',
-        update: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       if (editingProduct) {
-        await productsAPI.update(productData.id, productData);
-        dispatch({ type: 'UPDATE_PRODUCT', payload: productData });
+        await dataService.products.update(productData.id!, productData);
+        refreshProducts();
         setSnackbar({ open: true, message: 'Cập nhật sản phẩm thành công!', severity: 'success' });
       } else {
-        const newProduct = await productsAPI.create(productData);
-        dispatch({ type: 'ADD_PRODUCT', payload: newProduct });
+        const { id, ...createData } = productData;
+        const newProduct = await dataService.products.create(createData);
+        refreshProducts();
         setSnackbar({ open: true, message: 'Tạo sản phẩm thành công!', severity: 'success' });
       }
       handleCloseDrawer();
@@ -367,8 +368,8 @@ const Products: React.FC = () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
       setLoading(true);
       try {
-        await productsAPI.delete(productId);
-        dispatch({ type: 'DELETE_PRODUCT', payload: productId });
+        await dataService.products.delete(productId);
+        refreshProducts();
         setSnackbar({ open: true, message: 'Xóa sản phẩm thành công!', severity: 'success' });
       } catch (error) {
         console.error('Error deleting product:', error);

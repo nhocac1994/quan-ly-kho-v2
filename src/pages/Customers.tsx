@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { dataService } from '../services/dataService';
 import {
   Box,
   Typography,
@@ -41,7 +42,7 @@ import {
 } from '@mui/icons-material';
 import { useInventory } from '../context/InventoryContext';
 import { Customer } from '../types';
-import { customersAPI } from '../services/googleSheetsService';
+
 import * as XLSX from 'xlsx';
 
 interface CustomerFormData {
@@ -140,20 +141,21 @@ const Customers: React.FC = () => {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      const customerData: Customer = {
-        id: editingCustomer?.id || Date.now().toString(),
+      const customerData: Omit<Customer, 'id'> & { id?: string } = {
+        id: editingCustomer?.id,
         ...formData,
         ngay_tao: editingCustomer?.ngay_tao || new Date().toISOString(),
         nguoi_tao: editingCustomer?.nguoi_tao || 'Admin',
-        update: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       if (editingCustomer) {
-        await customersAPI.update(customerData.id, customerData);
-        dispatch({ type: 'UPDATE_CUSTOMER', payload: customerData });
+        await dataService.customers.update(customerData.id!, customerData);
+        dispatch({ type: 'UPDATE_CUSTOMER', payload: customerData as Customer });
         setSnackbar({ open: true, message: 'Cập nhật khách hàng thành công!', severity: 'success' });
       } else {
-        const newCustomer = await customersAPI.create(customerData);
+        const { id, ...createData } = customerData;
+        const newCustomer = await dataService.customers.create(createData);
         dispatch({ type: 'ADD_CUSTOMER', payload: newCustomer });
         setSnackbar({ open: true, message: 'Thêm khách hàng thành công!', severity: 'success' });
       }
@@ -169,7 +171,7 @@ const Customers: React.FC = () => {
   const handleDelete = async (customerId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa khách hàng này?')) {
       try {
-        await customersAPI.delete(customerId);
+        await dataService.customers.delete(customerId);
         dispatch({ type: 'DELETE_CUSTOMER', payload: customerId });
         setSnackbar({ open: true, message: 'Xóa khách hàng thành công!', severity: 'success' });
       } catch (error) {
@@ -342,10 +344,10 @@ const Customers: React.FC = () => {
             ghi_chu: item.Ghi_Chu,
             ngay_tao: new Date().toISOString(),
             nguoi_tao: 'Admin',
-            update: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           };
 
-          const newCustomer = await customersAPI.create(customerData);
+          const newCustomer = await dataService.customers.create(customerData);
           dispatch({ type: 'ADD_CUSTOMER', payload: newCustomer });
           successCount++;
         } catch (error) {

@@ -10,17 +10,20 @@ import {
   Divider,
   Card,
   CardContent,
-  Chip
+  Chip,
+  Alert
 } from '@mui/material';
 import {
   Sync as SyncIcon,
   Settings as SettingsIcon,
   Refresh as RefreshIcon,
   PlayArrow as PlayIcon,
-  Stop as StopIcon
+  Stop as StopIcon,
+  Storage as StorageIcon
 } from '@mui/icons-material';
 import { useAutoSync } from '../contexts/AutoSyncContext';
 import AutoSyncStatus from '../components/AutoSyncStatus';
+import SimpleDataSourceSwitcher from '../components/SimpleDataSourceSwitcher';
 
 const AutoSync: React.FC = () => {
   const { 
@@ -34,6 +37,33 @@ const AutoSync: React.FC = () => {
     resetStats,
     showUpdateNotification
   } = useAutoSync();
+  
+  const currentDataSource = localStorage.getItem('REACT_APP_DATA_SOURCE') || 'supabase';
+  
+  // Tạm thời tạo mock data cho realtimeStatus và errors
+  const mockRealtimeStatus = {
+    products: false,
+    suppliers: false,
+    customers: false,
+    inboundShipments: false,
+    outboundShipments: false,
+    companyInfo: false,
+    users: false
+  };
+  
+  const mockErrors = {
+    products: null,
+    suppliers: null,
+    customers: null,
+    inboundShipments: null,
+    outboundShipments: null,
+    companyInfo: null,
+    users: null
+  };
+  
+  // Sử dụng mock data cho realtimeStatus và errors
+  const realtimeStatus = mockRealtimeStatus;
+  const errors = mockErrors;
 
   const handleIntervalChange = (event: Event, newValue: number | number[]) => {
     updateConfig({ interval: newValue as number });
@@ -49,36 +79,63 @@ const AutoSync: React.FC = () => {
   };
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 3 }}>
+    <Box sx={{ 
+      minHeight: '100%', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      p: 3
+    }}>
       <Typography variant="h4" gutterBottom>
         <SyncIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
         Quản lý Auto Sync
       </Typography>
 
+      {/* Data Source Switcher */}
+      <Box sx={{ mb: 3 }}>
+        <SimpleDataSourceSwitcher />
+      </Box>
+
       {showUpdateNotification && (
         <Box sx={{ mb: 2, p: 2, bgcolor: 'info.light', borderRadius: 1, color: 'info.contrastText' }}>
-          🔄 Dữ liệu đã được cập nhật từ Google Sheets!
+          🔄 Dữ liệu đã được cập nhật!
         </Box>
       )}
 
-      {/* Thông báo về Rate Limiting */}
-      <Box sx={{ mb: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1, color: 'warning.contrastText' }}>
-        <Typography variant="subtitle2" gutterBottom>
-          ⚠️ Lưu ý về Google Sheets API:
-        </Typography>
-        <Typography variant="body2">
-          • API Key có giới hạn 100 requests/phút
-        </Typography>
-        <Typography variant="body2">
-          • Auto sync mặc định TẮT để tránh rate limiting
-        </Typography>
-        <Typography variant="body2">
-          • Nên set interval ≥ 60 giây để an toàn
-        </Typography>
-        <Typography variant="body2">
-          • Nếu gặp lỗi 429, đợi 2 phút rồi thử lại
-        </Typography>
-      </Box>
+      {/* Thông báo dựa trên data source */}
+      {currentDataSource === 'supabase' ? (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            ℹ️ Thông tin về Supabase:
+          </Typography>
+          <Typography variant="body2">
+            • Realtime sync tự động giữa các người dùng
+          </Typography>
+          <Typography variant="body2">
+            • Không có giới hạn rate limiting
+          </Typography>
+          <Typography variant="body2">
+            • Auto sync có thể bật với interval ngắn
+          </Typography>
+          <Typography variant="body2">
+            • Dữ liệu được lưu trữ an toàn trên PostgreSQL
+          </Typography>
+        </Alert>
+      ) : (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            ⚠️ Lưu ý về Mock Data:
+          </Typography>
+          <Typography variant="body2">
+            • Dữ liệu chỉ lưu trong memory (sẽ mất khi reload)
+          </Typography>
+          <Typography variant="body2">
+            • Không có realtime sync
+          </Typography>
+          <Typography variant="body2">
+            • Chỉ dùng cho development/testing
+          </Typography>
+        </Alert>
+      )}
 
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, mb: 3 }}>
         {/* Cài đặt Auto Sync */}
@@ -88,65 +145,73 @@ const AutoSync: React.FC = () => {
             Cài đặt
           </Typography>
           
-          <Box sx={{ mb: 3 }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={config.isEnabled}
-                  onChange={handleToggleAutoSync}
+          {currentDataSource === 'supabase' ? (
+            <>
+              <Box sx={{ mb: 3 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={config.isEnabled}
+                      onChange={handleToggleAutoSync}
+                    />
+                  }
+                  label="Bật Auto Sync (Realtime)"
                 />
-              }
-              label="Bật Auto Sync"
-            />
-          </Box>
+              </Box>
 
-          <Box sx={{ mb: 3 }}>
-            <Typography gutterBottom>
-              Interval: {config.interval} giây
-            </Typography>
-            <Slider
-              value={config.interval}
-              onChange={handleIntervalChange}
-              min={30}
-              max={300}
-              step={30}
-              marks={[
-                { value: 30, label: '30s' },
-                { value: 60, label: '1m' },
-                { value: 120, label: '2m' },
-                { value: 300, label: '5m' }
-              ]}
-              valueLabelDisplay="auto"
-              disabled={!config.isEnabled}
-            />
-          </Box>
+              <Box sx={{ mb: 3 }}>
+                <Typography gutterBottom>
+                  Interval: {config.interval} giây
+                </Typography>
+                <Slider
+                  value={config.interval}
+                  onChange={handleIntervalChange}
+                  min={10}
+                  max={300}
+                  step={10}
+                  marks={[
+                    { value: 10, label: '10s' },
+                    { value: 30, label: '30s' },
+                    { value: 60, label: '1m' },
+                    { value: 300, label: '5m' }
+                  ]}
+                  valueLabelDisplay="auto"
+                  disabled={!config.isEnabled}
+                />
+              </Box>
 
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            <Button
-              variant="contained"
-              startIcon={<PlayIcon />}
-              onClick={startAutoSync}
-              disabled={config.isEnabled}
-            >
-              Bắt đầu
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<StopIcon />}
-              onClick={stopAutoSync}
-              disabled={!config.isEnabled}
-            >
-              Dừng
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={performManualSync}
-              disabled={status.isProcessing}
-            >
-              Sync thủ công
-            </Button>
-          </Box>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  startIcon={<PlayIcon />}
+                  onClick={startAutoSync}
+                  disabled={config.isEnabled}
+                >
+                  Bắt đầu
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<StopIcon />}
+                  onClick={stopAutoSync}
+                  disabled={!config.isEnabled}
+                >
+                  Dừng
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<RefreshIcon />}
+                  onClick={performManualSync}
+                  disabled={status.isProcessing}
+                >
+                  Sync thủ công
+                </Button>
+              </Box>
+            </>
+          ) : (
+            <Alert severity="info">
+              Auto Sync chỉ khả dụng khi sử dụng Supabase. Với Mock Data, dữ liệu được cập nhật realtime tự động.
+            </Alert>
+          )}
         </Paper>
 
         {/* Trạng thái */}
@@ -157,13 +222,36 @@ const AutoSync: React.FC = () => {
           
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Kết nối:</span>
+              <span>Nguồn dữ liệu:</span>
               <Chip 
-                label={status.isConnected ? 'Đã kết nối' : 'Mất kết nối'} 
-                color={status.isConnected ? 'success' : 'error'}
+                label={currentDataSource === 'supabase' ? 'Supabase' : 'Mock Data'} 
+                color={currentDataSource === 'supabase' ? 'primary' : 'secondary'}
                 size="small"
+                icon={<StorageIcon />}
               />
             </Box>
+            
+            {currentDataSource === 'supabase' && (
+              <>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Kết nối Supabase:</span>
+                  <Chip 
+                    label={Object.values(errors).every(e => e === null) ? 'Đã kết nối' : 'Lỗi kết nối'} 
+                    color={Object.values(errors).every(e => e === null) ? 'success' : 'error'}
+                    size="small"
+                  />
+                </Box>
+                
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Realtime:</span>
+                  <Chip 
+                    label={Object.values(realtimeStatus).some(s => s) ? 'Đang hoạt động' : 'Không hoạt động'} 
+                    color={Object.values(realtimeStatus).some(s => s) ? 'success' : 'warning'}
+                    size="small"
+                  />
+                </Box>
+              </>
+            )}
             
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>Auto Sync:</span>
@@ -220,6 +308,15 @@ const AutoSync: React.FC = () => {
         <AutoSyncStatus />
       </Box>
 
+      {/* Supabase Realtime Status - tạm thời ẩn */}
+      {currentDataSource === 'supabase' && (
+        <Box sx={{ mb: 3 }}>
+          <Alert severity="info">
+            Supabase Realtime Status sẽ được hiển thị khi cấu hình Supabase hoàn tất.
+          </Alert>
+        </Box>
+      )}
+
       {/* Thống kê */}
       <Card>
         <CardContent>
@@ -239,16 +336,16 @@ const AutoSync: React.FC = () => {
             
             <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
               <Typography variant="h4" color="white">
-                {status.dataVersion}
+                {currentDataSource === 'supabase' ? '✓' : '⚠️'}
               </Typography>
               <Typography variant="body2" color="white">
-                Phiên bản dữ liệu
+                {currentDataSource === 'supabase' ? 'Supabase' : 'Mock Data'}
               </Typography>
             </Box>
             
             <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'info.light', borderRadius: 1 }}>
               <Typography variant="h4" color="white">
-                {config.interval}s
+                {currentDataSource === 'supabase' ? config.interval + 's' : 'N/A'}
               </Typography>
               <Typography variant="body2" color="white">
                 Interval
@@ -257,7 +354,10 @@ const AutoSync: React.FC = () => {
             
             <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
               <Typography variant="h4" color="white">
-                {status.isConnected ? '✓' : '✗'}
+                {currentDataSource === 'supabase' ? 
+                  (Object.values(errors).every(e => e === null) ? '✓' : '✗') : 
+                  '✓'
+                }
               </Typography>
               <Typography variant="body2" color="white">
                 Kết nối
@@ -273,13 +373,22 @@ const AutoSync: React.FC = () => {
             >
               Reset thống kê
             </Button>
+            {currentDataSource === 'supabase' && (
+              <Button
+                variant="outlined"
+                onClick={forceSync}
+                disabled={status.isProcessing}
+                size="small"
+              >
+                Force sync
+              </Button>
+            )}
             <Button
               variant="outlined"
-              onClick={forceSync}
-              disabled={status.isProcessing}
+              onClick={() => window.location.reload()}
               size="small"
             >
-              Force sync
+              Reload
             </Button>
           </Box>
         </CardContent>

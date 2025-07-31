@@ -14,7 +14,7 @@ export interface CompanyInfo {
   ghi_chu: string;
   ngay_tao: string;
   nguoi_tao: string;
-  update: string;
+  updated_at: string;
 }
 
 export interface User {
@@ -34,7 +34,7 @@ export interface User {
   quyen_cai_dat: string;
   ngay_tao: string;
   nguoi_tao: string;
-  update: string;
+  updated_at: string;
 }
 
 export interface Supplier {
@@ -51,7 +51,7 @@ export interface Supplier {
   ghi_chu: string;
   ngay_tao: string;
   nguoi_tao: string;
-  update: string;
+  updated_at: string;
 }
 
 export interface Customer {
@@ -68,7 +68,7 @@ export interface Customer {
   ghi_chu: string;
   ngay_tao: string;
   nguoi_tao: string;
-  update: string;
+  updated_at: string;
 }
 
 export interface Product {
@@ -83,7 +83,7 @@ export interface Product {
   ghi_chu: string;
   ngay_tao: string;
   nguoi_tao: string;
-  update: string;
+  updated_at: string;
 }
 
 export interface InboundShipment {
@@ -98,16 +98,16 @@ export interface InboundShipment {
   thong_tin: string;
   quy_cach: string;
   dvt: string;
-  SL_Nhap: number;
+  sl_nhap: number;
   ghi_chu: string;
-  Nha_Cung_Cap_id: string;
-  Ten_Nha_Cung_Cap: string;
-  Dia_Chi: string;
-  So_Dt: string;
-  Noi_Dung_Nhap: string;
+  nha_cung_cap_id: string;
+  ten_nha_cung_cap: string;
+  dia_chi: string;
+  so_dt: string;
+  noi_dung_nhap: string;
   ngay_tao: string;
   nguoi_tao: string;
-  update: string;
+  updated_at: string;
 }
 
 export interface OutboundShipment {
@@ -124,15 +124,15 @@ export interface OutboundShipment {
   dvt: string;
   sl_xuat: number;
   ghi_chu: string;
-  So_HD: string;
-  Ma_KH: string;
-  Ten_Khach_Hang: string;
-  Dia_Chi: string;
-  So_Dt: string;
-  Noi_Dung_Xuat: string;
+  so_hd: string;
+  ma_kh: string;
+  ten_khach_hang: string;
+  dia_chi: string;
+  so_dt: string;
+  noi_dung_xuat: string;
   ngay_tao: string;
   nguoi_tao: string;
-  update: string;
+  updated_at: string;
 }
 
 export interface InboundDetail {
@@ -146,7 +146,7 @@ export interface InboundDetail {
   chat_luong: string;
   ngay_tao: string;
   nguoi_tao: string;
-  update: string;
+  updated_at: string;
 }
 
 export interface OutboundDetail {
@@ -160,7 +160,7 @@ export interface OutboundDetail {
   chat_luong: string;
   ngay_tao: string;
   nguoi_tao: string;
-  update: string;
+  updated_at: string;
 }
 
 // Legacy types for backward compatibility

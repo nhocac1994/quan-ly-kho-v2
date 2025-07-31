@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { dataService } from '../services/dataService';
 import {
   Box,
   Typography,
@@ -36,7 +37,7 @@ import {
 } from '@mui/icons-material';
 import { useInventory } from '../context/InventoryContext';
 import { User } from '../types';
-import { usersAPI } from '../services/googleSheetsService';
+
 
 interface UserFormData {
   ho_va_ten: string;
@@ -133,8 +134,8 @@ const Users: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      const userData: User = {
-        id: editingUser?.id || Date.now().toString(),
+      const userData: Omit<User, 'id'> & { id?: string } = {
+        id: editingUser?.id,
         ho_va_ten: formData.ho_va_ten,
         email: formData.email,
         chuc_vu: formData.chuc_vu,
@@ -150,14 +151,15 @@ const Users: React.FC = () => {
         quyen_cai_dat: formData.quyen_cai_dat ? 'Có' : 'Không',
         ngay_tao: editingUser?.ngay_tao || new Date().toISOString(),
         nguoi_tao: editingUser?.nguoi_tao || 'Admin',
-        update: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
       if (editingUser) {
-        await usersAPI.update(userData.id, userData);
-        dispatch({ type: 'UPDATE_USER', payload: userData });
+        await dataService.users.update(userData.id!, userData);
+        dispatch({ type: 'UPDATE_USER', payload: userData as User });
       } else {
-        const newUser = await usersAPI.create(userData);
+        const { id, ...createData } = userData;
+        const newUser = await dataService.users.create(createData);
         dispatch({ type: 'ADD_USER', payload: newUser });
       }
       handleCloseDialog();
@@ -170,7 +172,7 @@ const Users: React.FC = () => {
   const handleDelete = async (userId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
       try {
-        await usersAPI.delete(userId);
+        await dataService.users.delete(userId);
         dispatch({ type: 'DELETE_USER', payload: userId });
       } catch (error) {
         console.error('Error deleting user:', error);
