@@ -328,6 +328,124 @@ export const dataService = {
     }
   },
 
+  // Shipment Headers API (cho cả inbound và outbound)
+  shipmentHeaders: {
+    getAll: async (): Promise<any[]> => {
+      try {
+        return await supabaseAPIs.shipmentHeaders.getAll();
+      } catch (error) {
+        console.error('Failed to get shipment headers from Supabase:', error);
+        throw error;
+      }
+    },
+
+    getByType: async (type: 'inbound' | 'outbound'): Promise<any[]> => {
+      try {
+        return await supabaseAPIs.shipmentHeaders.getByType(type);
+      } catch (error) {
+        console.error('Failed to get shipment headers by type from Supabase:', error);
+        throw error;
+      }
+    },
+
+    getById: async (id: string): Promise<any | null> => {
+      try {
+        return await supabaseAPIs.shipmentHeaders.getById(id);
+      } catch (error) {
+        console.error('Failed to get shipment header from Supabase:', error);
+        throw error;
+      }
+    },
+
+    create: async (header: any): Promise<any> => {
+      try {
+        return await supabaseAPIs.shipmentHeaders.create(header);
+      } catch (error) {
+        console.error('Failed to create shipment header in Supabase:', error);
+        throw error;
+      }
+    },
+
+    update: async (id: string, header: any): Promise<any> => {
+      try {
+        return await supabaseAPIs.shipmentHeaders.update(id, header);
+      } catch (error) {
+        console.error('Failed to update shipment header in Supabase:', error);
+        throw error;
+      }
+    },
+
+    delete: async (id: string): Promise<void> => {
+      try {
+        await supabaseAPIs.shipmentHeaders.delete(id);
+      } catch (error) {
+        console.error('Failed to delete shipment header in Supabase:', error);
+        throw error;
+      }
+    },
+
+    subscribe: (callback: (payload: any) => void) => {
+      return supabaseAPIs.shipmentHeaders.subscribe(callback);
+    }
+  },
+
+  // Shipment Items API
+  shipmentItems: {
+    getByHeaderId: async (headerId: string): Promise<any[]> => {
+      try {
+        return await supabaseAPIs.shipmentItems.getByHeaderId(headerId);
+      } catch (error) {
+        console.error('Failed to get shipment items from Supabase:', error);
+        throw error;
+      }
+    },
+
+    create: async (item: any): Promise<any> => {
+      try {
+        return await supabaseAPIs.shipmentItems.create(item);
+      } catch (error) {
+        console.error('Failed to create shipment item in Supabase:', error);
+        throw error;
+      }
+    },
+
+    createMany: async (items: any[]): Promise<any[]> => {
+      try {
+        return await supabaseAPIs.shipmentItems.createMany(items);
+      } catch (error) {
+        console.error('Failed to create multiple shipment items in Supabase:', error);
+        throw error;
+      }
+    },
+
+    update: async (id: string, item: any): Promise<any> => {
+      try {
+        return await supabaseAPIs.shipmentItems.update(id, item);
+      } catch (error) {
+        console.error('Failed to update shipment item in Supabase:', error);
+        throw error;
+      }
+    },
+
+    delete: async (id: string): Promise<void> => {
+      try {
+        await supabaseAPIs.shipmentItems.delete(id);
+      } catch (error) {
+        console.error('Failed to delete shipment item in Supabase:', error);
+        throw error;
+      }
+    },
+
+    deleteByHeaderId: async (headerId: string): Promise<void> => {
+      try {
+        await supabaseAPIs.shipmentItems.deleteByHeaderId(headerId);
+      } catch (error) {
+        console.error('Failed to delete shipment items by header ID in Supabase:', error);
+        throw error;
+      }
+    }
+  },
+
   // Users API
   users: {
     getAll: async (): Promise<User[]> => {
@@ -391,5 +509,7 @@ export const {
   inboundShipments,
   outboundShipments,
   companyInfo,
-  users
+  users,
+  shipmentHeaders,
+  shipmentItems
 } = dataService; 

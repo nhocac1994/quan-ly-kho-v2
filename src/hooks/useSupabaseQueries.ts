@@ -6,7 +6,9 @@ import {
   inboundShipments,
   outboundShipments,
   companyInfo,
-  users
+  users,
+  shipmentHeaders,
+  shipmentItems
 } from '../services/dataService-supabase-only';
 import { 
   Product, 
@@ -179,7 +181,113 @@ export const useDeleteCustomer = () => {
   });
 };
 
-// Inbound Shipments queries
+// Shipment Headers queries
+export const useShipmentHeaders = (type?: 'inbound' | 'outbound') => {
+  return useQuery({
+    queryKey: type ? ['shipmentHeaders', type] : ['shipmentHeaders'],
+    queryFn: async () => {
+      if (type) {
+        return await shipmentHeaders.getByType(type);
+      }
+      return await shipmentHeaders.getAll();
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useShipmentHeader = (id: string) => {
+  return useQuery({
+    queryKey: ['shipmentHeader', id],
+    queryFn: async () => {
+      return await shipmentHeaders.getById(id);
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useAddShipmentHeader = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (header: any) => {
+      return await shipmentHeaders.create(header);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipmentHeaders'] });
+    },
+  });
+};
+
+export const useUpdateShipmentHeader = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, ...header }: any) => {
+      return await shipmentHeaders.update(id, header);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipmentHeaders'] });
+    },
+  });
+};
+
+export const useDeleteShipmentHeader = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      return await shipmentHeaders.delete(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipmentHeaders'] });
+    },
+  });
+};
+
+// Shipment Items queries
+export const useShipmentItems = (headerId: string) => {
+  return useQuery({
+    queryKey: ['shipmentItems', headerId],
+    queryFn: async () => {
+      return await shipmentItems.getByHeaderId(headerId);
+    },
+    enabled: !!headerId,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useAddShipmentItems = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (items: any[]) => {
+      return await shipmentItems.createMany(items);
+    },
+    onSuccess: (_, variables) => {
+      // Invalidate items for the specific header
+      if (variables.length > 0) {
+        const headerId = variables[0].shipment_header_id;
+        queryClient.invalidateQueries({ queryKey: ['shipmentItems', headerId] });
+      }
+    },
+  });
+};
+
+export const useDeleteShipmentItems = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (headerId: string) => {
+      return await shipmentItems.deleteByHeaderId(headerId);
+    },
+    onSuccess: (_, headerId) => {
+      queryClient.invalidateQueries({ queryKey: ['shipmentItems', headerId] });
+    },
+  });
+};
+
+// Legacy Inbound Shipments queries (giữ lại để tương thích)
 export const useInboundShipments = () => {
   return useQuery({
     queryKey: queryKeys.inboundShipments,

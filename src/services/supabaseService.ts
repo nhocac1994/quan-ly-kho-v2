@@ -633,6 +633,187 @@ const updateProductStock = async (sanPhamId: string, quantity: number, type: 'in
   }
 };
 
+// Shipment Headers API
+export const shipmentHeadersAPI = {
+  getAll: async (): Promise<any[]> => {
+    const { data, error } = await supabase
+      .from('shipment_headers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching shipment headers:', error);
+      throw error;
+    }
+
+    return data || [];
+  },
+
+  getByType: async (type: 'inbound' | 'outbound'): Promise<any[]> => {
+    const { data, error } = await supabase
+      .from('shipment_headers')
+      .select('*')
+      .eq('shipment_type', type)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching shipment headers by type:', error);
+      throw error;
+    }
+
+    return data || [];
+  },
+
+  getById: async (id: string): Promise<any | null> => {
+    const { data, error } = await supabase
+      .from('shipment_headers')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching shipment header:', error);
+      throw error;
+    }
+
+    return data;
+  },
+
+  create: async (header: any): Promise<any> => {
+    const { data, error } = await supabase
+      .from('shipment_headers')
+      .insert(header)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating shipment header:', error);
+      throw error;
+    }
+
+    return data;
+  },
+
+  update: async (id: string, header: any): Promise<any> => {
+    const { data, error } = await supabase
+      .from('shipment_headers')
+      .update(header)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating shipment header:', error);
+      throw error;
+    }
+
+    return data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const { error } = await supabase
+      .from('shipment_headers')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting shipment header:', error);
+      throw error;
+    }
+  },
+
+  subscribe: (callback: (payload: any) => void) => {
+    return subscribeToRealtime('shipment_headers', callback);
+  }
+};
+
+// Shipment Items API
+export const shipmentItemsAPI = {
+  getByHeaderId: async (headerId: string): Promise<any[]> => {
+    const { data, error } = await supabase
+      .from('shipment_items')
+      .select('*')
+      .eq('shipment_header_id', headerId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching shipment items:', error);
+      throw error;
+    }
+
+    return data || [];
+  },
+
+  create: async (item: any): Promise<any> => {
+    const { data, error } = await supabase
+      .from('shipment_items')
+      .insert(item)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating shipment item:', error);
+      throw error;
+    }
+
+    return data;
+  },
+
+  createMany: async (items: any[]): Promise<any[]> => {
+    const { data, error } = await supabase
+      .from('shipment_items')
+      .insert(items)
+      .select();
+
+    if (error) {
+      console.error('Error creating multiple shipment items:', error);
+      throw error;
+    }
+
+    return data || [];
+  },
+
+  update: async (id: string, item: any): Promise<any> => {
+    const { data, error } = await supabase
+      .from('shipment_items')
+      .update(item)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating shipment item:', error);
+      throw error;
+    }
+
+    return data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const { error } = await supabase
+      .from('shipment_items')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting shipment item:', error);
+      throw error;
+    }
+  },
+
+  deleteByHeaderId: async (headerId: string): Promise<void> => {
+    const { error } = await supabase
+      .from('shipment_items')
+      .delete()
+      .eq('shipment_header_id', headerId);
+
+    if (error) {
+      console.error('Error deleting shipment items by header ID:', error);
+      throw error;
+    }
+  }
+};
+
 // Export tất cả APIs
 export const supabaseAPIs = {
   products: productsAPI,
@@ -642,6 +823,8 @@ export const supabaseAPIs = {
   outboundShipments: outboundShipmentsAPI,
   companyInfo: companyInfoAPI,
   users: usersAPI,
+  shipmentHeaders: shipmentHeadersAPI,
+  shipmentItems: shipmentItemsAPI,
 };
 
 // Khởi tạo Supabase

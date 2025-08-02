@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
-  Box,
+    Box,
   Typography,
   Paper,
   Table,
@@ -24,6 +24,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Chip,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -36,10 +37,44 @@ import {
   Close as CloseIcon,
   ArrowBack as ArrowBackIcon,
   Print as PrintIcon,
+  ContentCopy as CopyIcon,
 } from '@mui/icons-material';
-import { useInboundShipments, useSuppliers, useProducts } from '../hooks/useSupabaseQueries';
+import { 
+  useInboundShipments, 
+  useSuppliers, 
+  useProducts,
+  useAddShipmentHeader,
+  useAddShipmentItems,
+  useDeleteShipmentItems,
+  useShipmentHeaders,
+  useShipmentItems
+} from '../hooks/useSupabaseQueries';
 import { dataService } from '../services/dataService';
 import * as XLSX from 'xlsx';
+
+// Hàm chuyển đổi ngày Excel sang định dạng ISO
+const convertExcelDate = (excelDate: any): string => {
+  if (!excelDate) return new Date().toISOString().split('T')[0];
+  
+  // Nếu là số (Excel date number)
+  if (typeof excelDate === 'number') {
+    // Excel date là số ngày từ 1/1/1900
+    const date = new Date((excelDate - 25569) * 86400 * 1000);
+    return date.toISOString().split('T')[0];
+  }
+  
+  // Nếu là chuỗi ngày
+  if (typeof excelDate === 'string') {
+    // Thử parse chuỗi ngày
+    const date = new Date(excelDate);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString().split('T')[0];
+    }
+  }
+  
+  // Fallback về ngày hiện tại
+  return new Date().toISOString().split('T')[0];
+};
 
 interface InboundShipmentFormData {
   xuat_kho_id: string;
@@ -54,7 +89,8 @@ interface InboundShipmentFormData {
 
 interface ProductItem {
   id: string;
-  san_pham_id: string;
+  product_id: string; // UUID của product
+  san_pham_id: string; // Mã sản phẩm (như SP2000)
   ten_san_pham: string;
   ma_hang: string;
   dvt: string;
@@ -64,6 +100,7 @@ interface ProductItem {
 
 const InboundShipments: React.FC = () => {
   const { data: inboundShipments, refetch: refreshInboundShipments } = useInboundShipments();
+  const { data: shipmentHeaders, refetch: refreshShipmentHeaders } = useShipmentHeaders('inbound');
   const { data: suppliers } = useSuppliers();
   const { data: products } = useProducts();
   
@@ -84,6 +121,17 @@ const InboundShipments: React.FC = () => {
     severity: 'success' | 'error' | 'info' | 'warning';
   }>({ open: false, message: '', severity: 'info' });
 
+  const [isCopying, setIsCopying] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [importSupplierData, setImportSupplierData] = useState({
+    supplier_id: '',
+    supplier_name: '',
+    driver: '',
+    content: '',
+    notes: ''
+  });
+
+
   const [formData, setFormData] = useState<InboundShipmentFormData>({
     xuat_kho_id: '',
     ngay_nhap: new Date().toISOString().split('T')[0],
@@ -98,6 +146,7 @@ const InboundShipments: React.FC = () => {
   const [productItems, setProductItems] = useState<ProductItem[]>([]);
   const [currentProduct, setCurrentProduct] = useState<ProductItem>({
     id: '',
+    product_id: '',
     san_pham_id: '',
     ten_san_pham: '',
     ma_hang: '',
@@ -108,12 +157,12 @@ const InboundShipments: React.FC = () => {
 
 
   const filteredShipments = useMemo(() => {
-    return (inboundShipments || []).filter((shipment: any) =>
-      shipment.ten_san_pham?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.xuat_kho_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.ten_nha_cung_cap?.toLowerCase().includes(searchTerm.toLowerCase())
+    return (shipmentHeaders || []).filter((shipment: any) =>
+      shipment.shipment_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      shipment.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      shipment.content?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [inboundShipments, searchTerm]);
+  }, [shipmentHeaders, searchTerm]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -129,28 +178,40 @@ const InboundShipments: React.FC = () => {
     return `PNK${year}${month}${day}_${random}`;
   };
 
-  const handleOpenDialog = (shipment?: any) => {
+  const handleOpenDialog = async (shipment?: any) => {
     if (shipment) {
       setEditingShipment(shipment);
       setFormData({
-        xuat_kho_id: shipment.xuat_kho_id,
-        ngay_nhap: shipment.ngay_nhap,
-        loai_nhap: shipment.loai_nhap || '',
-        nha_cung_cap_id: shipment.nha_cung_cap_id,
-        ten_nha_cung_cap: shipment.ten_nha_cung_cap,
-        tai_xe: shipment.tai_xe || '',
-        noi_dung_nhap: shipment.noi_dung_nhap,
-        ghi_chu: shipment.ghi_chu,
+        xuat_kho_id: shipment.shipment_id,
+        ngay_nhap: shipment.shipment_date,
+        loai_nhap: shipment.import_type || '',
+        nha_cung_cap_id: shipment.supplier_id,
+        ten_nha_cung_cap: shipment.supplier_name,
+        tai_xe: shipment.driver || '',
+        noi_dung_nhap: shipment.content,
+        ghi_chu: shipment.notes,
       });
-      setProductItems([{
-        id: shipment.id,
-        san_pham_id: shipment.san_pham_id,
-        ten_san_pham: shipment.ten_san_pham,
-        ma_hang: shipment.san_pham_id,
-        dvt: shipment.dvt,
-        sl_nhap: shipment.sl_nhap,
-        ghi_chu: shipment.ghi_chu,
-      }]);
+      
+      // Load items for editing
+      try {
+        const items = await dataService.shipmentItems.getByHeaderId(shipment.id);
+        const formattedItems = items.map((item: any) => ({
+          id: item.id,
+          product_id: item.product_id,
+          san_pham_id: item.product_code,
+          ten_san_pham: item.product_name,
+          ma_hang: item.product_code,
+          dvt: item.unit,
+          sl_nhap: item.quantity,
+          ghi_chu: item.notes || '',
+        }));
+        setProductItems(formattedItems);
+      } catch (error) {
+        console.error('Error loading shipment items:', error);
+        setProductItems([]);
+      }
+      
+      setIsEditing(true);
     } else {
       setEditingShipment(null);
       setFormData({
@@ -164,6 +225,7 @@ const InboundShipments: React.FC = () => {
         ghi_chu: '',
       });
       setProductItems([]);
+      setIsEditing(false);
     }
     setOpenDialog(true);
   };
@@ -171,6 +233,15 @@ const InboundShipments: React.FC = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingShipment(null);
+    setIsCopying(false); // Reset copy state
+    setIsEditing(false); // Reset editing state
+    setImportSupplierData({
+      supplier_id: '',
+      supplier_name: '',
+      driver: '',
+      content: '',
+      notes: ''
+    });
     setFormData({
       xuat_kho_id: '',
       ngay_nhap: new Date().toISOString().split('T')[0],
@@ -184,6 +255,7 @@ const InboundShipments: React.FC = () => {
     setProductItems([]);
     setCurrentProduct({
       id: '',
+      product_id: '',
       san_pham_id: '',
       ten_san_pham: '',
       ma_hang: '',
@@ -193,6 +265,10 @@ const InboundShipments: React.FC = () => {
     });
   };
 
+  const addShipmentHeader = useAddShipmentHeader();
+  const addShipmentItems = useAddShipmentItems();
+  const deleteShipmentItems = useDeleteShipmentItems();
+
   const handleSubmit = async () => {
     if (productItems.length === 0) {
       setSnackbar({ open: true, message: 'Vui lòng thêm ít nhất một sản phẩm', severity: 'warning' });
@@ -201,45 +277,66 @@ const InboundShipments: React.FC = () => {
 
     setLoading(true);
     try {
-      for (const productItem of productItems) {
-        const shipmentData = {
-          xuat_kho_id: formData.xuat_kho_id,
-          ngay_nhap: formData.ngay_nhap,
-          loai_nhap: formData.loai_nhap,
-          san_pham_id: productItem.san_pham_id,
-          ten_san_pham: productItem.ten_san_pham,
-          dvt: productItem.dvt,
-          sl_nhap: productItem.sl_nhap,
-          ghi_chu: productItem.ghi_chu,
-          nha_cung_cap_id: formData.nha_cung_cap_id,
-          ten_nha_cung_cap: formData.ten_nha_cung_cap,
-          tai_xe: formData.tai_xe,
-          noi_dung_nhap: formData.noi_dung_nhap,
-          nhom_san_pham: '',
-          hang_sx: '',
-          hinh_anh: '',
-          thong_tin: '',
-          quy_cach: '',
-          dia_chi: '',
-          so_dt: '',
-          ngay_tao: new Date().toISOString(),
-          nguoi_tao: 'admin',
-          updated_at: new Date().toISOString(),
-        };
+      // Tính tổng số lượng
+      const totalQuantity = productItems.reduce((sum, item) => sum + item.sl_nhap, 0);
 
-        if (editingShipment) {
-          await dataService.inboundShipments.update(editingShipment.id, shipmentData);
-        } else {
-          await dataService.inboundShipments.create(shipmentData);
-        }
+      // Tạo dữ liệu header
+      const headerData = {
+        shipment_id: formData.xuat_kho_id,
+        shipment_type: 'inbound',
+        shipment_date: formData.ngay_nhap,
+        supplier_id: formData.nha_cung_cap_id,
+        supplier_name: formData.ten_nha_cung_cap,
+        customer_id: null,
+        customer_name: null,
+        driver: formData.tai_xe,
+        import_type: formData.loai_nhap,
+        content: formData.noi_dung_nhap,
+        notes: formData.ghi_chu,
+        total_quantity: totalQuantity,
+        total_amount: 0,
+        status: 'active',
+        created_by: 'admin'
+      };
+
+      let headerId: string;
+
+      if (editingShipment) {
+        // Cập nhật header hiện có
+        const updatedHeader = await dataService.shipmentHeaders.update(editingShipment.id, headerData);
+        headerId = updatedHeader.id;
+        
+        // Xóa items cũ
+        await deleteShipmentItems.mutateAsync(headerId);
+      } else {
+        // Tạo header mới
+        const newHeader = await addShipmentHeader.mutateAsync(headerData);
+        headerId = newHeader.id;
       }
 
-      await refreshInboundShipments();
+      // Tạo items
+      const itemsData = productItems.map(item => ({
+        shipment_header_id: headerId,
+        product_id: item.product_id, // Sử dụng UUID đã lưu
+        product_name: item.ten_san_pham,
+        product_code: item.ma_hang,
+        unit: item.dvt,
+        quantity: item.sl_nhap,
+        unit_price: 0,
+        total_price: 0,
+        notes: item.ghi_chu
+      }));
+
+      await addShipmentItems.mutateAsync(itemsData);
+
+      await refreshShipmentHeaders();
       setSnackbar({ 
         open: true, 
-        message: editingShipment ? 'Cập nhật phiếu nhập thành công!' : 'Tạo phiếu nhập thành công!', 
+        message: editingShipment ? 'Cập nhật phiếu nhập thành công!' : (isCopying ? 'Tạo phiếu nhập mới từ bản sao thành công!' : 'Tạo phiếu nhập thành công!'), 
         severity: 'success' 
       });
+      setIsCopying(false); // Reset copy state
+      setIsEditing(false); // Reset editing state
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving shipment:', error);
@@ -256,8 +353,11 @@ const InboundShipments: React.FC = () => {
   const handleDelete = async (shipmentId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa phiếu nhập này?')) {
       try {
-        await dataService.inboundShipments.delete(shipmentId);
-        await refreshInboundShipments();
+        // Xóa items trước
+        await deleteShipmentItems.mutateAsync(shipmentId);
+        // Sau đó xóa header
+        await dataService.shipmentHeaders.delete(shipmentId);
+        await refreshShipmentHeaders();
         setSnackbar({ open: true, message: 'Xóa phiếu nhập thành công!', severity: 'success' });
       } catch (error) {
         console.error('Error deleting shipment:', error);
@@ -267,16 +367,82 @@ const InboundShipments: React.FC = () => {
   };
 
   const handleViewDetails = (shipmentId: string) => {
-    const shipment = (inboundShipments || []).find((s: any) => s.id === shipmentId);
+    const shipment = (shipmentHeaders || []).find((s: any) => s.id === shipmentId);
     if (shipment) {
       setViewingShipment(shipment);
       setShowDetails(true);
     }
   };
 
+  // Hook để lấy items của shipment đang xem
+  const { data: shipmentItems } = useShipmentItems(viewingShipment?.id || '');
+
   const handleCloseDetails = () => {
     setShowDetails(false);
     setViewingShipment(null);
+  };
+
+  const handleUpdateItemQuantity = (itemId: string, newQuantity: number) => {
+    setProductItems(prev => prev.map(item => 
+      item.id === itemId ? { ...item, sl_nhap: newQuantity } : item
+    ));
+  };
+
+  const handleUpdateItemNotes = (itemId: string, newNotes: string) => {
+    setProductItems(prev => prev.map(item => 
+      item.id === itemId ? { ...item, ghi_chu: newNotes } : item
+    ));
+  };
+
+
+
+  const handleCopyShipment = () => {
+    if (!viewingShipment || !shipmentItems) return;
+
+    // Tạo mã phiếu mới
+    const newShipmentId = generateShipmentId();
+    
+    // Tạo form data mới với ngày hiện tại
+    const newFormData = {
+      xuat_kho_id: newShipmentId,
+      ngay_nhap: new Date().toISOString().split('T')[0],
+      loai_nhap: viewingShipment.import_type || '',
+      nha_cung_cap_id: viewingShipment.supplier_id || '',
+      ten_nha_cung_cap: viewingShipment.supplier_name || '',
+      tai_xe: viewingShipment.driver || '',
+      noi_dung_nhap: viewingShipment.content || '',
+      ghi_chu: viewingShipment.notes || '',
+    };
+
+    // Tạo product items mới từ shipment items hiện tại
+    const newProductItems = shipmentItems.map((item: any) => ({
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      product_id: item.product_id,
+      san_pham_id: item.product_code,
+      ten_san_pham: item.product_name,
+      ma_hang: item.product_code,
+      dvt: item.unit,
+      sl_nhap: item.quantity,
+      ghi_chu: item.notes || '',
+    }));
+
+    // Set form data và product items
+    setFormData(newFormData);
+    setProductItems(newProductItems);
+    setEditingShipment(null); // Không phải edit, mà là tạo mới
+    setIsCopying(true); // Đánh dấu đang copy
+    
+    // Đóng detail view và mở form
+    setShowDetails(false);
+    setViewingShipment(null);
+    setOpenDialog(true);
+
+    // Hiển thị thông báo
+    setSnackbar({ 
+      open: true, 
+      message: 'Đã sao chép phiếu thành công! Vui lòng kiểm tra và lưu phiếu mới.', 
+      severity: 'success' 
+    });
   };
 
   const handlePrintShipment = () => {
@@ -284,6 +450,34 @@ const InboundShipments: React.FC = () => {
     
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
+
+    // Tạo bảng sản phẩm
+    const itemsTable = shipmentItems && shipmentItems.length > 0 ? `
+      <table class="table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Tên sản phẩm</th>
+            <th>Mã sản phẩm</th>
+            <th>Đơn vị tính</th>
+            <th>Số lượng nhập</th>
+            <th>Ghi chú</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${shipmentItems.map((item: any, index: number) => `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${item.product_name}</td>
+              <td>${item.product_code}</td>
+              <td>${item.unit}</td>
+              <td>${item.quantity?.toLocaleString()}</td>
+              <td>${item.notes || '-'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    ` : '<p>Chưa có sản phẩm nào</p>';
 
     const printContent = `
       <!DOCTYPE html>
@@ -367,79 +561,51 @@ const InboundShipments: React.FC = () => {
         <div class="header">
           <div class="title">PHIẾU NHẬP KHO</div>
           <div class="date-info">
-            <div>Ngày Tháng: ${formatDate(viewingShipment.ngay_nhap)}</div>
-            <div>Số Phiếu: ${viewingShipment.xuat_kho_id}</div>
+            <div>Ngày Tháng: ${formatDate(viewingShipment.shipment_date)}</div>
+            <div>Số Phiếu: ${viewingShipment.shipment_id}</div>
           </div>
         </div>
 
         <div class="info-section">
           <div class="info-row">
             <div class="info-label">Nhà cung cấp:</div>
-            <div class="info-value">${viewingShipment.ten_nha_cung_cap || 'N/A'}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Địa chỉ:</div>
-            <div class="info-value">${viewingShipment.dia_chi || 'N/A'}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Số điện thoại:</div>
-            <div class="info-value">${viewingShipment.so_dt || 'N/A'}</div>
+            <div class="info-value">${viewingShipment.supplier_name || 'N/A'}</div>
           </div>
           <div class="info-row">
             <div class="info-label">Tài xế:</div>
-            <div class="info-value">${viewingShipment.tai_xe || 'N/A'}</div>
+            <div class="info-value">${viewingShipment.driver || 'N/A'}</div>
           </div>
           <div class="info-row">
-            <div class="info-label">Nội dung nhập:</div>
-            <div class="info-value">${viewingShipment.noi_dung_nhap || 'N/A'}</div>
+            <div class="info-label">Loại nhập:</div>
+            <div class="info-value">${viewingShipment.import_type || 'N/A'}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Nội dung:</div>
+            <div class="info-value">${viewingShipment.content || 'N/A'}</div>
           </div>
         </div>
 
-        <table class="table">
-          <thead>
-            <tr>
-              <th>STT</th>
-              <th>Mã Hàng</th>
-              <th>Tên Hàng</th>
-              <th>ĐVT</th>
-              <th>Số Lượng</th>
-              <th>Ghi Chú</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td>${viewingShipment.san_pham_id || 'N/A'}</td>
-              <td>${viewingShipment.ten_san_pham || 'N/A'}</td>
-              <td>${viewingShipment.dvt || 'N/A'}</td>
-              <td>${viewingShipment.sl_nhap || 0}</td>
-              <td>${viewingShipment.ghi_chu || 'N/A'}</td>
-            </tr>
-            <tr class="total-row">
-              <td colspan="3">Tổng Cộng:</td>
-              <td>${viewingShipment.dvt || 'N/A'}</td>
-              <td>${viewingShipment.sl_nhap || 0}</td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="info-section">
+          <h3>Danh sách sản phẩm</h3>
+          ${itemsTable}
+        </div>
+
+        <div class="info-section">
+          <div class="info-row">
+            <div class="info-label">Tổng số lượng:</div>
+            <div class="info-value">${viewingShipment.total_quantity?.toLocaleString() || 0}</div>
+          </div>
+        </div>
 
         <div class="signatures">
           <div class="signature-box">
-            <div class="signature-line">Người Lập Phiếu</div>
-            <div>(Ký, họ tên)</div>
-          </div>
-          <div class="signature-box">
-            <div class="signature-line">Trưởng Bộ Phận</div>
-            <div>(Ký, họ tên)</div>
-          </div>
-          <div class="signature-box">
-            <div class="signature-line">Tài Xế</div>
-            <div>(Ký, họ tên)</div>
+            <div class="signature-line">Người Nhập Hàng</div>
           </div>
           <div class="signature-box">
             <div class="signature-line">Người Giao Hàng</div>
-            <div>(Ký, họ tên)</div>
+          </div>
+          <div class="signature-box">
+            <div class="signature-line">Thủ Kho</div>
           </div>
         </div>
       </body>
@@ -466,36 +632,53 @@ const InboundShipments: React.FC = () => {
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
+        console.log('Raw Excel data:', jsonData);
+
         // Bỏ qua header row
         const rows = jsonData.slice(1) as any[][];
-        const processedData = rows
+        
+        console.log('Rows after removing header:', rows);
+                const processedData = rows
           .filter(row => row.length > 0 && row.some(cell => cell !== null && cell !== undefined))
-          .map((row, index) => ({
-            id: `import_${index}`,
-            xuat_kho_id: row[0] || `PNK${new Date().getDate().toString().padStart(2, '0')}${(new Date().getMonth() + 1).toString().padStart(2, '0')}${new Date().getFullYear().toString().slice(-2)}_${Math.floor(Math.random() * 999).toString().padStart(3, '0')}`,
-            ngay_nhap: row[1] || new Date().toISOString().split('T')[0],
-            loai_nhap: row[2] || 'Nhập hàng',
-            san_pham_id: row[3] || '',
-            ten_san_pham: row[4] || '',
-            dvt: row[5] || '',
-            sl_nhap: parseInt(row[6]) || 1,
-            ghi_chu: row[7] || '',
-            nha_cung_cap_id: row[8] || '',
-            ten_nha_cung_cap: row[9] || '',
-            tai_xe: row[10] || '',
-            noi_dung_nhap: row[11] || '',
-            nhom_san_pham: '',
-            hang_sx: '',
-            hinh_anh: '',
-            thong_tin: '',
-            quy_cach: '',
-            dia_chi: '',
-            so_dt: '',
-            ngay_tao: new Date().toISOString(),
-            nguoi_tao: 'admin',
-            updated_at: new Date().toISOString(),
-          }));
+          .map((row, index) => {
+            // Validation cho từng row
+            if (!row[0]) {
+              console.warn(`Row ${index + 2} missing shipment ID, skipping`);
+              return null;
+            }
+            
+            const convertedDate = row[1] ? convertExcelDate(row[1]) : new Date().toISOString().split('T')[0];
+            console.log(`Row ${index + 2}: Original date: ${row[1]} (${typeof row[1]}), Converted: ${convertedDate}`);
+            
+            return {
+              id: `import_${index}`,
+              'Mã phiếu': row[0] || `PNK${new Date().getDate().toString().padStart(2, '0')}${(new Date().getMonth() + 1).toString().padStart(2, '0')}${new Date().getFullYear().toString().slice(-2)}_${Math.floor(Math.random() * 999).toString().padStart(3, '0')}`,
+              'Ngày nhập': convertedDate,
+              'Loại nhập': row[2] || 'Nhập hàng',
+              'Mã sản phẩm': row[3] || '',
+              'Tên sản phẩm': row[4] || '',
+              'Đơn vị tính': row[5] || '',
+              'Số lượng': parseInt(row[6]) || 1,
+              'Ghi chú': row[7] || '',
+              'Mã NCC': row[8] || '',
+              'Tên NCC': row[9] || '',
+              'Tài xế': row[10] || '',
+              'Nội dung nhập': row[11] || '',
+              nhom_san_pham: '',
+              hang_sx: '',
+              hinh_anh: '',
+              thong_tin: '',
+              quy_cach: '',
+              dia_chi: '',
+              so_dt: '',
+              ngay_tao: new Date().toISOString(),
+              nguoi_tao: 'admin',
+              updated_at: new Date().toISOString(),
+            };
+          })
+          .filter(item => item !== null);
 
+        console.log('Processed import data:', processedData);
         setImportData(processedData);
       } catch (error) {
         console.error('Error reading Excel file:', error);
@@ -521,18 +704,117 @@ const InboundShipments: React.FC = () => {
 
     setImportLoading(true);
     try {
-      for (const item of importData) {
-        await dataService.inboundShipments.create(item);
+      // Nhóm dữ liệu theo mã phiếu
+      const groupedData = importData.reduce((groups: any, item: any) => {
+        const key = item['Mã phiếu'];
+        if (!groups[key]) {
+          groups[key] = [];
+        }
+        groups[key].push(item);
+        return groups;
+      }, {});
+      
+      console.log('Grouped data:', groupedData);
+
+      let totalShipments = 0;
+      let totalItems = 0;
+
+      // Xử lý từng phiếu
+      for (const [shipmentId, items] of Object.entries(groupedData)) {
+        const itemsArray = items as any[];
+        if (itemsArray.length > 0) {
+          const firstItem = itemsArray[0];
+          
+          // Validation dữ liệu
+          let shipmentId = firstItem['Mã phiếu'];
+          if (!shipmentId) {
+            console.error('Missing shipment_id for item:', firstItem);
+            continue;
+          }
+          
+          // Tạo mã phiếu mới nếu bị trùng bằng cách thêm timestamp
+          const originalShipmentId = shipmentId;
+          const timestamp = Date.now().toString().slice(-6); // Lấy 6 số cuối của timestamp
+          shipmentId = `${originalShipmentId}_${timestamp}`;
+          console.log(`Using unique shipment ID: ${shipmentId}`);
+          
+          // Thông báo nếu mã phiếu đã được thay đổi
+          if (originalShipmentId !== shipmentId) {
+            console.log(`⚠️ Shipment ID changed from ${originalShipmentId} to ${shipmentId} to avoid duplicate`);
+          }
+          
+          console.log('Processing shipment:', shipmentId);
+          
+          // Cập nhật mã phiếu cho tất cả items trong nhóm
+          itemsArray.forEach((item: any) => {
+            item['Mã phiếu'] = shipmentId;
+          });
+          
+          // Tạo header cho phiếu
+          const headerData = {
+            shipment_id: shipmentId.toString().trim(),
+            shipment_type: 'inbound',
+            shipment_date: firstItem['Ngày nhập'] || new Date().toISOString().split('T')[0],
+            supplier_id: importSupplierData.supplier_id || firstItem['Mã NCC'] || '',
+            supplier_name: importSupplierData.supplier_name || firstItem['Tên NCC'] || '',
+            customer_id: null,
+            customer_name: null,
+            driver: importSupplierData.driver || firstItem['Tài xế'] || '',
+            import_type: firstItem['Loại nhập'] || 'Nhập hàng',
+            content: importSupplierData.content || firstItem['Nội dung nhập'] || '',
+            notes: importSupplierData.notes || '',
+            total_quantity: itemsArray.reduce((sum: number, item: any) => sum + (parseInt(item['Số lượng']) || 0), 0),
+            total_amount: 0,
+            status: 'active',
+            created_by: 'admin'
+          };
+          
+          console.log('Creating header with data:', headerData);
+
+          try {
+            // Tạo header
+            const header = await dataService.shipmentHeaders.create(headerData);
+            console.log('Header created successfully:', header);
+            totalShipments++;
+
+            // Tạo items cho phiếu
+            const itemsData = itemsArray.map((item: any) => ({
+              shipment_header_id: header.id,
+              product_code: item['Mã sản phẩm'],
+              product_name: item['Tên sản phẩm'],
+              unit: item['Đơn vị tính'],
+              quantity: parseInt(item['Số lượng']) || 0,
+              notes: item['Ghi chú'] || ''
+            }));
+
+            console.log('Creating items for shipment:', itemsData);
+
+            // Tạo items
+            await dataService.shipmentItems.createMany(itemsData);
+            totalItems += itemsArray.length;
+            console.log(`Successfully processed shipment ${shipmentId} with ${itemsArray.length} items`);
+          } catch (error) {
+            console.error(`Error processing shipment ${shipmentId}:`, error);
+            throw error; // Re-throw để dừng toàn bộ quá trình
+          }
+        }
       }
 
-      await refreshInboundShipments();
+      await refreshShipmentHeaders();
       setSnackbar({ 
         open: true, 
-        message: `Import thành công ${importData.length} phiếu nhập kho!`, 
+        message: `Import thành công ${totalShipments} phiếu nhập kho với ${totalItems} sản phẩm!`, 
         severity: 'success' 
       });
       setOpenImportDialog(false);
       setImportData([]);
+      setImportSupplierData({
+        supplier_id: '',
+        supplier_name: '',
+        driver: '',
+        content: '',
+        notes: ''
+      });
     } catch (error) {
       console.error('Error importing data:', error);
       setSnackbar({ 
@@ -554,10 +836,10 @@ const InboundShipments: React.FC = () => {
     });
   };
 
-  const totalShipments = inboundShipments?.length || 0;
-  const totalQuantity = (inboundShipments || []).reduce((sum: number, shipment: any) => sum + (shipment.sl_nhap || 0), 0);
-  const todayShipments = (inboundShipments || []).filter((shipment: any) => 
-    new Date(shipment.ngay_nhap).toDateString() === new Date().toDateString()
+  const totalShipments = shipmentHeaders?.length || 0;
+  const totalQuantity = (shipmentHeaders || []).reduce((sum: number, shipment: any) => sum + (shipment.total_quantity || 0), 0);
+  const todayShipments = (shipmentHeaders || []).filter((shipment: any) => 
+    new Date(shipment.shipment_date).toDateString() === new Date().toDateString()
   ).length;
 
   return (
@@ -645,7 +927,7 @@ const InboundShipments: React.FC = () => {
             Tổng phiếu: {totalShipments}
           </Typography>
           <Typography variant="body2">
-            Sản phẩm: {inboundShipments?.length || 0}
+            Sản phẩm: {shipmentHeaders?.length || 0}
           </Typography>
           <Typography variant="body2">
             Số lượng: {totalQuantity.toLocaleString()}
@@ -663,10 +945,10 @@ const InboundShipments: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell>STT</TableCell>
-                <TableCell>Mã NK</TableCell>
+                <TableCell>Mã Phiếu</TableCell>
                 <TableCell>Ngày Nhập</TableCell>
-                <TableCell>Sản Phẩm</TableCell>
-                <TableCell>Số Lượng</TableCell>
+                <TableCell>Loại Nhập</TableCell>
+                <TableCell>Tổng Số Lượng</TableCell>
                 <TableCell>Nhà Cung Cấp</TableCell>
                 <TableCell>Nội Dung</TableCell>
                 <TableCell align="center">Thao Tác</TableCell>
@@ -682,12 +964,22 @@ const InboundShipments: React.FC = () => {
                         {page * rowsPerPage + index + 1}
                       </Typography>
                     </TableCell>
-                    <TableCell>{shipment.xuat_kho_id}</TableCell>
-                    <TableCell>{formatDate(shipment.ngay_nhap)}</TableCell>
-                    <TableCell>{shipment.ten_san_pham}</TableCell>
-                    <TableCell>{shipment.sl_nhap?.toLocaleString()}</TableCell>
-                    <TableCell>{shipment.ten_nha_cung_cap}</TableCell>
-                    <TableCell>{shipment.noi_dung_nhap}</TableCell>
+                    <TableCell>{shipment.shipment_id}</TableCell>
+                    <TableCell>{formatDate(shipment.shipment_date)}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={shipment.import_type || 'Nhập hàng'} 
+                        size="small"
+                        color={
+                          shipment.import_type === 'Nhập hàng' ? 'success' :
+                          shipment.import_type === 'Nhập trả' ? 'warning' :
+                          'default'
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>{shipment.total_quantity?.toLocaleString()}</TableCell>
+                    <TableCell>{shipment.supplier_name}</TableCell>
+                    <TableCell>{shipment.content}</TableCell>
                     <TableCell align="center">
                       <IconButton
                         size="small"
@@ -756,7 +1048,7 @@ const InboundShipments: React.FC = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <ShippingIcon sx={{ fontSize: 24, color: 'primary.main' }} />
               <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
-                {editingShipment ? 'Chỉnh Sửa Phiếu Nhập Kho' : 'Tạo Phiếu Nhập Mới'}
+                {editingShipment ? 'Chỉnh Sửa Phiếu Nhập Kho' : (isCopying ? 'Tạo Phiếu Nhập Mới (Sao chép)' : 'Tạo Phiếu Nhập Mới')}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -886,7 +1178,8 @@ const InboundShipments: React.FC = () => {
                           if (product) {
                             setCurrentProduct({
                               ...currentProduct,
-                              san_pham_id: product.san_pham_id,
+                              product_id: product.id, // UUID
+                              san_pham_id: product.san_pham_id, // Mã sản phẩm
                               ten_san_pham: product.ten_san_pham,
                               ma_hang: product.san_pham_id,
                               dvt: product.dvt,
@@ -936,6 +1229,7 @@ const InboundShipments: React.FC = () => {
                           setProductItems([...productItems, { ...currentProduct, id: Date.now().toString() }]);
                           setCurrentProduct({
                             id: '',
+                            product_id: '',
                             san_pham_id: '',
                             ten_san_pham: '',
                             ma_hang: '',
@@ -951,6 +1245,14 @@ const InboundShipments: React.FC = () => {
                   </Box>
 
                   {/* Product Items Table */}
+                  {isEditing && productItems.length > 0 && (
+                    <Box sx={{ mb: 1, p: 1, bgcolor: '#e3f2fd', borderRadius: 1, border: '1px solid #2196f3' }}>
+                      <Typography variant="body2" color="primary" sx={{ fontWeight: 500 }}>
+                        📝 Đang chỉnh sửa phiếu: {productItems.length} sản phẩm đã được tải
+                      </Typography>
+                    </Box>
+                  )}
+                  
                   {productItems.length > 0 && (
                     <Paper sx={{ mb: 1 }}>
                       <TableContainer>
@@ -973,8 +1275,40 @@ const InboundShipments: React.FC = () => {
                                 <TableCell size="small">{item.ten_san_pham}</TableCell>
                                 <TableCell size="small">{item.ma_hang}</TableCell>
                                 <TableCell size="small">{item.dvt}</TableCell>
-                                <TableCell size="small">{item.sl_nhap}</TableCell>
-                                <TableCell size="small">{item.ghi_chu}</TableCell>
+                                <TableCell size="small">
+                                  <TextField
+                                    type="number"
+                                    size="small"
+                                    value={item.sl_nhap}
+                                    onChange={(e) => handleUpdateItemQuantity(item.id, parseInt(e.target.value) || 0)}
+                                    sx={{ 
+                                      width: 80,
+                                      '& .MuiOutlinedInput-root': {
+                                        fontSize: '0.75rem',
+                                        height: 32,
+                                      }
+                                    }}
+                                    inputProps={{ 
+                                      min: 1,
+                                      style: { textAlign: 'center' }
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell size="small">
+                                  <TextField
+                                    size="small"
+                                    value={item.ghi_chu}
+                                    onChange={(e) => handleUpdateItemNotes(item.id, e.target.value)}
+                                    placeholder="Ghi chú..."
+                                    sx={{ 
+                                      width: 120,
+                                      '& .MuiOutlinedInput-root': {
+                                        fontSize: '0.75rem',
+                                        height: 32,
+                                      }
+                                    }}
+                                  />
+                                </TableCell>
                                 <TableCell size="small" align="center">
                                   <IconButton
                                     size="small"
@@ -1172,28 +1506,53 @@ const InboundShipments: React.FC = () => {
                 ← Quay lại danh sách
               </Button>
               
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<PrintIcon />}
-                onClick={handlePrintShipment}
-                sx={{
-                  borderRadius: 1,
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  px: 2,
-                  py: 0.5,
-                  borderColor: 'primary.main',
-                  color: 'primary.main',
-                  '&:hover': {
-                    backgroundColor: 'primary.light',
-                    color: 'white',
-                    borderColor: 'primary.light',
-                  }
-                }}
-              >
-                In Phiếu Nhập
-              </Button>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<CopyIcon />}
+                  onClick={handleCopyShipment}
+                  sx={{
+                    borderRadius: 1,
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    px: 2,
+                    py: 0.5,
+                    borderColor: 'success.main',
+                    color: 'success.main',
+                    '&:hover': {
+                      backgroundColor: 'success.light',
+                      color: 'white',
+                      borderColor: 'success.light',
+                    }
+                  }}
+                >
+                  Copy Phiếu
+                </Button>
+                
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<PrintIcon />}
+                  onClick={handlePrintShipment}
+                  sx={{
+                    borderRadius: 1,
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    px: 2,
+                    py: 0.5,
+                    borderColor: 'primary.main',
+                    color: 'primary.main',
+                    '&:hover': {
+                      backgroundColor: 'primary.light',
+                      color: 'white',
+                      borderColor: 'primary.light',
+                    }
+                  }}
+                >
+                  In Phiếu Nhập
+                </Button>
+              </Box>
             </Box>
             
             <Box sx={{ 
@@ -1213,7 +1572,7 @@ const InboundShipments: React.FC = () => {
                     Mã phiếu
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {viewingShipment.xuat_kho_id}
+                    {viewingShipment.shipment_id}
                   </Typography>
                 </Box>
                 <Box>
@@ -1221,7 +1580,7 @@ const InboundShipments: React.FC = () => {
                     Ngày nhập
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {formatDate(viewingShipment.ngay_nhap)}
+                    {formatDate(viewingShipment.shipment_date)}
                   </Typography>
                 </Box>
                 <Box>
@@ -1229,7 +1588,7 @@ const InboundShipments: React.FC = () => {
                     Loại nhập
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {viewingShipment.loai_nhap || 'Chưa cập nhật'}
+                    {viewingShipment.import_type || 'Chưa cập nhật'}
                   </Typography>
                 </Box>
                 <Box>
@@ -1237,7 +1596,7 @@ const InboundShipments: React.FC = () => {
                     Nhà cung cấp
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {viewingShipment.ten_nha_cung_cap}
+                    {viewingShipment.supplier_name}
                   </Typography>
                 </Box>
                 <Box>
@@ -1245,7 +1604,7 @@ const InboundShipments: React.FC = () => {
                     Tài xế
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {viewingShipment.tai_xe || 'Chưa cập nhật'}
+                    {viewingShipment.driver || 'Chưa cập nhật'}
                   </Typography>
                 </Box>
                 <Box>
@@ -1253,7 +1612,7 @@ const InboundShipments: React.FC = () => {
                     Nội dung nhập
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {viewingShipment.noi_dung_nhap || 'Chưa cập nhật'}
+                    {viewingShipment.content || 'Chưa cập nhật'}
                   </Typography>
                 </Box>
               </Box>
@@ -1268,47 +1627,59 @@ const InboundShipments: React.FC = () => {
                 borderRadius: 1,
                 border: '1px solid #e0e0e0'
               }}>
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2, mb: 2 }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      Tên sản phẩm
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {viewingShipment.ten_san_pham}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      Mã sản phẩm
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {viewingShipment.san_pham_id}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      Đơn vị tính
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {viewingShipment.dvt}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      Số lượng nhập
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500, color: 'primary.main' }}>
-                      {viewingShipment.sl_nhap}
-                    </Typography>
-                  </Box>
-                </Box>
-                {viewingShipment.ghi_chu && (
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      Ghi chú
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
-                      {viewingShipment.ghi_chu}
+                {shipmentItems && shipmentItems.length > 0 ? (
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.main', color: 'white' }}>
+                            STT
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.main', color: 'white' }}>
+                            Tên sản phẩm
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.main', color: 'white' }}>
+                            Mã sản phẩm
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.main', color: 'white' }}>
+                            Đơn vị tính
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.main', color: 'white' }}>
+                            Số lượng nhập
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.main', color: 'white' }}>
+                            Ghi chú
+                          </TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {shipmentItems.map((item: any, index: number) => (
+                          <TableRow key={item.id} hover>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell sx={{ fontWeight: 500 }}>
+                              {item.product_name}
+                            </TableCell>
+                            <TableCell>
+                              {item.product_code}
+                            </TableCell>
+                            <TableCell>
+                              {item.unit}
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 500, color: 'primary.main' }}>
+                              {item.quantity?.toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              {item.notes || '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <Box sx={{ textAlign: 'center', py: 3 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Chưa có sản phẩm nào trong phiếu này
                     </Typography>
                   </Box>
                 )}
@@ -1319,13 +1690,13 @@ const InboundShipments: React.FC = () => {
                 <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
                   Thông tin bổ sung
                 </Typography>
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 3 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3 }}>
                   <Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                       Ngày tạo
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {formatDate(viewingShipment.ngay_tao)}
+                      {formatDate(viewingShipment.created_at)}
                     </Typography>
                   </Box>
                   <Box>
@@ -1333,7 +1704,15 @@ const InboundShipments: React.FC = () => {
                       Người tạo
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                      {viewingShipment.nguoi_tao}
+                      {viewingShipment.created_by}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Tổng số lượng
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 500, color: 'primary.main' }}>
+                      {viewingShipment.total_quantity?.toLocaleString()}
                     </Typography>
                   </Box>
                 </Box>
@@ -1487,11 +1866,74 @@ const InboundShipments: React.FC = () => {
             </label>
           </Box>
 
+          {/* Form nhập thông tin nhà cung cấp */}
+          {importData.length > 0 && (
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                Thông tin bổ sung cho phiếu nhập
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Nhà cung cấp</InputLabel>
+                  <Select
+                    value={importSupplierData.supplier_id}
+                    label="Nhà cung cấp"
+                    onChange={(e) => {
+                      const supplier = (suppliers || []).find((s: any) => s.id === e.target.value);
+                      setImportSupplierData({
+                        ...importSupplierData,
+                        supplier_id: e.target.value,
+                        supplier_name: supplier ? supplier.ten_ncc : ''
+                      });
+                    }}
+                  >
+                    {(suppliers || []).map((supplier: any) => (
+                      <MenuItem key={supplier.id} value={supplier.id}>
+                        {supplier.ten_ncc}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Tài xế"
+                  value={importSupplierData.driver}
+                  onChange={(e) => setImportSupplierData({ ...importSupplierData, driver: e.target.value })}
+                  placeholder="Nhập tên tài xế"
+                />
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Nội dung nhập"
+                  value={importSupplierData.content}
+                  onChange={(e) => setImportSupplierData({ ...importSupplierData, content: e.target.value })}
+                  placeholder="Nhập nội dung"
+                />
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Ghi chú"
+                  value={importSupplierData.notes}
+                  onChange={(e) => setImportSupplierData({ ...importSupplierData, notes: e.target.value })}
+                  placeholder="Nhập ghi chú"
+                />
+              </Box>
+            </Box>
+          )}
+
           {/* Bảng xem trước */}
           {importData.length > 0 && (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
                 Bảng xem trước ({importData.length} phiếu nhập)
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Kiểm tra dữ liệu trước khi import. Các phiếu có cùng mã sẽ được nhóm lại.
+                {(() => {
+                  const uniqueShipments = new Set(importData.map(item => item['Mã phiếu']));
+                  return ` (${uniqueShipments.size} phiếu duy nhất từ ${importData.length} dòng dữ liệu)`;
+                })()}
               </Typography>
               <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
                 <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
@@ -1504,6 +1946,7 @@ const InboundShipments: React.FC = () => {
                         <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Loại nhập</TableCell>
                         <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Tên sản phẩm</TableCell>
                         <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Số lượng</TableCell>
+                        <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>ĐVT</TableCell>
                         <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Nhà cung cấp</TableCell>
                         <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Tài xế</TableCell>
                       </TableRow>
@@ -1512,27 +1955,30 @@ const InboundShipments: React.FC = () => {
                       {importData.map((item, index) => (
                         <TableRow key={item.id} hover>
                           <TableCell>{index + 1}</TableCell>
-                          <TableCell sx={{ fontWeight: 500 }}>{item.xuat_kho_id}</TableCell>
-                          <TableCell>{item.ngay_nhap}</TableCell>
+                          <TableCell sx={{ fontWeight: 500 }}>{item['Mã phiếu']}</TableCell>
+                          <TableCell>
+                            {item['Ngày nhập'] ? new Date(item['Ngày nhập']).toLocaleDateString('vi-VN') : 'Chưa có'}
+                          </TableCell>
                           <TableCell>
                             <Box sx={{ 
                               px: 1, 
                               py: 0.5, 
                               borderRadius: 1, 
-                              bgcolor: item.loai_nhap === 'Nhập hàng' ? '#e8f5e8' : 
-                                       item.loai_nhap === 'Nhập trả' ? '#fff3e0' : '#f3e5f5',
-                              color: item.loai_nhap === 'Nhập hàng' ? '#2e7d32' : 
-                                     item.loai_nhap === 'Nhập trả' ? '#f57c00' : '#7b1fa2',
+                              bgcolor: item['Loại nhập'] === 'Nhập hàng' ? '#e8f5e8' : 
+                                       item['Loại nhập'] === 'Nhập trả' ? '#fff3e0' : '#f3e5f5',
+                              color: item['Loại nhập'] === 'Nhập hàng' ? '#2e7d32' : 
+                                     item['Loại nhập'] === 'Nhập trả' ? '#f57c00' : '#7b1fa2',
                               fontSize: '0.75rem',
                               fontWeight: 500
                             }}>
-                              {item.loai_nhap}
+                              {item['Loại nhập']}
                             </Box>
                           </TableCell>
-                          <TableCell>{item.ten_san_pham}</TableCell>
-                          <TableCell sx={{ fontWeight: 500, color: 'primary.main' }}>{item.sl_nhap}</TableCell>
-                          <TableCell>{item.ten_nha_cung_cap}</TableCell>
-                          <TableCell>{item.tai_xe}</TableCell>
+                          <TableCell>{item['Tên sản phẩm']}</TableCell>
+                          <TableCell sx={{ fontWeight: 500, color: 'primary.main' }}>{item['Số lượng']}</TableCell>
+                          <TableCell>{item['Đơn vị tính'] || 'Cái'}</TableCell>
+                          <TableCell>{item['Tên NCC']}</TableCell>
+                          <TableCell>{item['Tài xế']}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
