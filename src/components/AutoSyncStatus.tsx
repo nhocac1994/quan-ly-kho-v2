@@ -7,10 +7,10 @@ import {
   Error as ErrorIcon,
   Refresh as RefreshIcon
 } from '@mui/icons-material';
-import { useAutoSync } from '../contexts/AutoSyncContext';
+import { useSupabaseAutoSync } from '../contexts/SupabaseAutoSyncContext';
 
 export const AutoSyncStatusIcon: React.FC = () => {
-  const { status, config, forceSync } = useAutoSync();
+  const { status, config } = useSupabaseAutoSync();
 
   const getStatusColor = () => {
     if (status.error) return 'error';
@@ -38,7 +38,7 @@ export const AutoSyncStatusIcon: React.FC = () => {
   return (
     <Tooltip title={getTooltipText()}>
       <IconButton 
-        onClick={forceSync}
+        onClick={() => {}}
         disabled={status.isProcessing}
         size="small"
         color={getStatusColor()}
@@ -52,7 +52,7 @@ export const AutoSyncStatusIcon: React.FC = () => {
 };
 
 export const AutoSyncStatus: React.FC = () => {
-  const { status, config, updateConfig, forceSync, performManualSync } = useAutoSync();
+  const { status, config, updateConfig, performManualSync } = useSupabaseAutoSync();
 
   const formatLastSync = (timestamp: string | null) => {
     if (!timestamp) return 'Chưa có';
@@ -126,6 +126,21 @@ export const AutoSyncStatus: React.FC = () => {
             disabled={status.isProcessing}
             size="small"
             title="Sync thủ công"
+          >
+            <RefreshIcon />
+          </IconButton>
+          
+          <IconButton 
+            onClick={() => {
+              if (window.confirm('Bạn có chắc muốn reset số lần sync?')) {
+                // Reset sync count
+                localStorage.setItem('supabase_auto_sync_syncCount', '0');
+                window.location.reload();
+              }
+            }}
+            size="small"
+            title="Reset số lần sync"
+            style={{ color: 'orange' }}
           >
             <RefreshIcon />
           </IconButton>

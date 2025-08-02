@@ -12,32 +12,35 @@ import {
   People as PeopleIcon,
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
-import { useProducts, useSuppliers, useCustomers } from '../hooks/useInventoryQueries';
+import { useProducts, useSuppliers, useCustomers } from '../hooks/useSupabaseQueries';
 import RealtimeStatus from '../components/RealtimeStatus';
+import ScheduledHistory from '../components/ScheduledHistory';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Dashboard: React.FC = () => {
   const { data: products = [] } = useProducts();
   const { data: suppliers = [] } = useSuppliers();
   const { data: customers = [] } = useCustomers();
+  const { t } = useLanguage();
 
   const stats = [
     {
-      title: 'Tổng sản phẩm',
+      title: t('total_products'),
       value: products.length,
       icon: <InventoryIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
     },
     {
-      title: 'Nhà cung cấp',
+      title: t('suppliers'),
       value: suppliers.length,
       icon: <BusinessIcon sx={{ fontSize: 40, color: 'secondary.main' }} />,
     },
     {
-      title: 'Khách hàng',
+      title: t('customers'),
       value: customers.length,
       icon: <PeopleIcon sx={{ fontSize: 40, color: 'success.main' }} />,
     },
     {
-      title: 'Tổng giá trị',
+      title: t('total_value'),
       value: `${products.reduce((sum: number, p: any) => sum + p.sl_ton * 1000, 0).toLocaleString()} VNĐ`,
       icon: <TrendingUpIcon sx={{ fontSize: 40, color: 'warning.main' }} />,
     },
@@ -46,7 +49,7 @@ const Dashboard: React.FC = () => {
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Dashboard
+        {t('dashboard')}
       </Typography>
       
       <RealtimeStatus />
@@ -74,7 +77,7 @@ const Dashboard: React.FC = () => {
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
         <Paper sx={{ p: 2, flex: '1 1 400px' }}>
           <Typography variant="h6" gutterBottom>
-            Sản phẩm gần hết hàng
+            {t('low_stock_products')}
           </Typography>
           <Box>
             {products
@@ -83,7 +86,7 @@ const Dashboard: React.FC = () => {
               .map((product: any) => (
                 <Box key={product.id} sx={{ mb: 1, p: 1, bgcolor: 'grey.50' }}>
                   <Typography variant="body2">
-                    {product.ten_san_pham} - Còn lại: {product.sl_ton}
+                    {product.ten_san_pham} - {t('remaining')}: {product.sl_ton}
                   </Typography>
                 </Box>
               ))}
@@ -92,20 +95,22 @@ const Dashboard: React.FC = () => {
         
         <Paper sx={{ p: 2, flex: '1 1 400px' }}>
           <Typography variant="h6" gutterBottom>
-            Thống kê nhanh
+            {t('quick_stats')}
           </Typography>
           <Box>
             <Typography variant="body2" sx={{ mb: 1 }}>
-              • Tổng số loại sản phẩm: {products.length}
+              • {t('total_product_types')}: {products.length}
             </Typography>
             <Typography variant="body2" sx={{ mb: 1 }}>
-              • Sản phẩm hết hàng: {products.filter((p: any) => p.sl_ton === 0).length}
+              • {t('out_of_stock')}: {products.filter((p: any) => p.sl_ton === 0).length}
             </Typography>
             <Typography variant="body2" sx={{ mb: 1 }}>
-              • Sản phẩm sắp hết: {products.filter((p: any) => p.sl_ton < 10 && p.sl_ton > 0).length}
+              • {t('low_stock')}: {products.filter((p: any) => p.sl_ton < 10 && p.sl_ton > 0).length}
             </Typography>
           </Box>
         </Paper>
+
+        <ScheduledHistory />
       </Box>
     </Box>
   );

@@ -10,8 +10,5 @@ REACT_APP_SUPABASE_ANON_KEY=your-anon-key-here
 # Supabase Service Role Key (chỉ cần thiết cho admin functions)
 # SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 
-# Google Sheets Configuration (tùy chọn - cho tính năng import/export)
-# REACT_APP_GOOGLE_SPREADSHEET_ID=your-spreadsheet-id
-# REACT_APP_GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account-email
-# REACT_APP_GOOGLE_PRIVATE_KEY=your-private-key
-# REACT_APP_GOOGLE_API_KEY=your-api-key 
+# Google Sheets Configuration (đã loại bỏ - chỉ sử dụng Supabase)
+# Các biến này không còn cần thiết 

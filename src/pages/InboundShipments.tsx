@@ -51,7 +51,7 @@ import {
   Refresh as RefreshIcon,
   MoreVert as MoreIcon,
 } from '@mui/icons-material';
-import { useInventory } from '../context/InventoryContext';
+import { useInboundShipments, useSuppliers } from '../hooks/useSupabaseQueries';
 import { InboundShipment } from '../types';
 import ImportExcelDialog from '../components/ImportExcelDialog';
 import { useNavigate } from 'react-router-dom';
@@ -78,8 +78,8 @@ interface InboundShipmentFormData {
 }
 
 const InboundShipments: React.FC = () => {
-  const { state, dispatch } = useInventory();
-  const { inboundShipments, suppliers } = state;
+  const { data: inboundShipments = [], refetch: refreshInboundShipments } = useInboundShipments();
+  const { data: suppliers = [] } = useSuppliers();
   const navigate = useNavigate();
   
   const [page, setPage] = useState(0);
@@ -215,14 +215,13 @@ const InboundShipments: React.FC = () => {
 
       if (editingShipment) {
         await dataService.inboundShipments.update(shipmentData.id!, shipmentData);
-        dispatch({ type: 'UPDATE_INBOUND_SHIPMENT', payload: shipmentData as InboundShipment });
         setSnackbar({ open: true, message: 'Cập nhật phiếu nhập kho thành công!', severity: 'success' });
       } else {
         const { id, ...createData } = shipmentData;
-        const newShipment = await dataService.inboundShipments.create(createData);
-        dispatch({ type: 'ADD_INBOUND_SHIPMENT', payload: newShipment });
+        await dataService.inboundShipments.create(createData);
         setSnackbar({ open: true, message: 'Tạo phiếu nhập kho thành công!', severity: 'success' });
       }
+      await refreshInboundShipments();
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving shipment:', error);
@@ -237,7 +236,7 @@ const InboundShipments: React.FC = () => {
       setLoading(true);
       try {
         await dataService.inboundShipments.delete(shipmentId);
-        dispatch({ type: 'DELETE_INBOUND_SHIPMENT', payload: shipmentId });
+        await refreshInboundShipments();
         setSnackbar({ open: true, message: 'Xóa phiếu nhập kho thành công!', severity: 'success' });
       } catch (error) {
         console.error('Error deleting shipment:', error);
@@ -290,338 +289,165 @@ const InboundShipments: React.FC = () => {
   ).length;
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#f5f5f5' }}>
-      {/* Header Section */}
-      <Box sx={{ p: 2.5, pb: 2, bgcolor: 'white', boxShadow: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-          <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
-            <ShippingIcon sx={{ fontSize: 20 }} />
-          </Avatar>
-          <Box>
-            <Typography variant="h5" fontWeight="bold" color="text.primary" sx={{ fontSize: '1.5rem' }}>
-              Quản Lý Nhập Kho
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-              Quản lý và theo dõi các phiếu nhập kho
-            </Typography>
-          </Box>
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <ShippingIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, fontSize: '1.5rem', color: 'primary.main' }}>
+            Quản Lý Nhập Kho
+          </Typography>
         </Box>
-      
-        {/* Thống kê */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-          <Box sx={{ flex: '1 1 200px', minWidth: 180 }}>
-            <Fade in timeout={300}>
-              <Card sx={{ 
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <CardContent sx={{ py: 2, px: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
-                        Tổng Phiếu Nhập
-                      </Typography>
-                      <Typography variant="h4" fontWeight="bold" sx={{ fontSize: '1.5rem' }}>
-                        {loading ? <Skeleton width={40} /> : totalShipments}
-                      </Typography>
-                    </Box>
-                    <InventoryIcon sx={{ fontSize: 28, opacity: 0.3 }} />
-                  </Box>
-                </CardContent>
-              </Card>
-            </Fade>
-          </Box>
-          <Box sx={{ flex: '1 1 200px', minWidth: 180 }}>
-            <Fade in timeout={400}>
-              <Card sx={{ 
-                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                color: 'white',
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <CardContent sx={{ py: 2, px: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
-                        Tổng Sản Phẩm Nhập
-                      </Typography>
-                      <Typography variant="h4" fontWeight="bold" sx={{ fontSize: '1.5rem' }}>
-                        {loading ? <Skeleton width={40} /> : inboundShipments.length}
-                      </Typography>
-                    </Box>
-                    <TrendingUpIcon sx={{ fontSize: 28, opacity: 0.3 }} />
-                  </Box>
-                </CardContent>
-              </Card>
-            </Fade>
-          </Box>
-          <Box sx={{ flex: '1 1 200px', minWidth: 180 }}>
-            <Fade in timeout={500}>
-              <Card sx={{ 
-                background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                color: 'white',
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <CardContent sx={{ py: 2, px: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
-                        Tổng Số Lượng
-                      </Typography>
-                      <Typography variant="h4" fontWeight="bold" sx={{ fontSize: '1.5rem' }}>
-                        {loading ? <Skeleton width={50} /> : totalQuantity.toLocaleString()}
-                      </Typography>
-                    </Box>
-                    <TrendingUpIcon sx={{ fontSize: 28, opacity: 0.3 }} />
-                  </Box>
-                </CardContent>
-              </Card>
-            </Fade>
-          </Box>
-          <Box sx={{ flex: '1 1 200px', minWidth: 180 }}>
-            <Fade in timeout={600}>
-              <Card sx={{ 
-                background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-                color: 'white',
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
-                <CardContent sx={{ py: 2, px: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.75rem' }}>
-                        Nhập Hôm Nay
-                      </Typography>
-                      <Typography variant="h4" fontWeight="bold" sx={{ fontSize: '1.5rem' }}>
-                        {loading ? <Skeleton width={40} /> : todayShipments}
-                      </Typography>
-                    </Box>
-                    <TodayIcon sx={{ fontSize: 28, opacity: 0.3 }} />
-                  </Box>
-                </CardContent>
-              </Card>
-            </Fade>
-          </Box>
-        </Box>
-
-        {/* Thanh tìm kiếm và thêm mới */}
-        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
+        
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <TextField
-            placeholder="Tìm kiếm phiếu nhập, sản phẩm, nhà cung cấp..."
+            placeholder="Tìm kiếm..."
+            variant="outlined"
+            size="small"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary', fontSize: 20 }} />,
-            }}
-            size="small"
             sx={{ 
-              flexGrow: 1, 
-              minWidth: 250,
-              maxWidth: 400,
+              minWidth: 200,
               '& .MuiOutlinedInput-root': {
-                borderRadius: 1.5,
-                bgcolor: 'background.paper',
-                fontSize: '0.875rem'
+                borderRadius: 2,
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                },
               }
             }}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+            }}
           />
-          <Tooltip title="Làm mới dữ liệu">
-            <IconButton 
-              onClick={() => window.location.reload()}
-              size="small"
-              sx={{ 
-                bgcolor: 'background.paper',
-                width: 36,
-                height: 36
-              }}
-            >
-              <RefreshIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </Tooltip>
+          
           <Button
             variant="outlined"
-            startIcon={<UploadIcon sx={{ fontSize: 18 }} />}
+            startIcon={<UploadIcon />}
             onClick={() => setOpenImportDialog(true)}
-            size="small"
-            sx={{ 
-              borderRadius: 1.5,
+            sx={{
+              borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
-              fontSize: '0.875rem',
               px: 2,
-              py: 0.75
+              py: 1,
+              borderColor: 'primary.main',
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'primary.light',
+                color: 'white',
+                borderColor: 'primary.light',
+              }
             }}
           >
-            Nhập Excel
+            Import Excel
           </Button>
           <Button
             variant="contained"
-            startIcon={<AddIcon sx={{ fontSize: 18 }} />}
+            startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
-            size="small"
-            sx={{ 
-              borderRadius: 1.5,
+            sx={{
+              borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
-              fontSize: '0.875rem',
               px: 2,
-              py: 0.75,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              py: 1,
+              boxShadow: 2,
               '&:hover': {
-                background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
+                boxShadow: 4,
+                transform: 'translateY(-1px)',
               }
             }}
           >
-            + Tạo Phiếu Nhập
+            Thêm Nhập Kho
           </Button>
         </Box>
       </Box>
 
-      {/* Bảng phiếu nhập */}
-      <Paper sx={{ 
-        flex: 1, 
-        display: 'flex', 
-        flexDirection: 'column', 
-        mx: 3, 
-        mb: 3, 
-        borderRadius: 2,
-        overflow: 'hidden',
-        boxShadow: 3
-      }}>
-        <TableContainer sx={{ flex: 1, maxHeight: 'calc(100vh - 400px)' }}>
+      {/* Statistics */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
+          <Typography variant="body2">
+            Tổng phiếu: {totalShipments}
+          </Typography>
+          <Typography variant="body2">
+            Sản phẩm: {inboundShipments.length}
+          </Typography>
+          <Typography variant="body2">
+            Số lượng: {totalQuantity.toLocaleString()}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'warning.main' }}>
+            Hôm nay: {todayShipments}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* InboundShipments Table */}
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <TableContainer sx={{ maxHeight: 600 }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow sx={{ bgcolor: 'primary.main' }}>
-                <TableCell sx={{ color: 'white', fontWeight: 600 }}>Mã Phiếu</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 600 }}>Ngày Nhập</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 600 }}>Tên Sản Phẩm</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 600 }}>Nhà Cung Cấp</TableCell>
-                <TableCell align="right" sx={{ color: 'white', fontWeight: 600 }}>Số Lượng</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 600 }}>Đơn Vị</TableCell>
-                <TableCell sx={{ color: 'white', fontWeight: 600 }}>Nội Dung</TableCell>
-                <TableCell align="center" sx={{ color: 'white', fontWeight: 600 }}>Thao Tác</TableCell>
+              <TableRow>
+                <TableCell>Mã NK</TableCell>
+                <TableCell>Ngày Nhập</TableCell>
+                <TableCell>Sản Phẩm</TableCell>
+                <TableCell>Số Lượng</TableCell>
+                <TableCell>Nhà Cung Cấp</TableCell>
+                <TableCell>Nội Dung</TableCell>
+                <TableCell align="center">Thao Tác</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredShipments
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((shipment, index) => (
-                  <Zoom in timeout={200 + index * 50}>
-                    <TableRow 
-                      key={shipment.id} 
-                      hover 
-                      sx={{ 
-                        '&:hover': { 
-                          bgcolor: 'action.hover',
-                          transform: 'scale(1.01)',
-                          transition: 'all 0.2s ease-in-out'
-                        }
-                      }}
-                    >
-                      <TableCell>
-                        <Chip 
-                          label={shipment.xuat_kho_id || 'N/A'} 
-                          color="primary" 
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {formatDate(shipment.ngay_nhap)}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <InventoryIcon color="primary" fontSize="small" />
-                          <Typography variant="body2" fontWeight="medium">
-                            {shipment.ten_san_pham || 'N/A'}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {shipment.ten_nha_cung_cap || 'N/A'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Chip
-                          label={shipment.sl_nhap?.toLocaleString() || '0'}
-                          color="info"
-                          size="small"
-                          sx={{ fontWeight: 600 }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {shipment.dvt || 'N/A'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {shipment.noi_dung_nhap || 'N/A'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                          <Tooltip title="Xem chi tiết">
-                            <IconButton
-                              size="small"
-                              color="primary"
-                              onClick={() => handleViewDetails(shipment.id)}
-                            >
-                              <ViewIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Chỉnh sửa">
-                            <IconButton
-                              size="small"
-                              color="secondary"
-                              onClick={() => handleOpenDialog(shipment)}
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Xóa">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() => handleDelete(shipment.id)}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  </Zoom>
+                .map((shipment) => (
+                  <TableRow key={shipment.id} hover>
+                    <TableCell>{shipment.xuat_kho_id}</TableCell>
+                    <TableCell>{formatDate(shipment.ngay_nhap)}</TableCell>
+                    <TableCell>{shipment.ten_san_pham}</TableCell>
+                    <TableCell>{shipment.sl_nhap?.toLocaleString()}</TableCell>
+                    <TableCell>{shipment.ten_nha_cung_cap}</TableCell>
+                    <TableCell>{shipment.noi_dung_nhap}</TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleViewDetails(shipment.id)}
+                      >
+                        <ViewIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleOpenDialog(shipment)}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDelete(shipment.id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
                 ))}
             </TableBody>
           </Table>
         </TableContainer>
-        <Divider />
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25, 50]}
+          rowsPerPageOptions={[10, 25, 50]}
           component="div"
           count={filteredShipments.length}
           rowsPerPage={rowsPerPage}
           page={page}
-          onPageChange={(_: unknown, newPage: number) => setPage(newPage)}
-          onRowsPerPageChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+          onPageChange={(_, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(e) => {
             setRowsPerPage(parseInt(e.target.value, 10));
             setPage(0);
           }}
           labelRowsPerPage="Số hàng mỗi trang:"
-          labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
-          sx={{ 
-            bgcolor: 'background.paper',
-            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-              fontWeight: 500
-            }
-          }}
         />
       </Paper>
 

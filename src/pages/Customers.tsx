@@ -40,7 +40,8 @@ import {
   CloudUpload,
   TableChart,
 } from '@mui/icons-material';
-import { useInventory } from '../context/InventoryContext';
+import { Chip } from '@mui/material';
+import { useCustomers } from '../hooks/useSupabaseQueries';
 import { Customer } from '../types';
 
 import * as XLSX from 'xlsx';
@@ -59,8 +60,7 @@ interface CustomerFormData {
 }
 
 const Customers: React.FC = () => {
-  const { state, dispatch } = useInventory();
-  const { customers } = state;
+  const { data: customers = [], refetch: refreshCustomers } = useCustomers();
   
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -151,14 +151,13 @@ const Customers: React.FC = () => {
 
       if (editingCustomer) {
         await dataService.customers.update(customerData.id!, customerData);
-        dispatch({ type: 'UPDATE_CUSTOMER', payload: customerData as Customer });
         setSnackbar({ open: true, message: 'Cập nhật khách hàng thành công!', severity: 'success' });
       } else {
         const { id, ...createData } = customerData;
-        const newCustomer = await dataService.customers.create(createData);
-        dispatch({ type: 'ADD_CUSTOMER', payload: newCustomer });
+        await dataService.customers.create(createData);
         setSnackbar({ open: true, message: 'Thêm khách hàng thành công!', severity: 'success' });
       }
+      await refreshCustomers();
       handleCloseDrawer();
     } catch (error) {
       console.error('Error saving customer:', error);
@@ -170,13 +169,16 @@ const Customers: React.FC = () => {
 
   const handleDelete = async (customerId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa khách hàng này?')) {
+      setLoading(true);
       try {
         await dataService.customers.delete(customerId);
-        dispatch({ type: 'DELETE_CUSTOMER', payload: customerId });
+        await refreshCustomers();
         setSnackbar({ open: true, message: 'Xóa khách hàng thành công!', severity: 'success' });
       } catch (error) {
         console.error('Error deleting customer:', error);
         setSnackbar({ open: true, message: 'Có lỗi khi xóa khách hàng', severity: 'error' });
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -326,12 +328,17 @@ const Customers: React.FC = () => {
     setLoading(true);
     try {
       let successCount = 0;
+      let updateCount = 0;
+      let skipCount = 0;
       let errorCount = 0;
+
+      // Lấy danh sách khách hàng hiện tại để kiểm tra trùng lặp
+      const existingCustomers = await dataService.customers.getAll();
+      const existingCustomerNames = new Set(existingCustomers.map(c => c.ten_khach_hang));
 
       for (const item of parsedData.filter(item => item.isValid)) {
         try {
-          const customerData: Customer = {
-            id: Date.now().toString() + Math.random(),
+          const customerData = {
             ten_khach_hang: item.Ten_KH,
             hien_thi: item.Hien_Thi,
             ten_day_du: item.Ten_Day_Du,
@@ -342,24 +349,42 @@ const Customers: React.FC = () => {
             tinh_trang: item.Tinh_Trang,
             nv_phu_trach: item.NV_Phu_Trach,
             ghi_chu: item.Ghi_Chu,
-            ngay_tao: new Date().toISOString(),
-            nguoi_tao: 'Admin',
             updated_at: new Date().toISOString(),
           };
 
-          const newCustomer = await dataService.customers.create(customerData);
-          dispatch({ type: 'ADD_CUSTOMER', payload: newCustomer });
-          successCount++;
+          // Kiểm tra khách hàng đã tồn tại
+          if (existingCustomerNames.has(customerData.ten_khach_hang)) {
+            // Tìm khách hàng hiện tại để update
+            const existingCustomer = existingCustomers.find(c => c.ten_khach_hang === customerData.ten_khach_hang);
+            if (existingCustomer) {
+              // Update khách hàng hiện tại
+              await dataService.customers.update(existingCustomer.id, customerData);
+              updateCount++;
+            } else {
+              skipCount++;
+            }
+          } else {
+            // Tạo khách hàng mới
+            await dataService.customers.create(customerData);
+            successCount++;
+          }
         } catch (error) {
           console.error('Error importing customer:', error);
           errorCount++;
         }
       }
 
+      await refreshCustomers();
+      
+      let message = `Import hoàn tất: ${successCount} khách hàng mới`;
+      if (updateCount > 0) message += `, ${updateCount} khách hàng được cập nhật (trùng tên)`;
+      if (skipCount > 0) message += `, ${skipCount} khách hàng bị bỏ qua`;
+      if (errorCount > 0) message += `, ${errorCount} lỗi`;
+      
       setSnackbar({ 
         open: true, 
-        message: `Import thành công ${successCount} khách hàng${errorCount > 0 ? `, ${errorCount} lỗi` : ''}`, 
-        severity: errorCount > 0 ? 'error' : 'success' 
+        message: message, 
+        severity: errorCount > 0 ? 'error' : (updateCount > 0 ? 'info' : 'success')
       });
       
       resetImportState();
@@ -367,7 +392,7 @@ const Customers: React.FC = () => {
       console.error('Error importing customers:', error);
       setSnackbar({ 
         open: true, 
-        message: 'Lỗi khi import vào Google Sheets', 
+        message: 'Có lỗi khi import dữ liệu', 
         severity: 'error' 
       });
     } finally {
@@ -417,64 +442,57 @@ const Customers: React.FC = () => {
   );
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#f5f5f5' }}>
-      {/* Header Section - Tối ưu đơn giản */}
-      <Box sx={{ p: 2, bgcolor: 'white', borderBottom: '1px solid #e0e0e0' }}>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          mb: 1.5,
-          flexWrap: 'wrap',
-          gap: 1
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <PeopleIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-            <Typography variant="h6" fontWeight="bold" color="text.primary">
-              Quản Lý Khách Hàng
-            </Typography>
-          </Box>
-          
-          {/* Thống kê ngắn gọn */}
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
-              Tổng: <strong>{customers.length}</strong>
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Hoạt động: <strong>{activeCustomers.length}</strong>
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Tạm ngưng: <strong style={{ color: '#f57c00' }}>{inactiveCustomers.length}</strong>
-            </Typography>
-          </Box>
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <PeopleIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, fontSize: '1.5rem', color: 'primary.main' }}>
+            Quản Lý Khách Hàng
+          </Typography>
         </Box>
-
-        {/* Thanh công cụ gọn gàng */}
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+        
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <TextField
             placeholder="Tìm kiếm..."
+            variant="outlined"
+            size="small"
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary', fontSize: 16 }} />,
-            }}
-            size="small"
             sx={{ 
-              flexGrow: 1, 
-              minWidth: 180,
-              maxWidth: 250,
+              minWidth: 200,
               '& .MuiOutlinedInput-root': {
-                borderRadius: 1,
-                fontSize: '0.875rem'
+                borderRadius: 2,
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                },
               }
+            }}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
             }}
           />
           <Button
             variant="outlined"
             startIcon={<UploadIcon />}
             onClick={() => setOpenImportDialog(true)}
-            size="small"
-            sx={{ borderRadius: 1, textTransform: 'none', fontSize: '0.875rem' }}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              borderColor: 'primary.main',
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'primary.light',
+                color: 'white',
+                borderColor: 'primary.light',
+              }
+            }}
           >
             Import Excel
           </Button>
@@ -482,8 +500,20 @@ const Customers: React.FC = () => {
             variant="outlined"
             startIcon={<DownloadIcon />}
             onClick={handleExportExcel}
-            size="small"
-            sx={{ borderRadius: 1, textTransform: 'none', fontSize: '0.875rem' }}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              borderColor: 'primary.main',
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'primary.light',
+                color: 'white',
+                borderColor: 'primary.light',
+              }
+            }}
           >
             Xuất Excel
           </Button>
@@ -492,106 +522,88 @@ const Customers: React.FC = () => {
             startIcon={<AddIcon />}
             onClick={() => handleOpenDrawer()}
             disabled={loading}
-            size="small"
-            sx={{ borderRadius: 1, textTransform: 'none', fontSize: '0.875rem' }}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              boxShadow: 2,
+              '&:hover': {
+                boxShadow: 4,
+                transform: 'translateY(-1px)',
+              }
+            }}
           >
-            Thêm KH
+            Thêm Khách Hàng
           </Button>
         </Box>
       </Box>
 
-      {/* Bảng khách hàng - Tối ưu */}
-      <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', mx: 2, mb: 2, borderRadius: 1, boxShadow: 1 }}>
-        <TableContainer sx={{ flex: 1, maxHeight: 'calc(100vh - 200px)' }}>
-          <Table stickyHeader size="small">
+      {/* Statistics */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
+          <Typography variant="body2">
+            Tổng: {customers.length}
+          </Typography>
+          <Typography variant="body2">
+            Hoạt động: {activeCustomers.length}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'warning.main' }}>
+            Tạm ngưng: {inactiveCustomers.length}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Customers Table */}
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <TableContainer sx={{ maxHeight: 600 }}>
+          <Table stickyHeader>
             <TableHead>
-              <TableRow sx={{ bgcolor: 'grey.100' }}>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Mã KH</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Tên Khách Hàng</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Tên Đầy Đủ</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Loại KH</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Người Đại Diện</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Số Điện Thoại</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Trạng Thái</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>NV Phụ Trách</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }} align="center">Thao Tác</TableCell>
+              <TableRow>
+                <TableCell>Mã KH</TableCell>
+                <TableCell>Tên Khách Hàng</TableCell>
+                <TableCell>Tên Đầy Đủ</TableCell>
+                <TableCell>Loại KH</TableCell>
+                <TableCell>Người Đại Diện</TableCell>
+                <TableCell>Số Điện Thoại</TableCell>
+                <TableCell>Trạng Thái</TableCell>
+                <TableCell>NV Phụ Trách</TableCell>
+                <TableCell align="center">Thao Tác</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredCustomers
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((customer) => (
-                  <TableRow key={customer.id} hover sx={{ bgcolor: 'grey.50' }}>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2" fontWeight="600" color="primary.main">
-                        {customer.id}
-                      </Typography>
+                  <TableRow key={customer.id} hover>
+                    <TableCell>{customer.id}</TableCell>
+                    <TableCell>{customer.ten_khach_hang}</TableCell>
+                    <TableCell>{customer.ten_day_du || 'N/A'}</TableCell>
+                    <TableCell>{customer.loai_khach_hang || 'N/A'}</TableCell>
+                    <TableCell>{customer.nguoi_dai_dien || 'N/A'}</TableCell>
+                    <TableCell>{customer.sdt || 'N/A'}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={customer.tinh_trang}
+                        color={customer.tinh_trang === 'Hoạt động' ? 'success' : 'default'}
+                        size="small"
+                      />
                     </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <PeopleIcon color="primary" sx={{ fontSize: 16 }} />
-                        <Typography variant="body2" fontWeight="500">
-                          {customer.ten_khach_hang}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2">
-                        {customer.ten_day_du || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {customer.loai_khach_hang || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2">
-                        {customer.nguoi_dai_dien || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2" fontWeight="600">
-                        {customer.sdt || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: customer.tinh_trang === 'Hoạt động' ? 'success.main' : 'error.main',
-                          fontWeight: 600
-                        }}
-                      >
-                        {customer.tinh_trang}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {customer.nv_phu_trach || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 1 }}>
+                    <TableCell>{customer.nv_phu_trach || 'N/A'}</TableCell>
+                    <TableCell align="center">
                       <IconButton
                         size="small"
                         onClick={() => handleOpenDrawer(customer)}
-                        sx={{ 
-                          p: 0.5,
-                          '&:hover': { bgcolor: 'primary.light', color: 'white' }
-                        }}
                       >
-                        <EditIcon sx={{ fontSize: 14 }} />
+                        <EditIcon />
                       </IconButton>
                       <IconButton
                         size="small"
                         color="error"
                         onClick={() => handleDelete(customer.id)}
-                        sx={{ 
-                          p: 0.5,
-                          '&:hover': { bgcolor: 'error.light', color: 'white' }
-                        }}
                       >
-                        <DeleteIcon sx={{ fontSize: 14 }} />
+                        <DeleteIcon />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -796,6 +808,9 @@ const Customers: React.FC = () => {
                 </Typography>
                 <Typography variant="body2" component="div">
                   • Hiển Thị phải là "Có" hoặc "Không"
+                </Typography>
+                <Typography variant="body2" component="div" sx={{ mt: 1, fontWeight: 'bold', color: 'warning.main' }}>
+                  • Khách hàng có tên trùng sẽ được cập nhật thông tin mới
                 </Typography>
               </Alert>
 

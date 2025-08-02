@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { dataService } from '../services/dataService';
 import {
   Box,
@@ -26,6 +26,7 @@ import {
   Alert,
   Snackbar,
   Divider,
+  Chip,
 } from '@mui/material';
 
 import {
@@ -44,8 +45,8 @@ import {
 } from '@mui/icons-material';
 import { useSupabase } from '../contexts/SupabaseContext';
 import { Product } from '../types';
-
 import * as XLSX from 'xlsx';
+
 
 interface ProductFormData {
   san_pham_id: string;
@@ -79,14 +80,16 @@ const Products: React.FC = () => {
   const [validCount, setValidCount] = useState(0);
   const [invalidCount, setInvalidCount] = useState(0);
 
-  const resetImportState = () => {
-    setOpenImportDialog(false);
-    setImportStep('upload');
-    setFile(null);
-    setParsedData([]);
-    setValidCount(0);
-    setInvalidCount(0);
-  };
+  const [formData, setFormData] = useState<ProductFormData>({
+    san_pham_id: '',
+    ten_san_pham: '',
+    kho_id: '',
+    ten_kho: '',
+    dvt: '',
+    sl_ton: 0,
+    hien_thi: 'Có',
+    ghi_chu: '',
+  });
 
   const generateSampleFile = () => {
     try {
@@ -99,13 +102,37 @@ const Products: React.FC = () => {
           'Đơn Vị': 'Cái',
           'Số Lượng Tồn': 100,
           'Hiển Thị': 'Có',
-          'Ghi Chú': 'Sản phẩm mẫu để import'
-        }
+          'Ghi Chú': 'Ghi chú mẫu',
+        },
+        {
+          'Mã SP': 'SP002',
+          'Tên Sản Phẩm': 'Sản phẩm mẫu 2',
+          'Mã Kho': 'KHO002',
+          'Tên Kho': 'Kho phụ',
+          'Đơn Vị': 'Kg',
+          'Số Lượng Tồn': 50,
+          'Hiển Thị': 'Có',
+          'Ghi Chú': '',
+        },
       ];
 
       const ws = XLSX.utils.json_to_sheet(templateData);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Mẫu');
+      XLSX.utils.book_append_sheet(wb, ws, 'Template');
+      
+      // Auto-size columns
+      const colWidths = [
+        { wch: 15 }, // Mã SP
+        { wch: 25 }, // Tên Sản Phẩm
+        { wch: 12 }, // Mã Kho
+        { wch: 15 }, // Tên Kho
+        { wch: 12 }, // Đơn Vị
+        { wch: 15 }, // Số Lượng Tồn
+        { wch: 10 }, // Hiển Thị
+        { wch: 25 }, // Ghi Chú
+      ];
+      ws['!cols'] = colWidths;
+
       XLSX.writeFile(wb, 'mau_san_pham.xlsx');
       
       setSnackbar({ open: true, message: 'Tải template thành công!', severity: 'success' });
@@ -224,12 +251,17 @@ const Products: React.FC = () => {
     setLoading(true);
     try {
       let successCount = 0;
+      let updateCount = 0;
+      let skipCount = 0;
       let errorCount = 0;
+
+      // Lấy danh sách sản phẩm hiện tại để kiểm tra trùng lặp
+      const existingProducts = await dataService.products.getAll();
+      const existingProductIds = new Set(existingProducts.map(p => p.san_pham_id));
 
       for (const item of parsedData.filter(item => item.isValid)) {
         try {
-          const productData: Product = {
-            id: Date.now().toString() + Math.random(),
+          const productData = {
             san_pham_id: item.Ma_San_Pham,
             ten_san_pham: item.Ten_San_Pham,
             kho_id: item.Ma_Kho,
@@ -238,79 +270,83 @@ const Products: React.FC = () => {
             sl_ton: item.Sl_Ton,
             hien_thi: item.Hien_Thi,
             ghi_chu: item.Ghi_Chu,
-            ngay_tao: new Date().toISOString(),
-            nguoi_tao: 'Admin',
             updated_at: new Date().toISOString(),
           };
 
-                  const newProduct = await dataService.products.create(productData);
-        refreshProducts();
-          successCount++;
+          // Kiểm tra sản phẩm đã tồn tại
+          if (existingProductIds.has(productData.san_pham_id)) {
+            // Tìm sản phẩm hiện tại để update
+            const existingProduct = existingProducts.find(p => p.san_pham_id === productData.san_pham_id);
+            if (existingProduct) {
+              // Update sản phẩm hiện tại
+              await dataService.products.update(existingProduct.id, productData);
+              updateCount++;
+            } else {
+              skipCount++;
+            }
+          } else {
+            // Tạo sản phẩm mới
+            await dataService.products.create(productData);
+            successCount++;
+          }
         } catch (error) {
           console.error('Error importing product:', error);
           errorCount++;
         }
       }
 
+      await refreshProducts();
+      
+      let message = `Import hoàn tất: ${successCount} sản phẩm mới`;
+      if (updateCount > 0) message += `, ${updateCount} sản phẩm được cập nhật (trùng mã)`;
+      if (skipCount > 0) message += `, ${skipCount} sản phẩm bị bỏ qua`;
+      if (errorCount > 0) message += `, ${errorCount} lỗi`;
+      
       setSnackbar({ 
         open: true, 
-        message: `Import thành công ${successCount} sản phẩm${errorCount > 0 ? `, ${errorCount} lỗi` : ''}`, 
-        severity: errorCount > 0 ? 'error' : 'success' 
+        message: message, 
+        severity: errorCount > 0 ? 'error' : (updateCount > 0 ? 'info' : 'success')
       });
       
       resetImportState();
     } catch (error) {
-      console.error('Error importing products:', error);
+      console.error('Error during import:', error);
       setSnackbar({ 
         open: true, 
-        message: 'Lỗi khi import vào Google Sheets', 
+        message: 'Có lỗi khi import dữ liệu', 
         severity: 'error' 
       });
     } finally {
       setLoading(false);
     }
   };
-  const [formData, setFormData] = useState<ProductFormData>({
-    san_pham_id: '',
-    ten_san_pham: '',
-    kho_id: '',
-    ten_kho: '',
-    dvt: '',
-    sl_ton: 0,
-    hien_thi: 'Có',
-    ghi_chu: '',
-  });
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((product: Product) =>
-      (product.ten_san_pham?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (product.san_pham_id?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (product.ten_kho?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-    );
-  }, [products, searchTerm]);
+  const resetImportState = () => {
+    setOpenImportDialog(false);
+    setImportStep('upload');
+    setFile(null);
+    setParsedData([]);
+    setValidCount(0);
+    setInvalidCount(0);
+  };
 
-  // Helper function để tạo mã sản phẩm tự động
   const generateProductId = () => {
-    const today = new Date();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const count = products.filter(p => 
-      p.san_pham_id?.startsWith(`SP_${month}${day}`)
-    ).length + 1;
-    return `SP_${month}${day}-${String(count).padStart(3, '0')}`;
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    return `SP${timestamp}${random}`;
   };
 
   const handleOpenDrawer = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
       setFormData({
-        san_pham_id: product.san_pham_id || '',
-        ten_san_pham: product.ten_san_pham || '',
-        kho_id: product.kho_id || '',
-        ten_kho: product.ten_kho || '',
-        dvt: product.dvt || '',
-        sl_ton: product.sl_ton || 0,
-        hien_thi: product.hien_thi || 'Có',
+        san_pham_id: product.san_pham_id,
+        ten_san_pham: product.ten_san_pham,
+        kho_id: product.kho_id,
+        ten_kho: product.ten_kho,
+        dvt: product.dvt,
+        sl_ton: product.sl_ton,
+        hien_thi: product.hien_thi,
         ghi_chu: product.ghi_chu || '',
       });
     } else {
@@ -337,24 +373,36 @@ const Products: React.FC = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const productData: Omit<Product, 'id'> & { id?: string } = {
-        id: editingProduct?.id,
-        ...formData,
-        ngay_tao: editingProduct?.ngay_tao || new Date().toISOString(),
-        nguoi_tao: editingProduct?.nguoi_tao || 'Admin',
-        updated_at: new Date().toISOString(),
-      };
-
       if (editingProduct) {
-        await dataService.products.update(productData.id!, productData);
-        refreshProducts();
+        // Update existing product
+        await dataService.products.update(editingProduct.id, {
+          san_pham_id: formData.san_pham_id,
+          ten_san_pham: formData.ten_san_pham,
+          kho_id: formData.kho_id,
+          ten_kho: formData.ten_kho,
+          dvt: formData.dvt,
+          sl_ton: formData.sl_ton,
+          hien_thi: formData.hien_thi,
+          ghi_chu: formData.ghi_chu,
+        });
         setSnackbar({ open: true, message: 'Cập nhật sản phẩm thành công!', severity: 'success' });
       } else {
-        const { id, ...createData } = productData;
-        const newProduct = await dataService.products.create(createData);
-        refreshProducts();
-        setSnackbar({ open: true, message: 'Tạo sản phẩm thành công!', severity: 'success' });
+        // Create new product
+        await dataService.products.create({
+          san_pham_id: formData.san_pham_id,
+          ten_san_pham: formData.ten_san_pham,
+          kho_id: formData.kho_id,
+          ten_kho: formData.ten_kho,
+          dvt: formData.dvt,
+          sl_ton: formData.sl_ton,
+          hien_thi: formData.hien_thi,
+          ghi_chu: formData.ghi_chu,
+          updated_at: new Date().toISOString(),
+        });
+        setSnackbar({ open: true, message: 'Thêm sản phẩm thành công!', severity: 'success' });
       }
+      
+      await refreshProducts();
       handleCloseDrawer();
     } catch (error) {
       console.error('Error saving product:', error);
@@ -365,11 +413,11 @@ const Products: React.FC = () => {
   };
 
   const handleDelete = async (productId: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+    if (window.confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
       setLoading(true);
       try {
         await dataService.products.delete(productId);
-        refreshProducts();
+        await refreshProducts();
         setSnackbar({ open: true, message: 'Xóa sản phẩm thành công!', severity: 'success' });
       } catch (error) {
         console.error('Error deleting product:', error);
@@ -380,7 +428,6 @@ const Products: React.FC = () => {
     }
   };
 
-  // Chức năng xuất Excel
   const handleExportExcel = () => {
     try {
       const exportData = products.map(product => ({
@@ -410,391 +457,352 @@ const Products: React.FC = () => {
     }
   };
 
+  // Filter products based on search term
+  const filteredProducts = useMemo(() => {
+    return products.filter(product =>
+      product.ten_san_pham.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.san_pham_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.ten_kho.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [products, searchTerm]);
 
-
-  const totalStock = useMemo(() => 
-    products.reduce((sum: number, product: Product) => sum + (product.sl_ton || 0), 0), 
-    [products]
+  // Pagination
+  const paginatedProducts = filteredProducts.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
   );
 
-  const lowStockProducts = useMemo(() => 
-    products.filter((product: Product) => (product.sl_ton || 0) < 10), 
-    [products]
-  );
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
 
-
-
-
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#f5f5f5' }}>
-      {/* Header Section - Tối ưu đơn giản */}
-      <Box sx={{ p: 2, bgcolor: 'white', borderBottom: '1px solid #e0e0e0' }}>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          mb: 1.5,
-          flexWrap: 'wrap',
-          gap: 1
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <InventoryIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-            <Typography variant="h6" fontWeight="bold" color="text.primary">
-              Quản Lý Sản Phẩm
-            </Typography>
-          </Box>
-          
-          {/* Thống kê ngắn gọn */}
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
-              Tổng: <strong>{products.length}</strong>
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Tồn: <strong>{totalStock.toLocaleString()}</strong>
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Hết: <strong style={{ color: '#f57c00' }}>{lowStockProducts.length}</strong>
-            </Typography>
-          </Box>
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <InventoryIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600,fontSize: '1.5rem',color: 'primary.main' }}>
+            Quản Lý Sản Phẩm
+          </Typography>
         </Box>
-
-        {/* Thanh công cụ gọn gàng */}
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+        
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <TextField
             placeholder="Tìm kiếm..."
-            value={searchTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary', fontSize: 16 }} />,
-            }}
+            variant="outlined"
             size="small"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             sx={{ 
-              flexGrow: 1, 
-              minWidth: 180,
-              maxWidth: 250,
+              minWidth: 200,
               '& .MuiOutlinedInput-root': {
-                borderRadius: 1,
-                fontSize: '0.875rem'
+                borderRadius: 2,
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                },
               }
             }}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+            }}
           />
+          
           <Button
             variant="outlined"
             startIcon={<UploadIcon />}
             onClick={() => setOpenImportDialog(true)}
-            size="small"
-            sx={{ borderRadius: 1, textTransform: 'none', fontSize: '0.875rem' }}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              borderColor: 'primary.main',
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'primary.light',
+                color: 'white',
+                borderColor: 'primary.light',
+              }
+            }}
           >
-            Nhập Excel
+            Import Excel
           </Button>
           <Button
             variant="outlined"
             startIcon={<DownloadIcon />}
             onClick={handleExportExcel}
-            size="small"
-            sx={{ borderRadius: 1, textTransform: 'none', fontSize: '0.875rem' }}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              borderColor: 'primary.main',
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'primary.light',
+                color: 'white',
+                borderColor: 'primary.light',
+              }
+            }}
           >
             Xuất Excel
           </Button>
-
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDrawer()}
-            size="small"
-            sx={{ borderRadius: 1, textTransform: 'none', fontSize: '0.875rem' }}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              boxShadow: 2,
+              '&:hover': {
+                boxShadow: 4,
+                transform: 'translateY(-1px)',
+              }
+            }}
           >
             Thêm Sản Phẩm
           </Button>
         </Box>
       </Box>
 
-      {/* Bảng sản phẩm - Tối ưu chuyên nghiệp */}
-      <Paper sx={{ 
-        flex: 1, 
-        display: 'flex', 
-        flexDirection: 'column', 
-        mx: 2, 
-        mb: 2, 
-        borderRadius: 1,
-        overflow: 'hidden',
-        boxShadow: 1
-      }}>
-        <TableContainer sx={{ flex: 1, maxHeight: 'calc(100vh - 200px)' }}>
-          <Table stickyHeader size="small">
+      {/* Statistics */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
+          <Typography variant="body2">
+            Tổng: {products.length}
+          </Typography>
+          <Typography variant="body2">
+            Có hàng: {products.filter(p => p.sl_ton > 0).length}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'warning.main' }}>
+            Hết hàng: {products.filter(p => p.sl_ton === 0).length}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Products Table */}
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <TableContainer sx={{ maxHeight: 600 }}>
+          <Table stickyHeader>
             <TableHead>
-              <TableRow sx={{ bgcolor: 'grey.100' }}>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1 }}>Mã SP</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1 }}>Tên Sản Phẩm</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1 }}>Kho</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1 }}>Đơn Vị</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1 }}>Số Lượng Tồn</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1 }}>Trạng Thái</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1 }}>Ghi Chú</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1 }}>Thao Tác</TableCell>
+              <TableRow>
+                <TableCell>Mã SP</TableCell>
+                <TableCell>Tên Sản Phẩm</TableCell>
+                <TableCell>Mã Kho</TableCell>
+                <TableCell>Tên Kho</TableCell>
+                <TableCell>Đơn Vị</TableCell>
+                <TableCell align="right">Số Lượng Tồn</TableCell>
+                <TableCell>Hiển Thị</TableCell>
+                <TableCell>Ghi Chú</TableCell>
+                <TableCell align="center">Thao Tác</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredProducts
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((product) => (
-                  <TableRow key={product.id} hover sx={{ '&:hover': { bgcolor: 'grey.50' } }}>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2" fontWeight="600" color="primary.main">
-                        {product.san_pham_id}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <InventoryIcon sx={{ color: 'primary.main', fontSize: 16 }} />
-                        <Typography variant="body2" fontWeight="500">
-                          {product.ten_san_pham}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {product.ten_kho || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2">
-                        {product.dvt || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right" sx={{ py: 1 }}>
-                      <Typography 
-                        variant="body2" 
-                        fontWeight="600"
-                        color={product.sl_ton && product.sl_ton > 0 ? 'success.main' : 'warning.main'}
+              {paginatedProducts.map((product) => (
+                <TableRow key={product.id} hover>
+                  <TableCell>
+                    <Chip
+                      label={product.san_pham_id}
+                      color="primary"
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight="medium">
+                      {product.ten_san_pham}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>{product.kho_id}</TableCell>
+                  <TableCell>{product.ten_kho}</TableCell>
+                  <TableCell>{product.dvt}</TableCell>
+                  <TableCell align="right">
+                    <Chip
+                      label={product.sl_ton}
+                      color={product.sl_ton > 0 ? 'success' : 'error'}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={product.hien_thi ? 'Có' : 'Không'}
+                      color={product.hien_thi ? 'success' : 'default'}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
+                      {product.ghi_chu}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => handleOpenDrawer(product)}
                       >
-                        {(product.sl_ton || 0).toLocaleString()}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: product.hien_thi === 'Có' ? 'success.main' : 'text.secondary',
-                          fontWeight: 500
-                        }}
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDelete(product.id)}
                       >
-                        {product.hien_thi || 'Có'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary" 
-                        sx={{ 
-                          maxWidth: 120, 
-                          overflow: 'hidden', 
-                          textOverflow: 'ellipsis', 
-                          whiteSpace: 'nowrap',
-                          fontSize: '0.75rem'
-                        }}
-                      >
-                        {product.ghi_chu || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 1 }}>
-                      <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleOpenDrawer(product)}
-                          sx={{ 
-                            color: 'primary.main',
-                            p: 0.5,
-                            '&:hover': { bgcolor: 'primary.light', color: 'white' }
-                          }}
-                        >
-                          <EditIcon sx={{ fontSize: 14 }} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDelete(product.id)}
-                          sx={{ 
-                            p: 0.5,
-                            '&:hover': { bgcolor: 'error.light', color: 'white' }
-                          }}
-                        >
-                          <DeleteIcon sx={{ fontSize: 14 }} />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
-        <Divider />
+        
         <TablePagination
-          rowsPerPageOptions={[10, 25, 50]}
+          rowsPerPageOptions={[5, 10, 25, 50]}
           component="div"
           count={filteredProducts.length}
           rowsPerPage={rowsPerPage}
           page={page}
-          onPageChange={(_: unknown, newPage: number) => setPage(newPage)}
-          onRowsPerPageChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setRowsPerPage(parseInt(e.target.value, 10));
-            setPage(0);
-          }}
-          labelRowsPerPage="Số hàng mỗi trang:"
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Số dòng mỗi trang:"
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
-          sx={{ 
-            bgcolor: 'background.paper',
-            py: 1,
-            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-              fontSize: '0.75rem'
-            }
-          }}
         />
       </Paper>
 
-      {/* Drawer thêm/sửa sản phẩm - Chuyên nghiệp */}
+      {/* Add/Edit Product Drawer */}
       <Drawer
         anchor="right"
         open={openDrawer}
         onClose={handleCloseDrawer}
-        sx={{
-          '& .MuiDrawer-paper': {
-            width: '30%',
-            minWidth: 400,
-            maxWidth: 500,
-            bgcolor: 'background.paper',
-            borderLeft: '1px solid',
-            borderColor: 'divider'
-          }
+        PaperProps={{
+          sx: { width: 400, p: 3 }
         }}
       >
-        <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-          {/* Header */}
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 1, 
-            mb: 3, 
-            pb: 2, 
-            borderBottom: '1px solid',
-            borderColor: 'divider'
-          }}>
-            <InventoryIcon color="primary" />
-            <Typography variant="h6" fontWeight="600">
-              {editingProduct ? 'Chỉnh Sửa Sản Phẩm' : 'Tạo Sản Phẩm Mới'}
-            </Typography>
-          </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h6">
+            {editingProduct ? 'Chỉnh Sửa Sản Phẩm' : 'Thêm Sản Phẩm Mới'}
+          </Typography>
+          <IconButton onClick={handleCloseDrawer}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
 
-          {/* Form Content */}
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Mã Sản Phẩm"
-              value={formData.san_pham_id}
-              onChange={(e) => setFormData({ ...formData, san_pham_id: e.target.value })}
-              disabled={!!editingProduct}
-            />
-            <TextField
-              fullWidth
-              size="small"
-              label="Tên Sản Phẩm"
-              value={formData.ten_san_pham}
-              onChange={(e) => setFormData({ ...formData, ten_san_pham: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              size="small"
-              label="Mã Kho"
-              value={formData.kho_id}
-              onChange={(e) => setFormData({ ...formData, kho_id: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              size="small"
-              label="Tên Kho"
-              value={formData.ten_kho}
-              onChange={(e) => setFormData({ ...formData, ten_kho: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              size="small"
-              label="Đơn Vị Tính"
-              value={formData.dvt}
-              onChange={(e) => setFormData({ ...formData, dvt: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              size="small"
-              label="Số Lượng Tồn"
-              type="number"
-              value={formData.sl_ton}
-              onChange={(e) => setFormData({ ...formData, sl_ton: parseInt(e.target.value) || 0 })}
-            />
-            <FormControl fullWidth size="small">
-              <InputLabel>Hiển Thị</InputLabel>
-              <Select
-                value={formData.hien_thi}
-                label="Hiển Thị"
-                onChange={(e) => setFormData({ ...formData, hien_thi: e.target.value })}
-              >
-                <MenuItem value="Có">Có</MenuItem>
-                <MenuItem value="Không">Không</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              fullWidth
-              size="small"
-              multiline
-              rows={4}
-              label="Ghi Chú"
-              value={formData.ghi_chu}
-              onChange={(e) => setFormData({ ...formData, ghi_chu: e.target.value })}
-            />
-          </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            label="Mã Sản Phẩm"
+            value={formData.san_pham_id}
+            onChange={(e) => setFormData({ ...formData, san_pham_id: e.target.value })}
+            fullWidth
+            required
+          />
+          
+          <TextField
+            label="Tên Sản Phẩm"
+            value={formData.ten_san_pham}
+            onChange={(e) => setFormData({ ...formData, ten_san_pham: e.target.value })}
+            fullWidth
+            required
+          />
+          
+          <TextField
+            label="Mã Kho"
+            value={formData.kho_id}
+            onChange={(e) => setFormData({ ...formData, kho_id: e.target.value })}
+            fullWidth
+            required
+          />
+          
+          <TextField
+            label="Tên Kho"
+            value={formData.ten_kho}
+            onChange={(e) => setFormData({ ...formData, ten_kho: e.target.value })}
+            fullWidth
+            required
+          />
+          
+          <TextField
+            label="Đơn Vị Tính"
+            value={formData.dvt}
+            onChange={(e) => setFormData({ ...formData, dvt: e.target.value })}
+            fullWidth
+            required
+          />
+          
+          <TextField
+            label="Số Lượng Tồn"
+            type="number"
+            value={formData.sl_ton}
+            onChange={(e) => setFormData({ ...formData, sl_ton: parseInt(e.target.value) || 0 })}
+            fullWidth
+            required
+          />
+          
+          <FormControl fullWidth>
+            <InputLabel>Hiển Thị</InputLabel>
+            <Select
+              value={formData.hien_thi}
+              onChange={(e) => setFormData({ ...formData, hien_thi: e.target.value })}
+              label="Hiển Thị"
+            >
+              <MenuItem value="Có">Có</MenuItem>
+              <MenuItem value="Không">Không</MenuItem>
+            </Select>
+          </FormControl>
+          
+          <TextField
+            label="Ghi Chú"
+            value={formData.ghi_chu}
+            onChange={(e) => setFormData({ ...formData, ghi_chu: e.target.value })}
+            fullWidth
+            multiline
+            rows={3}
+          />
+        </Box>
 
-          {/* Actions */}
-          <Box sx={{ 
-            display: 'flex', 
-            gap: 2, 
-            pt: 3, 
-            borderTop: '1px solid',
-            borderColor: 'divider'
-          }}>
-            <Button 
-              onClick={handleCloseDrawer}
-              variant="outlined"
-              fullWidth
-              size="small"
-            >
-              Hủy
-            </Button>
-            <Button 
-              onClick={handleSubmit} 
-              variant="contained"
-              disabled={loading}
-              fullWidth
-              size="small"
-            >
-              {loading ? 'Đang lưu...' : (editingProduct ? 'Cập Nhật' : 'Tạo')}
-            </Button>
-          </Box>
+        <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+          <Button
+            variant="outlined"
+            onClick={handleCloseDrawer}
+            fullWidth
+          >
+            Hủy
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={loading}
+            fullWidth
+          >
+            {loading ? 'Đang lưu...' : (editingProduct ? 'Cập nhật' : 'Thêm mới')}
+          </Button>
         </Box>
       </Drawer>
 
-      {/* Dialog Import Excel - Tối ưu theo mẫu */}
+
+
+      {/* Import Excel Dialog */}
       <Dialog 
         open={openImportDialog} 
         onClose={resetImportState} 
         maxWidth="lg" 
         fullWidth
-        PaperProps={{
-          sx: { 
-            borderRadius: 1,
-            boxShadow: 2
-          }
-        }}
       >
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -825,6 +833,9 @@ const Products: React.FC = () => {
                 </Typography>
                 <Typography variant="body2" component="div">
                   • Hiển Thị phải là "Có" hoặc "Không"
+                </Typography>
+                <Typography variant="body2" component="div" sx={{ mt: 1, fontWeight: 'bold', color: 'warning.main' }}>
+                  • Sản phẩm có mã trùng sẽ được cập nhật thông tin mới
                 </Typography>
               </Alert>
 
@@ -959,8 +970,6 @@ const Products: React.FC = () => {
           )}
         </DialogActions>
       </Dialog>
-
-
 
       {/* Snackbar */}
       <Snackbar

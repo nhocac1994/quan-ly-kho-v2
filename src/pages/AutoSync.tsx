@@ -21,9 +21,9 @@ import {
   Stop as StopIcon,
   Storage as StorageIcon
 } from '@mui/icons-material';
-import { useAutoSync } from '../contexts/AutoSyncContext';
+import { useSupabaseAutoSync } from '../contexts/SupabaseAutoSyncContext';
 import AutoSyncStatus from '../components/AutoSyncStatus';
-import SimpleDataSourceSwitcher from '../components/SimpleDataSourceSwitcher';
+
 
 const AutoSync: React.FC = () => {
   const { 
@@ -33,10 +33,10 @@ const AutoSync: React.FC = () => {
     startAutoSync, 
     stopAutoSync, 
     performManualSync,
-    forceSync,
+
     resetStats,
     showUpdateNotification
-  } = useAutoSync();
+  } = useSupabaseAutoSync();
   
   const currentDataSource = localStorage.getItem('REACT_APP_DATA_SOURCE') || 'supabase';
   
@@ -90,10 +90,7 @@ const AutoSync: React.FC = () => {
         Quản lý Auto Sync
       </Typography>
 
-      {/* Data Source Switcher */}
-      <Box sx={{ mb: 3 }}>
-        <SimpleDataSourceSwitcher />
-      </Box>
+
 
       {showUpdateNotification && (
         <Box sx={{ mb: 2, p: 2, bgcolor: 'info.light', borderRadius: 1, color: 'info.contrastText' }}>
@@ -376,7 +373,7 @@ const AutoSync: React.FC = () => {
             {currentDataSource === 'supabase' && (
               <Button
                 variant="outlined"
-                onClick={forceSync}
+                onClick={performManualSync}
                 disabled={status.isProcessing}
                 size="small"
               >

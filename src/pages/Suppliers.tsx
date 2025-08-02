@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { dataService } from '../services/dataService';
 import {
   Box,
@@ -14,16 +14,17 @@ import {
   TextField,
   Button,
   IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Snackbar,
+  Chip,
   Drawer,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Snackbar,
   Alert,
 } from '@mui/material';
 import {
@@ -40,7 +41,7 @@ import {
   CloudUpload,
   TableChart,
 } from '@mui/icons-material';
-import { useInventory } from '../context/InventoryContext';
+import { useSuppliers } from '../hooks/useSupabaseQueries';
 import { Supplier } from '../types';
 
 import * as XLSX from 'xlsx';
@@ -59,8 +60,7 @@ interface SupplierFormData {
 }
 
 const Suppliers: React.FC = () => {
-  const { state, dispatch } = useInventory();
-  const { suppliers } = state;
+  const { data: suppliers = [], refetch: refreshSuppliers } = useSuppliers();
   
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -139,8 +139,8 @@ const Suppliers: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const supplierData: Omit<Supplier, 'id'> & { id?: string } = {
         id: editingSupplier?.id,
         ...formData,
@@ -151,18 +151,17 @@ const Suppliers: React.FC = () => {
 
       if (editingSupplier) {
         await dataService.suppliers.update(supplierData.id!, supplierData);
-        dispatch({ type: 'UPDATE_SUPPLIER', payload: supplierData as Supplier });
         setSnackbar({ open: true, message: 'Cập nhật nhà cung cấp thành công!', severity: 'success' });
       } else {
         const { id, ...createData } = supplierData;
-        const newSupplier = await dataService.suppliers.create(createData);
-        dispatch({ type: 'ADD_SUPPLIER', payload: newSupplier });
+        await dataService.suppliers.create(createData);
         setSnackbar({ open: true, message: 'Thêm nhà cung cấp thành công!', severity: 'success' });
       }
+      await refreshSuppliers();
       handleCloseDrawer();
     } catch (error) {
       console.error('Error saving supplier:', error);
-      setSnackbar({ open: true, message: 'Có lỗi xảy ra khi lưu nhà cung cấp!', severity: 'error' });
+      setSnackbar({ open: true, message: 'Có lỗi khi lưu nhà cung cấp', severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -173,7 +172,7 @@ const Suppliers: React.FC = () => {
       setLoading(true);
       try {
         await dataService.suppliers.delete(supplierId);
-        dispatch({ type: 'DELETE_SUPPLIER', payload: supplierId });
+        await refreshSuppliers();
         setSnackbar({ open: true, message: 'Xóa nhà cung cấp thành công!', severity: 'success' });
       } catch (error) {
         console.error('Error deleting supplier:', error);
@@ -252,6 +251,7 @@ const Suppliers: React.FC = () => {
 
     setFile(selectedFile);
     parseExcelFile(selectedFile);
+    setImportStep('preview');
   };
 
   const parseExcelFile = (file: File) => {
@@ -262,62 +262,45 @@ const Suppliers: React.FC = () => {
         const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-        if (!jsonData || jsonData.length === 0) {
+        if (jsonData.length < 2) {
           setSnackbar({ 
             open: true, 
-            message: 'File Excel không có dữ liệu', 
+            message: 'File không có dữ liệu hoặc định dạng không đúng', 
             severity: 'error' 
           });
           return;
         }
 
-        // Validate và parse dữ liệu
-        const validatedData = jsonData.map((row: any, index: number) => {
-          const errors: string[] = [];
+        const headers = jsonData[0] as string[];
+        const rows = jsonData.slice(1) as any[][];
+
+        const parsedData = rows.map((row, index) => {
+          const item: any = {};
+          headers.forEach((header, colIndex) => {
+            item[header] = row[colIndex] || '';
+          });
+
+          // Validate required fields
+          const isValid = item['Tên NCC'] && item['Tên NCC'].toString().trim() !== '';
           
-          // Kiểm tra dữ liệu bắt buộc
-          if (!row['Tên NCC']) {
-            errors.push('Thiếu Tên NCC');
-          }
-          if (!row['Mã NCC']) {
-            errors.push('Thiếu Mã NCC');
-          }
-
-          // Kiểm tra Hiển Thị
-          const hienThi = row['Hiển Thị'];
-          if (hienThi && !['Có', 'Không'].includes(hienThi)) {
-            errors.push('Hiển Thị phải là "Có" hoặc "Không"');
-          }
-
           return {
-            Ma_NCC: row['Mã NCC'] || '',
-            Ten_NCC: row['Tên NCC'] || '',
-            Ten_Day_Du: row['Tên Đầy Đủ'] || '',
-            Loai_NCC: row['Loại NCC'] || '',
-            Logo: row['Logo'] || '',
-            Nguoi_Dai_Dien: row['Người Đại Diện'] || '',
-            SDT: row['Số Điện Thoại'] || '',
-            Tinh_Trang: row['Trạng Thái'] || 'Hoạt động',
-            NV_Phu_Trach: row['NV Phụ Trách'] || '',
-            Hien_Thi: hienThi || 'Có',
-            Ghi_Chu: row['Ghi Chú'] || '',
-            isValid: errors.length === 0,
-            errors
+            ...item,
+            isValid,
+            rowNumber: index + 2
           };
         });
 
-        setParsedData(validatedData);
-        setValidCount(validatedData.filter(item => item.isValid).length);
-        setInvalidCount(validatedData.filter(item => !item.isValid).length);
-        setImportStep('preview');
+        setParsedData(parsedData);
+        setValidCount(parsedData.filter(item => item.isValid).length);
+        setInvalidCount(parsedData.filter(item => !item.isValid).length);
 
       } catch (error) {
-        console.error('Error reading Excel file:', error);
+        console.error('Error parsing Excel file:', error);
         setSnackbar({ 
           open: true, 
-          message: 'Lỗi khi đọc file Excel. Vui lòng kiểm tra định dạng file.', 
+          message: 'Có lỗi khi đọc file Excel', 
           severity: 'error' 
         });
       }
@@ -329,12 +312,17 @@ const Suppliers: React.FC = () => {
     setLoading(true);
     try {
       let successCount = 0;
+      let updateCount = 0;
+      let skipCount = 0;
       let errorCount = 0;
+
+      // Lấy danh sách nhà cung cấp hiện tại để kiểm tra trùng lặp
+      const existingSuppliers = await dataService.suppliers.getAll();
+      const existingSupplierNames = new Set(existingSuppliers.map(s => s.ten_ncc));
 
       for (const item of parsedData.filter(item => item.isValid)) {
         try {
-          const supplierData: Supplier = {
-            id: Date.now().toString() + Math.random(),
+          const supplierData = {
             ten_ncc: item.Ten_NCC,
             hien_thi: item.Hien_Thi,
             ten_day_du: item.Ten_Day_Du,
@@ -345,24 +333,42 @@ const Suppliers: React.FC = () => {
             tinh_trang: item.Tinh_Trang,
             nv_phu_trach: item.NV_Phu_Trach,
             ghi_chu: item.Ghi_Chu,
-                          ngay_tao: new Date().toISOString(),
-              nguoi_tao: 'Admin',
-              updated_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           };
 
-          const newSupplier = await dataService.suppliers.create(supplierData);
-          dispatch({ type: 'ADD_SUPPLIER', payload: newSupplier });
-          successCount++;
+          // Kiểm tra nhà cung cấp đã tồn tại
+          if (existingSupplierNames.has(supplierData.ten_ncc)) {
+            // Tìm nhà cung cấp hiện tại để update
+            const existingSupplier = existingSuppliers.find(s => s.ten_ncc === supplierData.ten_ncc);
+            if (existingSupplier) {
+              // Update nhà cung cấp hiện tại
+              await dataService.suppliers.update(existingSupplier.id, supplierData);
+              updateCount++;
+            } else {
+              skipCount++;
+            }
+          } else {
+            // Tạo nhà cung cấp mới
+            await dataService.suppliers.create(supplierData);
+            successCount++;
+          }
         } catch (error) {
           console.error('Error importing supplier:', error);
           errorCount++;
         }
       }
 
+      await refreshSuppliers();
+      
+      let message = `Import hoàn tất: ${successCount} nhà cung cấp mới`;
+      if (updateCount > 0) message += `, ${updateCount} nhà cung cấp được cập nhật (trùng tên)`;
+      if (skipCount > 0) message += `, ${skipCount} nhà cung cấp bị bỏ qua`;
+      if (errorCount > 0) message += `, ${errorCount} lỗi`;
+      
       setSnackbar({ 
         open: true, 
-        message: `Import thành công ${successCount} nhà cung cấp${errorCount > 0 ? `, ${errorCount} lỗi` : ''}`, 
-        severity: errorCount > 0 ? 'error' : 'success' 
+        message: message, 
+        severity: errorCount > 0 ? 'error' : (updateCount > 0 ? 'info' : 'success')
       });
       
       resetImportState();
@@ -370,7 +376,7 @@ const Suppliers: React.FC = () => {
       console.error('Error importing suppliers:', error);
       setSnackbar({ 
         open: true, 
-        message: 'Lỗi khi import vào Google Sheets', 
+        message: 'Có lỗi khi import dữ liệu', 
         severity: 'error' 
       });
     } finally {
@@ -378,7 +384,6 @@ const Suppliers: React.FC = () => {
     }
   };
 
-  // Chức năng xuất Excel
   const handleExportExcel = () => {
     try {
       const data = suppliers.map(supplier => ({
@@ -407,8 +412,6 @@ const Suppliers: React.FC = () => {
     }
   };
 
-
-
   const activeSuppliers = useMemo(() => 
     suppliers.filter((supplier: Supplier) => supplier.tinh_trang === 'Hoạt động'), 
     [suppliers]
@@ -420,64 +423,58 @@ const Suppliers: React.FC = () => {
   );
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#f5f5f5' }}>
-      {/* Header Section - Tối ưu đơn giản */}
-      <Box sx={{ p: 2, bgcolor: 'white', borderBottom: '1px solid #e0e0e0' }}>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          mb: 1.5,
-          flexWrap: 'wrap',
-          gap: 1
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <BusinessIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-            <Typography variant="h6" fontWeight="bold" color="text.primary">
-              Quản Lý Nhà Cung Cấp
-            </Typography>
-          </Box>
-          
-          {/* Thống kê ngắn gọn */}
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
-              Tổng: <strong>{suppliers.length}</strong>
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Hoạt động: <strong>{activeSuppliers.length}</strong>
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Tạm ngưng: <strong style={{ color: '#f57c00' }}>{inactiveSuppliers.length}</strong>
-            </Typography>
-          </Box>
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <BusinessIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600,fontSize: '1.5rem',color: 'primary.main' }}>
+            Quản Lý Nhà Cung Cấp
+          </Typography>
         </Box>
-
-        {/* Thanh công cụ gọn gàng */}
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+        
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <TextField
             placeholder="Tìm kiếm..."
+            variant="outlined"
+            size="small"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary', fontSize: 16 }} />,
-            }}
-            size="small"
             sx={{ 
-              flexGrow: 1, 
-              minWidth: 180,
-              maxWidth: 250,
+              minWidth: 200,
               '& .MuiOutlinedInput-root': {
-                borderRadius: 1,
-                fontSize: '0.875rem'
+                borderRadius: 2,
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                },
               }
             }}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+            }}
           />
+          
           <Button
             variant="outlined"
             startIcon={<UploadIcon />}
             onClick={() => setOpenImportDialog(true)}
-            size="small"
-            sx={{ borderRadius: 1, textTransform: 'none', fontSize: '0.875rem' }}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              borderColor: 'primary.main',
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'primary.light',
+                color: 'white',
+                borderColor: 'primary.light',
+              }
+            }}
           >
             Import Excel
           </Button>
@@ -485,8 +482,20 @@ const Suppliers: React.FC = () => {
             variant="outlined"
             startIcon={<DownloadIcon />}
             onClick={handleExportExcel}
-            size="small"
-            sx={{ borderRadius: 1, textTransform: 'none', fontSize: '0.875rem' }}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              borderColor: 'primary.main',
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'primary.light',
+                color: 'white',
+                borderColor: 'primary.light',
+              }
+            }}
           >
             Xuất Excel
           </Button>
@@ -494,107 +503,88 @@ const Suppliers: React.FC = () => {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDrawer()}
-            disabled={loading}
-            size="small"
-            sx={{ borderRadius: 1, textTransform: 'none', fontSize: '0.875rem' }}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              boxShadow: 2,
+              '&:hover': {
+                boxShadow: 4,
+                transform: 'translateY(-1px)',
+              }
+            }}
           >
-            Thêm NCC
+            Thêm Nhà Cung Cấp
           </Button>
         </Box>
       </Box>
 
-      {/* Bảng nhà cung cấp - Tối ưu */}
-      <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', mx: 2, mb: 2, borderRadius: 1, boxShadow: 1 }}>
-        <TableContainer sx={{ flex: 1, maxHeight: 'calc(100vh - 200px)' }}>
-          <Table stickyHeader size="small">
+      {/* Statistics */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
+          <Typography variant="body2">
+            Tổng: {suppliers.length}
+          </Typography>
+          <Typography variant="body2">
+            Hoạt động: {activeSuppliers.length}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'warning.main' }}>
+            Tạm ngưng: {inactiveSuppliers.length}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Suppliers Table */}
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <TableContainer sx={{ maxHeight: 600 }}>
+          <Table stickyHeader>
             <TableHead>
-              <TableRow sx={{ bgcolor: 'grey.100' }}>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Mã NCC</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Tên NCC</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Tên Đầy Đủ</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Loại NCC</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Người Đại Diện</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Số Điện Thoại</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>Trạng Thái</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }}>NV Phụ Trách</TableCell>
-                <TableCell sx={{ fontWeight: 600, fontSize: '0.875rem', py: 1, color: 'text.primary' }} align="center">Thao Tác</TableCell>
+              <TableRow>
+                <TableCell>Mã NCC</TableCell>
+                <TableCell>Tên NCC</TableCell>
+                <TableCell>Tên Đầy Đủ</TableCell>
+                <TableCell>Loại NCC</TableCell>
+                <TableCell>Người Đại Diện</TableCell>
+                <TableCell>Số Điện Thoại</TableCell>
+                <TableCell>Trạng Thái</TableCell>
+                <TableCell>NV Phụ Trách</TableCell>
+                <TableCell align="center">Thao Tác</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredSuppliers
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((supplier) => (
-                  <TableRow key={supplier.id} hover sx={{ bgcolor: 'grey.50' }}>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2" fontWeight="600" color="primary.main">
-                        {supplier.id}
-                      </Typography>
+                  <TableRow key={supplier.id} hover>
+                    <TableCell>{supplier.id}</TableCell>
+                    <TableCell>{supplier.ten_ncc}</TableCell>
+                    <TableCell>{supplier.ten_day_du || 'N/A'}</TableCell>
+                    <TableCell>{supplier.loai_ncc || 'N/A'}</TableCell>
+                    <TableCell>{supplier.nguoi_dai_dien || 'N/A'}</TableCell>
+                    <TableCell>{supplier.sdt || 'N/A'}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={supplier.tinh_trang}
+                        color={supplier.tinh_trang === 'Hoạt động' ? 'success' : 'default'}
+                        size="small"
+                      />
                     </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <BusinessIcon color="primary" sx={{ fontSize: 16 }} />
-                        <Typography variant="body2" fontWeight="500">
-                          {supplier.ten_ncc}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2">
-                        {supplier.ten_day_du || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {supplier.loai_ncc || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2">
-                        {supplier.nguoi_dai_dien || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2" fontWeight="600">
-                        {supplier.sdt || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: supplier.tinh_trang === 'Hoạt động' ? 'success.main' : 'error.main',
-                          fontWeight: 600
-                        }}
-                      >
-                        {supplier.tinh_trang}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ py: 1 }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {supplier.nv_phu_trach || 'N/A'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 1 }}>
+                    <TableCell>{supplier.nv_phu_trach || 'N/A'}</TableCell>
+                    <TableCell align="center">
                       <IconButton
                         size="small"
                         onClick={() => handleOpenDrawer(supplier)}
-                        sx={{ 
-                          p: 0.5,
-                          '&:hover': { bgcolor: 'primary.light', color: 'white' }
-                        }}
                       >
-                        <EditIcon sx={{ fontSize: 14 }} />
+                        <EditIcon />
                       </IconButton>
                       <IconButton
                         size="small"
                         color="error"
                         onClick={() => handleDelete(supplier.id)}
-                        sx={{ 
-                          p: 0.5,
-                          '&:hover': { bgcolor: 'error.light', color: 'white' }
-                        }}
                       >
-                        <DeleteIcon sx={{ fontSize: 14 }} />
+                        <DeleteIcon />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -614,11 +604,6 @@ const Suppliers: React.FC = () => {
             setPage(0);
           }}
           labelRowsPerPage="Số hàng mỗi trang:"
-          sx={{
-            '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-              fontSize: '0.75rem'
-            }
-          }}
         />
       </Paper>
 
@@ -627,140 +612,123 @@ const Suppliers: React.FC = () => {
         anchor="right"
         open={openDrawer}
         onClose={handleCloseDrawer}
-        sx={{
-          '& .MuiDrawer-paper': {
-            width: '30%',
-            minWidth: 400,
-            maxWidth: 500,
-          },
+        PaperProps={{
+          sx: { width: { xs: '100%', sm: 400 } }
         }}
       >
-        {/* Header Drawer */}
-        <Box sx={{ 
-          p: 2, 
-          borderBottom: '1px solid #e0e0e0',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1
-        }}>
-          <BusinessIcon color="primary" />
-          <Typography variant="h6" fontWeight="600">
-            {editingSupplier ? 'Sửa Nhà Cung Cấp' : 'Thêm Nhà Cung Cấp Mới'}
-          </Typography>
-        </Box>
+        <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Typography variant="h6" fontWeight="bold">
+              {editingSupplier ? 'Sửa Nhà Cung Cấp' : 'Thêm Nhà Cung Cấp Mới'}
+            </Typography>
+            <IconButton onClick={handleCloseDrawer}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
 
-        {/* Form Content */}
-        <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
-          <TextField
-            fullWidth
-            label="Tên NCC"
-            value={formData.ten_ncc}
-            onChange={(e) => setFormData({ ...formData, ten_ncc: e.target.value })}
-            size="small"
-          />
-          <TextField
-            fullWidth
-            label="Tên Đầy Đủ"
-            value={formData.ten_day_du}
-            onChange={(e) => setFormData({ ...formData, ten_day_du: e.target.value })}
-            size="small"
-          />
-          <TextField
-            fullWidth
-            label="Loại NCC"
-            value={formData.loai_ncc}
-            onChange={(e) => setFormData({ ...formData, loai_ncc: e.target.value })}
-            size="small"
-          />
-          <TextField
-            fullWidth
-            label="Logo"
-            value={formData.logo}
-            onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
-            size="small"
-          />
-          <TextField
-            fullWidth
-            label="Người Đại Diện"
-            value={formData.nguoi_dai_dien}
-            onChange={(e) => setFormData({ ...formData, nguoi_dai_dien: e.target.value })}
-            size="small"
-          />
-          <TextField
-            fullWidth
-            label="Số Điện Thoại"
-            value={formData.sdt}
-            onChange={(e) => setFormData({ ...formData, sdt: e.target.value })}
-            size="small"
-          />
-          <FormControl fullWidth size="small">
-            <InputLabel>Trạng Thái</InputLabel>
-            <Select
-              value={formData.tinh_trang}
-              label="Trạng Thái"
-              onChange={(e) => setFormData({ ...formData, tinh_trang: e.target.value })}
-            >
-              <MenuItem value="Hoạt động">Hoạt động</MenuItem>
-              <MenuItem value="Tạm ngưng">Tạm ngưng</MenuItem>
-              <MenuItem value="Ngừng hoạt động">Ngừng hoạt động</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            fullWidth
-            label="NV Phụ Trách"
-            value={formData.nv_phu_trach}
-            onChange={(e) => setFormData({ ...formData, nv_phu_trach: e.target.value })}
-            size="small"
-          />
-          <FormControl fullWidth size="small">
-            <InputLabel>Hiển Thị</InputLabel>
-            <Select
-              value={formData.hien_thi}
-              label="Hiển Thị"
-              onChange={(e) => setFormData({ ...formData, hien_thi: e.target.value })}
-            >
-              <MenuItem value="Có">Có</MenuItem>
-              <MenuItem value="Không">Không</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            fullWidth
-            multiline
-            rows={3}
-            label="Ghi Chú"
-            value={formData.ghi_chu}
-            onChange={(e) => setFormData({ ...formData, ghi_chu: e.target.value })}
-            size="small"
-          />
-        </Box>
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Tên Nhà Cung Cấp"
+              value={formData.ten_ncc}
+              onChange={(e) => setFormData({ ...formData, ten_ncc: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Tên Đầy Đủ"
+              value={formData.ten_day_du}
+              onChange={(e) => setFormData({ ...formData, ten_day_du: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Loại Nhà Cung Cấp"
+              value={formData.loai_ncc}
+              onChange={(e) => setFormData({ ...formData, loai_ncc: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Logo"
+              value={formData.logo}
+              onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Người Đại Diện"
+              value={formData.nguoi_dai_dien}
+              onChange={(e) => setFormData({ ...formData, nguoi_dai_dien: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Số Điện Thoại"
+              value={formData.sdt}
+              onChange={(e) => setFormData({ ...formData, sdt: e.target.value })}
+            />
+            <FormControl fullWidth>
+              <InputLabel>Trạng Thái</InputLabel>
+              <Select
+                value={formData.tinh_trang}
+                label="Trạng Thái"
+                onChange={(e) => setFormData({ ...formData, tinh_trang: e.target.value })}
+              >
+                <MenuItem value="Hoạt động">Hoạt động</MenuItem>
+                <MenuItem value="Tạm ngưng">Tạm ngưng</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              fullWidth
+              label="NV Phụ Trách"
+              value={formData.nv_phu_trach}
+              onChange={(e) => setFormData({ ...formData, nv_phu_trach: e.target.value })}
+            />
+            <FormControl fullWidth>
+              <InputLabel>Hiển Thị</InputLabel>
+              <Select
+                value={formData.hien_thi}
+                label="Hiển Thị"
+                onChange={(e) => setFormData({ ...formData, hien_thi: e.target.value })}
+              >
+                <MenuItem value="Có">Có</MenuItem>
+                <MenuItem value="Không">Không</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label="Ghi Chú"
+              value={formData.ghi_chu}
+              onChange={(e) => setFormData({ ...formData, ghi_chu: e.target.value })}
+            />
+          </Box>
 
-        {/* Actions */}
-        <Box sx={{ 
-          p: 2, 
-          borderTop: '1px solid #e0e0e0',
-          display: 'flex',
-          gap: 1
-        }}>
-          <Button 
-            onClick={handleCloseDrawer}
-            variant="outlined"
-            fullWidth
-            disabled={loading}
-          >
-            Hủy
-          </Button>
-          <Button 
-            onClick={handleSubmit}
-            variant="contained"
-            fullWidth
-            disabled={loading}
-          >
-            {loading ? 'Đang lưu...' : (editingSupplier ? 'Cập Nhật' : 'Thêm')}
-          </Button>
+          <Box sx={{ 
+            mt: 3, 
+            pt: 2, 
+            borderTop: '1px solid #e0e0e0',
+            display: 'flex',
+            gap: 1
+          }}>
+            <Button 
+              onClick={handleCloseDrawer}
+              variant="outlined"
+              fullWidth
+              disabled={loading}
+            >
+              Hủy
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              variant="contained"
+              fullWidth
+              disabled={loading}
+            >
+              {loading ? 'Đang lưu...' : (editingSupplier ? 'Cập Nhật' : 'Thêm')}
+            </Button>
+          </Box>
         </Box>
       </Drawer>
 
-      {/* Dialog Import Excel - Tối ưu theo mẫu */}
+      {/* Dialog Import Excel */}
       <Dialog 
         open={openImportDialog} 
         onClose={resetImportState} 
@@ -800,6 +768,9 @@ const Suppliers: React.FC = () => {
                 <Typography variant="body2" component="div">
                   • Hiển Thị phải là "Có" hoặc "Không"
                 </Typography>
+                <Typography variant="body2" component="div" sx={{ mt: 1, fontWeight: 'bold', color: 'warning.main' }}>
+                  • Nhà cung cấp có tên trùng sẽ được cập nhật thông tin mới
+                </Typography>
               </Alert>
 
               <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -837,61 +808,45 @@ const Suppliers: React.FC = () => {
                   </Button>
                 </Box>
               </Box>
-
-              {file && (
-                <Alert severity="success" icon={<CheckCircle />}>
-                  Đã chọn file: {file.name}
-                </Alert>
-              )}
             </Box>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                <Alert severity="success" icon={<CheckCircle />}>
-                  {validCount} nhà cung cấp hợp lệ
-                </Alert>
-                {invalidCount > 0 && (
-                  <Alert severity="error" icon={<Warning />}>
-                    {invalidCount} nhà cung cấp có lỗi
-                  </Alert>
-                )}
+            <Box sx={{ py: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CheckCircle sx={{ color: 'success.main' }} />
+                  <Typography variant="body2" color="success.main">
+                    Hợp lệ: {validCount}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Warning sx={{ color: 'warning.main' }} />
+                  <Typography variant="body2" color="warning.main">
+                    Không hợp lệ: {invalidCount}
+                  </Typography>
+                </Box>
               </Box>
 
-              <TableContainer component={Paper}>
+              <TableContainer>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Mã NCC</TableCell>
+                      <TableCell>Dòng</TableCell>
                       <TableCell>Tên NCC</TableCell>
                       <TableCell>Tên Đầy Đủ</TableCell>
-                      <TableCell>Loại NCC</TableCell>
-                      <TableCell>Người Đại Diện</TableCell>
-                      <TableCell>Số Điện Thoại</TableCell>
-                      <TableCell>Trạng Thái</TableCell>
-                      <TableCell>Hiển Thị</TableCell>
                       <TableCell>Trạng Thái</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {parsedData.map((item, index) => (
+                    {parsedData.slice(0, 10).map((item, index) => (
                       <TableRow key={index}>
-                        <TableCell>{item.Ma_NCC}</TableCell>
+                        <TableCell>{item.rowNumber}</TableCell>
                         <TableCell>{item.Ten_NCC}</TableCell>
                         <TableCell>{item.Ten_Day_Du}</TableCell>
-                        <TableCell>{item.Loai_NCC}</TableCell>
-                        <TableCell>{item.Nguoi_Dai_Dien}</TableCell>
-                        <TableCell>{item.SDT}</TableCell>
-                        <TableCell>{item.Tinh_Trang}</TableCell>
-                        <TableCell>{item.Hien_Thi}</TableCell>
                         <TableCell>
                           {item.isValid ? (
-                            <Alert severity="success" sx={{ py: 0, px: 1 }}>
-                              Hợp lệ
-                            </Alert>
+                            <Chip label="Hợp lệ" color="success" size="small" />
                           ) : (
-                            <Alert severity="error" sx={{ py: 0, px: 1 }}>
-                              Lỗi
-                            </Alert>
+                            <Chip label="Thiếu tên" color="error" size="small" />
                           )}
                         </TableCell>
                       </TableRow>
@@ -899,21 +854,6 @@ const Suppliers: React.FC = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
-
-              {invalidCount > 0 && (
-                <Alert severity="warning">
-                  <Typography variant="body2">
-                    <strong>Chi tiết lỗi:</strong>
-                  </Typography>
-                  {parsedData
-                    .filter(item => !item.isValid)
-                    .map((item, index) => (
-                      <Typography key={index} variant="body2" component="div">
-                        • <strong>Dòng {index + 1}:</strong> {item.errors.join(', ')}
-                      </Typography>
-                    ))}
-                </Alert>
-              )}
             </Box>
           )}
         </DialogContent>
@@ -923,24 +863,31 @@ const Suppliers: React.FC = () => {
             Hủy
           </Button>
           {importStep === 'preview' && (
-            <Button
-              onClick={handleImport}
+            <Button 
+              onClick={handleImport} 
               variant="contained"
-              disabled={validCount === 0}
+              disabled={loading || validCount === 0}
             >
-              Import {validCount} nhà cung cấp
+              {loading ? 'Đang import...' : `Import ${validCount} nhà cung cấp`}
             </Button>
           )}
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar thông báo */}
+      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        message={snackbar.message}
-      />
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

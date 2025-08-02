@@ -7,12 +7,13 @@ import { Box, Container } from '@mui/material';
 
 // Context
 import { InventoryProvider } from './context/InventoryContext';
-import { AutoSyncProvider } from './contexts/AutoSyncContext';
+import { SupabaseAutoSyncProvider } from './contexts/SupabaseAutoSyncContext';
 import { SupabaseProvider } from './contexts/SupabaseContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 // Components
 import Layout from './components/Layout';
-import { GoogleSheetsProvider } from './components/GoogleSheetsProvider';
+
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
 import Suppliers from './pages/Suppliers';
@@ -56,34 +57,34 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <GoogleSheetsProvider>
+        <LanguageProvider>
           <SupabaseProvider>
-            <AutoSyncProvider>
+            <SupabaseAutoSyncProvider>
               <InventoryProvider>
-              <Router>
-                <Box sx={{ display: 'flex', height: '100vh' }}>
-                  <Layout>
-                    <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/products" element={<Products />} />
-                      <Route path="/suppliers" element={<Suppliers />} />
-                      <Route path="/customers" element={<Customers />} />
-                      <Route path="/inbound" element={<InboundShipments />} />
-                      <Route path="/outbound" element={<OutboundShipments />} />
-                      <Route path="/company-info" element={<CompanyInfoPage />} />
-                      <Route path="/users" element={<Users />} />
-                      <Route path="/inbound-details/:shipmentId" element={<InboundShipmentDetails />} />
-                      <Route path="/outbound-details/:shipmentId" element={<OutboundShipmentDetails />} />
-                      <Route path="/transaction-history" element={<TransactionHistory />} />
-                      <Route path="/auto-sync" element={<AutoSync />} />
-                    </Routes>
-                  </Layout>
-                </Box>
-              </Router>
-            </InventoryProvider>
-          </AutoSyncProvider>
+                <Router>
+                  <Box sx={{ display: 'flex', height: '100vh' }}>
+                    <Layout>
+                      <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/products" element={<Products />} />
+                        <Route path="/suppliers" element={<Suppliers />} />
+                        <Route path="/customers" element={<Customers />} />
+                        <Route path="/inbound" element={<InboundShipments />} />
+                        <Route path="/outbound" element={<OutboundShipments />} />
+                        <Route path="/company-info" element={<CompanyInfoPage />} />
+                        <Route path="/users" element={<Users />} />
+                        <Route path="/inbound-details/:shipmentId" element={<InboundShipmentDetails />} />
+                        <Route path="/outbound-details/:shipmentId" element={<OutboundShipmentDetails />} />
+                        <Route path="/transaction-history" element={<TransactionHistory />} />
+                        <Route path="/auto-sync" element={<AutoSync />} />
+                      </Routes>
+                    </Layout>
+                  </Box>
+                </Router>
+              </InventoryProvider>
+            </SupabaseAutoSyncProvider>
           </SupabaseProvider>
-        </GoogleSheetsProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

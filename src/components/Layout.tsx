@@ -28,6 +28,8 @@ import {
   History as HistoryIcon,
 } from '@mui/icons-material';
 import { AutoSyncStatusIcon } from './AutoSyncStatus';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const drawerWidth = 240;
 
@@ -35,23 +37,24 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-  { text: 'Sản phẩm', icon: <InventoryIcon />, path: '/products' },
-  { text: 'Nhà cung cấp', icon: <BusinessIcon />, path: '/suppliers' },
-  { text: 'Khách hàng', icon: <PeopleIcon />, path: '/customers' },
-  { text: 'Thông tin công ty', icon: <BusinessIcon />, path: '/company-info' },
-  { text: 'Người dùng', icon: <PersonIcon />, path: '/users' },
-  { text: 'Nhập kho', icon: <InputIcon />, path: '/inbound' },
-  { text: 'Xuất kho', icon: <OutputIcon />, path: '/outbound' },
-  { text: 'Lịch sử giao dịch', icon: <HistoryIcon />, path: '/transaction-history' },
-  { text: 'Auto Sync', icon: <SyncIcon />, path: '/auto-sync' },
-];
-
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
+
+  const menuItems = [
+    { text: t('dashboard'), icon: <DashboardIcon />, path: '/' },
+    { text: t('products'), icon: <InventoryIcon />, path: '/products' },
+    { text: t('suppliers_management'), icon: <BusinessIcon />, path: '/suppliers' },
+    { text: t('customers_management'), icon: <PeopleIcon />, path: '/customers' },
+    { text: t('company_info'), icon: <BusinessIcon />, path: '/company-info' },
+    { text: t('users'), icon: <PersonIcon />, path: '/users' },
+    { text: t('inbound_shipments'), icon: <InputIcon />, path: '/inbound' },
+    { text: t('outbound_shipments'), icon: <OutputIcon />, path: '/outbound' },
+    { text: t('transaction_history'), icon: <HistoryIcon />, path: '/transaction-history' },
+    { text: t('auto_sync'), icon: <SyncIcon />, path: '/auto-sync' },
+  ];
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -108,6 +111,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Hệ thống quản lý kho
           </Typography>
+          <LanguageSwitcher />
           <AutoSyncStatusIcon />
         </Toolbar>
       </AppBar>

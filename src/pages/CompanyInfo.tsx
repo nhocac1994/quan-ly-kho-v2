@@ -33,7 +33,7 @@ import {
   Search as SearchIcon,
   Business as BusinessIcon,
 } from '@mui/icons-material';
-import { useInventory } from '../context/InventoryContext';
+import { useCompanyInfo } from '../hooks/useSupabaseQueries';
 import { CompanyInfo } from '../types';
 
 
@@ -51,8 +51,7 @@ interface CompanyInfoFormData {
 }
 
 const CompanyInfoPage: React.FC = () => {
-  const { state, dispatch } = useInventory();
-  const { companyInfo } = state;
+  const { data: companyInfo = [], refetch: refreshCompanyInfo } = useCompanyInfo();
   
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -131,13 +130,12 @@ const CompanyInfoPage: React.FC = () => {
       if (editingCompany) {
         // Update
         await dataService.companyInfo.update(companyData.id!, companyData);
-        dispatch({ type: 'UPDATE_COMPANY_INFO', payload: companyData as CompanyInfo });
       } else {
         // Create
         const { id, ...createData } = companyData;
-        const newCompany = await dataService.companyInfo.create(createData);
-        dispatch({ type: 'ADD_COMPANY_INFO', payload: newCompany });
+        await dataService.companyInfo.create(createData);
       }
+      await refreshCompanyInfo();
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving company info:', error);
@@ -149,7 +147,7 @@ const CompanyInfoPage: React.FC = () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa thông tin công ty này?')) {
       try {
         await dataService.companyInfo.delete(companyId);
-        dispatch({ type: 'DELETE_COMPANY_INFO', payload: companyId });
+        await refreshCompanyInfo();
       } catch (error) {
         console.error('Error deleting company info:', error);
         alert('Có lỗi khi xóa thông tin công ty');
@@ -162,72 +160,81 @@ const CompanyInfoPage: React.FC = () => {
     [companyInfo]
   );
 
-  return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Header Section */}
-      <Box sx={{ p: 3, pb: 2 }}>
-        <Typography variant="h4" gutterBottom>
-          Quản Lý Thông Tin Công Ty
-        </Typography>
-
-        {/* Thống kê */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-          <Card sx={{ minWidth: 200 }}>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Tổng Công Ty
-              </Typography>
-              <Typography variant="h4">
-                {companyInfo.length}
-              </Typography>
-            </CardContent>
-          </Card>
-          <Card sx={{ minWidth: 200 }}>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Công Ty Hoạt Động
-              </Typography>
-              <Typography variant="h4" color="success.main">
-                {activeCompanies.length}
-              </Typography>
-            </CardContent>
-          </Card>
-          <Card sx={{ minWidth: 200 }}>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Công Ty Hiển Thị
-              </Typography>
-              <Typography variant="h4" color="primary.main">
-                {companyInfo.filter((c: CompanyInfo) => c.hien_thi === 'Có').length}
-              </Typography>
-            </CardContent>
-          </Card>
+    return (
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <BusinessIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, fontSize: '1.5rem', color: 'primary.main' }}>
+            Quản Lý Thông Tin Công Ty
+          </Typography>
         </Box>
-
-        {/* Thanh tìm kiếm và thêm mới */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <TextField
-            placeholder="Tìm kiếm công ty..."
+            placeholder="Tìm kiếm..."
+            variant="outlined"
+            size="small"
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            sx={{ 
+              minWidth: 200,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                },
+              }
+            }}
             InputProps={{
               startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
             }}
-            sx={{ flexGrow: 1 }}
           />
+          
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              boxShadow: 2,
+              '&:hover': {
+                boxShadow: 4,
+                transform: 'translateY(-1px)',
+              }
+            }}
           >
             Thêm Công Ty
           </Button>
         </Box>
       </Box>
 
-      {/* Bảng công ty */}
-      <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', mx: 3, mb: 3 }}>
-        <TableContainer sx={{ flex: 1, maxHeight: 'none' }}>
+      {/* Statistics */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
+          <Typography variant="body2">
+            Tổng: {companyInfo.length}
+          </Typography>
+          <Typography variant="body2">
+            Hoạt động: {activeCompanies.length}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'warning.main' }}>
+            Hiển thị: {companyInfo.filter((c: CompanyInfo) => c.hien_thi === 'Có').length}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* CompanyInfo Table */}
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <TableContainer sx={{ maxHeight: 600 }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
@@ -293,6 +300,7 @@ const CompanyInfoPage: React.FC = () => {
             setPage(0);
           }}
           labelRowsPerPage="Số hàng mỗi trang:"
+          sx={{ borderTop: 1, borderColor: 'divider' }}
         />
       </Paper>
 

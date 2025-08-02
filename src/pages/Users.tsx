@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { dataService } from '../services/dataService';
 import {
   Box,
@@ -15,8 +15,6 @@ import {
   Button,
   IconButton,
   Chip,
-  Card,
-  CardContent,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -35,9 +33,8 @@ import {
   Search as SearchIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
-import { useInventory } from '../context/InventoryContext';
+import { useUsers } from '../hooks/useSupabaseQueries';
 import { User } from '../types';
-
 
 interface UserFormData {
   ho_va_ten: string;
@@ -56,8 +53,7 @@ interface UserFormData {
 }
 
 const Users: React.FC = () => {
-  const { state, dispatch } = useInventory();
-  const { users } = state;
+  const { data: users = [], refetch: refreshUsers } = useUsers();
   
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -156,12 +152,11 @@ const Users: React.FC = () => {
 
       if (editingUser) {
         await dataService.users.update(userData.id!, userData);
-        dispatch({ type: 'UPDATE_USER', payload: userData as User });
       } else {
         const { id, ...createData } = userData;
-        const newUser = await dataService.users.create(createData);
-        dispatch({ type: 'ADD_USER', payload: newUser });
+        await dataService.users.create(createData);
       }
+      await refreshUsers();
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving user:', error);
@@ -173,7 +168,7 @@ const Users: React.FC = () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
       try {
         await dataService.users.delete(userId);
-        dispatch({ type: 'DELETE_USER', payload: userId });
+        await refreshUsers();
       } catch (error) {
         console.error('Error deleting user:', error);
         alert('Có lỗi khi xóa người dùng');
@@ -192,71 +187,80 @@ const Users: React.FC = () => {
   );
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Header Section */}
-      <Box sx={{ p: 3, pb: 2 }}>
-        <Typography variant="h4" gutterBottom>
-          Quản Lý Người Dùng
-        </Typography>
-
-        {/* Thống kê */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-          <Card sx={{ minWidth: 200, flex: 1 }}>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Tổng Người Dùng
-              </Typography>
-              <Typography variant="h4">
-                {users.length}
-              </Typography>
-            </CardContent>
-          </Card>
-          <Card sx={{ minWidth: 200, flex: 1 }}>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Người Dùng Hoạt Động
-              </Typography>
-              <Typography variant="h4" color="success.main">
-                {activeUsers.length}
-              </Typography>
-            </CardContent>
-          </Card>
-          <Card sx={{ minWidth: 200, flex: 1 }}>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Quản Trị Viên
-              </Typography>
-              <Typography variant="h4" color="primary.main">
-                {adminUsers.length}
-              </Typography>
-            </CardContent>
-          </Card>
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <PersonIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, fontSize: '1.5rem', color: 'primary.main' }}>
+            Quản Lý Người Dùng
+          </Typography>
         </Box>
-
-        {/* Thanh tìm kiếm và thêm mới */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <TextField
-            placeholder="Tìm kiếm người dùng..."
+            placeholder="Tìm kiếm..."
+            variant="outlined"
+            size="small"
             value={searchTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{ 
+              minWidth: 200,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                },
+              }
+            }}
             InputProps={{
               startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
             }}
-            sx={{ flexGrow: 1 }}
           />
+          
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              boxShadow: 2,
+              '&:hover': {
+                boxShadow: 4,
+                transform: 'translateY(-1px)',
+              }
+            }}
           >
             Thêm Người Dùng
           </Button>
         </Box>
       </Box>
 
-      {/* Bảng người dùng */}
-      <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', mx: 3, mb: 3 }}>
-        <TableContainer sx={{ flex: 1, maxHeight: 'none' }}>
+      {/* Statistics */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
+          <Typography variant="body2">
+            Tổng: {users.length}
+          </Typography>
+          <Typography variant="body2">
+            Hoạt động: {activeUsers.length}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'warning.main' }}>
+            Admin: {adminUsers.length}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Users Table */}
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <TableContainer sx={{ maxHeight: 600 }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
@@ -278,14 +282,7 @@ const Users: React.FC = () => {
                 .map((user) => (
                   <TableRow key={user.id} hover>
                     <TableCell>{user.id}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <PersonIcon color="primary" />
-                        <Typography variant="body2" fontWeight="medium">
-                          {user.ho_va_ten}
-                        </Typography>
-                      </Box>
-                    </TableCell>
+                    <TableCell>{user.ho_va_ten}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.chuc_vu}</TableCell>
                     <TableCell>
@@ -297,29 +294,29 @@ const Users: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={user.quyen_xem}
-                        color={user.quyen_xem === 'Có' ? 'success' : 'default'}
+                        label={user.quyen_xem ? 'Có' : 'Không'}
+                        color={user.quyen_xem ? 'success' : 'default'}
                         size="small"
                       />
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={user.quyen_them}
-                        color={user.quyen_them === 'Có' ? 'success' : 'default'}
+                        label={user.quyen_them ? 'Có' : 'Không'}
+                        color={user.quyen_them ? 'success' : 'default'}
                         size="small"
                       />
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={user.quyen_sua}
-                        color={user.quyen_sua === 'Có' ? 'success' : 'default'}
+                        label={user.quyen_sua ? 'Có' : 'Không'}
+                        color={user.quyen_sua ? 'success' : 'default'}
                         size="small"
                       />
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={user.quyen_xoa}
-                        color={user.quyen_xoa === 'Có' ? 'success' : 'default'}
+                        label={user.quyen_xoa ? 'Có' : 'Không'}
+                        color={user.quyen_xoa ? 'success' : 'default'}
                         size="small"
                       />
                     </TableCell>
@@ -355,6 +352,7 @@ const Users: React.FC = () => {
             setPage(0);
           }}
           labelRowsPerPage="Số hàng mỗi trang:"
+          sx={{ borderTop: 1, borderColor: 'divider' }}
         />
       </Paper>
 
@@ -364,20 +362,20 @@ const Users: React.FC = () => {
           {editingUser ? 'Sửa Người Dùng' : 'Thêm Người Dùng Mới'}
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
                 fullWidth
                 label="Họ Và Tên"
                 value={formData.ho_va_ten}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, ho_va_ten: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, ho_va_ten: e.target.value })}
               />
               <TextField
                 fullWidth
                 label="Email"
                 type="email"
                 value={formData.email}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </Box>
             <Box sx={{ display: 'flex', gap: 2 }}>
@@ -385,7 +383,7 @@ const Users: React.FC = () => {
                 fullWidth
                 label="Chức Vụ"
                 value={formData.chuc_vu}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, chuc_vu: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, chuc_vu: e.target.value })}
               />
               <FormControl fullWidth>
                 <InputLabel>Phân Quyền</InputLabel>
@@ -394,27 +392,24 @@ const Users: React.FC = () => {
                   label="Phân Quyền"
                   onChange={(e) => setFormData({ ...formData, phan_quyen: e.target.value })}
                 >
+                  <MenuItem value="User">User</MenuItem>
                   <MenuItem value="Admin">Admin</MenuItem>
                   <MenuItem value="Manager">Manager</MenuItem>
-                  <MenuItem value="User">User</MenuItem>
-                  <MenuItem value="Guest">Guest</MenuItem>
                 </Select>
               </FormControl>
             </Box>
-            <TextField
-              fullWidth
-              label="Mật Khẩu"
-              type="password"
-              value={formData.password}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, password: e.target.value })}
-              helperText={editingUser ? "Để trống nếu không muốn thay đổi mật khẩu" : ""}
-            />
+            {!editingUser && (
+              <TextField
+                fullWidth
+                label="Mật Khẩu"
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
+            )}
             
-            {/* Phần quyền */}
-            <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-              Phân Quyền Chi Tiết
-            </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+            <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Quyền Hạn</Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -493,7 +488,7 @@ const Users: React.FC = () => {
         <DialogActions>
           <Button onClick={handleCloseDialog}>Hủy</Button>
           <Button onClick={handleSubmit} variant="contained">
-            {editingUser ? 'Cập Nhật' : 'Thêm'}
+            {editingUser ? 'Cập Nhật' : 'Tạo Người Dùng'}
           </Button>
         </DialogActions>
       </Dialog>

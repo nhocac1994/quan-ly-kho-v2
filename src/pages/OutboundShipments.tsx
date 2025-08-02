@@ -36,7 +36,7 @@ import {
   Download as DownloadIcon,
   Upload as UploadIcon,
 } from '@mui/icons-material';
-import { useInventory } from '../context/InventoryContext';
+import { useOutboundShipments, useCustomers } from '../hooks/useSupabaseQueries';
 import { OutboundShipment } from '../types';
 import ImportExcelOutboundDialog from '../components/ImportExcelOutboundDialog';
 import { useNavigate } from 'react-router-dom';
@@ -64,8 +64,8 @@ interface OutboundShipmentFormData {
 }
 
 const OutboundShipments: React.FC = () => {
-  const { state, dispatch } = useInventory();
-  const { outboundShipments, customers } = state;
+  const { data: outboundShipments = [], refetch: refreshOutboundShipments } = useOutboundShipments();
+  const { data: customers = [] } = useCustomers();
   const navigate = useNavigate();
   
   const [page, setPage] = useState(0);
@@ -169,12 +169,11 @@ const OutboundShipments: React.FC = () => {
 
       if (editingShipment) {
         await dataService.outboundShipments.update(shipmentData.id!, shipmentData);
-        dispatch({ type: 'UPDATE_OUTBOUND_SHIPMENT', payload: shipmentData as OutboundShipment });
       } else {
         const { id, ...createData } = shipmentData;
-        const newShipment = await dataService.outboundShipments.create(createData);
-        dispatch({ type: 'ADD_OUTBOUND_SHIPMENT', payload: newShipment });
+        await dataService.outboundShipments.create(createData);
       }
+      await refreshOutboundShipments();
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving outbound shipment:', error);
@@ -186,7 +185,7 @@ const OutboundShipments: React.FC = () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa phiếu xuất kho này?')) {
       try {
         await dataService.outboundShipments.delete(shipmentId);
-        dispatch({ type: 'DELETE_OUTBOUND_SHIPMENT', payload: shipmentId });
+        await refreshOutboundShipments();
       } catch (error) {
         console.error('Error deleting outbound shipment:', error);
         alert('Có lỗi khi xóa phiếu xuất kho');
@@ -236,98 +235,118 @@ const OutboundShipments: React.FC = () => {
     shipment.ngay_xuat === new Date().toISOString().split('T')[0]
   ).length;
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
+  };
+
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Header Section */}
-      <Box sx={{ p: 3, pb: 2 }}>
-        <Typography variant="h4" gutterBottom>
-          Quản Lý Xuất Kho
-        </Typography>
-
-
-      {/* Thống kê */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <Card sx={{ minWidth: 200 }}>
-          <CardContent>
-            <Typography color="textSecondary" gutterBottom>
-              Tổng Phiếu Xuất
-            </Typography>
-            <Typography variant="h4">
-              {totalShipments}
-            </Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ minWidth: 200 }}>
-          <CardContent>
-            <Typography color="textSecondary" gutterBottom>
-              Tổng Sản Phẩm Xuất
-            </Typography>
-            <Typography variant="h4" color="primary.main">
-              {outboundShipments.length}
-            </Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ minWidth: 200 }}>
-          <CardContent>
-            <Typography color="textSecondary" gutterBottom>
-              Tổng Số Lượng
-            </Typography>
-            <Typography variant="h4" color="success.main">
-              {totalQuantity}
-            </Typography>
-          </CardContent>
-        </Card>
-        <Card sx={{ minWidth: 200 }}>
-          <CardContent>
-            <Typography color="textSecondary" gutterBottom>
-              Xuất Hôm Nay
-            </Typography>
-            <Typography variant="h4" color="warning.main">
-              {todayShipments}
-            </Typography>
-          </CardContent>
-        </Card>
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <DownloadIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, fontSize: '1.5rem', color: 'primary.main' }}>
+            Quản Lý Xuất Kho
+          </Typography>
+        </Box>
+        
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <TextField
+            placeholder="Tìm kiếm..."
+            variant="outlined"
+            size="small"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{ 
+              minWidth: 200,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                '&:hover fieldset': {
+                  borderColor: 'primary.main',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                },
+              }
+            }}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+            }}
+          />
+          
+          <Button
+            variant="outlined"
+            startIcon={<UploadIcon />}
+            onClick={() => setOpenImportDialog(true)}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              borderColor: 'primary.main',
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'primary.light',
+                color: 'white',
+                borderColor: 'primary.light',
+              }
+            }}
+          >
+            Import Excel
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              px: 2,
+              py: 1,
+              boxShadow: 2,
+              '&:hover': {
+                boxShadow: 4,
+                transform: 'translateY(-1px)',
+              }
+            }}
+          >
+            Thêm Xuất Kho
+          </Button>
+        </Box>
       </Box>
 
-      {/* Thanh tìm kiếm và thêm mới */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <TextField
-          placeholder="Tìm kiếm phiếu xuất..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-          }}
-          sx={{ flexGrow: 1 }}
-        />
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-        >
-          Tạo Phiếu Xuất
-        </Button>
-        <Button
-          variant="outlined"
-          startIcon={<UploadIcon />}
-          onClick={() => setOpenImportDialog(true)}
-        >
-          Nhập Excel
-        </Button>
+      {/* Statistics */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
+          <Typography variant="body2">
+            Tổng phiếu: {totalShipments}
+          </Typography>
+          <Typography variant="body2">
+            Sản phẩm: {outboundShipments.length}
+          </Typography>
+          <Typography variant="body2">
+            Số lượng: {totalQuantity.toLocaleString()}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'warning.main' }}>
+            Hôm nay: {todayShipments}
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Bảng phiếu xuất */}
-      <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', mx: 3, mb: 3 }}>
-        <TableContainer sx={{ flex: 1, maxHeight: 'calc(100vh - 400px)', overflow: 'auto' }}>
+      {/* OutboundShipments Table */}
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <TableContainer sx={{ maxHeight: 600 }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>Mã Phiếu</TableCell>
+                <TableCell>Mã XK</TableCell>
                 <TableCell>Ngày Xuất</TableCell>
-                <TableCell>Tên Sản Phẩm</TableCell>
+                <TableCell>Sản Phẩm</TableCell>
+                <TableCell>Số Lượng</TableCell>
                 <TableCell>Khách Hàng</TableCell>
-                <TableCell align="right">Số Lượng</TableCell>
-                <TableCell>Đơn Vị</TableCell>
                 <TableCell>Nội Dung</TableCell>
                 <TableCell align="center">Thao Tác</TableCell>
               </TableRow>
@@ -338,31 +357,21 @@ const OutboundShipments: React.FC = () => {
                 .map((shipment) => (
                   <TableRow key={shipment.id} hover>
                     <TableCell>{shipment.xuat_kho_id}</TableCell>
-                    <TableCell>{new Date(shipment.ngay_xuat).toLocaleDateString('vi-VN')}</TableCell>
+                    <TableCell>{formatDate(shipment.ngay_xuat)}</TableCell>
                     <TableCell>{shipment.ten_san_pham}</TableCell>
+                    <TableCell>{shipment.sl_xuat?.toLocaleString()}</TableCell>
                     <TableCell>{shipment.ten_khach_hang}</TableCell>
-                    <TableCell align="right">
-                      <Chip
-                        label={shipment.sl_xuat}
-                        color="info"
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>{shipment.dvt}</TableCell>
                     <TableCell>{shipment.noi_dung_xuat}</TableCell>
                     <TableCell align="center">
                       <IconButton
                         size="small"
-                        color="primary"
                         onClick={() => handleViewDetails(shipment.id)}
-                        title="Xem chi tiết"
                       >
                         <ViewIcon />
                       </IconButton>
                       <IconButton
                         size="small"
                         onClick={() => handleOpenDialog(shipment)}
-                        title="Sửa phiếu"
                       >
                         <EditIcon />
                       </IconButton>
@@ -370,7 +379,6 @@ const OutboundShipments: React.FC = () => {
                         size="small"
                         color="error"
                         onClick={() => handleDelete(shipment.id)}
-                        title="Xóa phiếu"
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -381,7 +389,7 @@ const OutboundShipments: React.FC = () => {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[10, 25, 50, 100]}
+          rowsPerPageOptions={[10, 25, 50]}
           component="div"
           count={filteredShipments.length}
           rowsPerPage={rowsPerPage}
@@ -392,7 +400,6 @@ const OutboundShipments: React.FC = () => {
             setPage(0);
           }}
           labelRowsPerPage="Số hàng mỗi trang:"
-          sx={{ borderTop: 1, borderColor: 'divider' }}
         />
       </Paper>
 
@@ -556,7 +563,6 @@ const OutboundShipments: React.FC = () => {
         onImport={handleImportExcel}
         customers={customers}
       />
-      </Box>
     </Box>
   );
 };
