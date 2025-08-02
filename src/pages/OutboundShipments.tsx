@@ -342,6 +342,7 @@ const OutboundShipments: React.FC = () => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
+                <TableCell>STT</TableCell>
                 <TableCell>Mã XK</TableCell>
                 <TableCell>Ngày Xuất</TableCell>
                 <TableCell>Sản Phẩm</TableCell>
@@ -354,8 +355,13 @@ const OutboundShipments: React.FC = () => {
             <TableBody>
               {filteredShipments
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((shipment) => (
+                .map((shipment, index) => (
                   <TableRow key={shipment.id} hover>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {page * rowsPerPage + index + 1}
+                      </Typography>
+                    </TableCell>
                     <TableCell>{shipment.xuat_kho_id}</TableCell>
                     <TableCell>{formatDate(shipment.ngay_xuat)}</TableCell>
                     <TableCell>{shipment.ten_san_pham}</TableCell>

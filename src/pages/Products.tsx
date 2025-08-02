@@ -601,6 +601,7 @@ const Products: React.FC = () => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
+                <TableCell>STT</TableCell>
                 <TableCell>Mã SP</TableCell>
                 <TableCell>Tên Sản Phẩm</TableCell>
                 <TableCell>Mã Kho</TableCell>
@@ -613,8 +614,13 @@ const Products: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginatedProducts.map((product) => (
+              {paginatedProducts.map((product, index) => (
                 <TableRow key={product.id} hover>
+                  <TableCell>
+                    <Typography variant="body2" color="text.secondary">
+                      {page * rowsPerPage + index + 1}
+                    </Typography>
+                  </TableCell>
                   <TableCell>
                     <Chip
                       label={product.san_pham_id}

@@ -345,6 +345,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
+                <TableCell>STT</TableCell>
                 <TableCell>Loại</TableCell>
                 <TableCell>Mã Phiếu</TableCell>
                 <TableCell>Ngày</TableCell>
@@ -359,8 +360,13 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
             <TableBody>
               {filteredTransactions
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((transaction) => (
+                .map((transaction, index) => (
                   <TableRow key={transaction.id} hover>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {page * rowsPerPage + index + 1}
+                      </Typography>
+                    </TableCell>
                     <TableCell>
                       <Chip
                         label={transaction.type === 'inbound' ? 'Nhập' : 'Xuất'}

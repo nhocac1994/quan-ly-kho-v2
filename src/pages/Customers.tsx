@@ -561,6 +561,7 @@ const Customers: React.FC = () => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
+                <TableCell>STT</TableCell>
                 <TableCell>Mã KH</TableCell>
                 <TableCell>Tên Khách Hàng</TableCell>
                 <TableCell>Tên Đầy Đủ</TableCell>
@@ -575,8 +576,13 @@ const Customers: React.FC = () => {
             <TableBody>
               {filteredCustomers
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((customer) => (
+                .map((customer, index) => (
                   <TableRow key={customer.id} hover>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {page * rowsPerPage + index + 1}
+                      </Typography>
+                    </TableCell>
                     <TableCell>{customer.id}</TableCell>
                     <TableCell>{customer.ten_khach_hang}</TableCell>
                     <TableCell>{customer.ten_day_du || 'N/A'}</TableCell>

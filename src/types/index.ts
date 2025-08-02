@@ -90,6 +90,7 @@ export interface InboundShipment {
   id: string;
   xuat_kho_id: string; // Mã phiếu nhập kho
   ngay_nhap: string;
+  loai_nhap: string;
   san_pham_id: string;
   ten_san_pham: string;
   nhom_san_pham: string;
@@ -102,6 +103,7 @@ export interface InboundShipment {
   ghi_chu: string;
   nha_cung_cap_id: string;
   ten_nha_cung_cap: string;
+  tai_xe: string;
   dia_chi: string;
   so_dt: string;
   noi_dung_nhap: string;

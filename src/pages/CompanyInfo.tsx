@@ -238,6 +238,7 @@ const CompanyInfoPage: React.FC = () => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
+                <TableCell>STT</TableCell>
                 <TableCell>Mã CT</TableCell>
                 <TableCell>Tên Công Ty</TableCell>
                 <TableCell>Tên Đầy Đủ</TableCell>
@@ -252,8 +253,13 @@ const CompanyInfoPage: React.FC = () => {
             <TableBody>
               {filteredCompanies
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((company) => (
+                .map((company, index) => (
                   <TableRow key={company.id} hover>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {page * rowsPerPage + index + 1}
+                      </Typography>
+                    </TableCell>
                     <TableCell>{company.id}</TableCell>
                     <TableCell>{company.ten_cong_ty}</TableCell>
                     <TableCell>{company.ten_day_du}</TableCell>

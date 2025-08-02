@@ -542,6 +542,7 @@ const Suppliers: React.FC = () => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
+                <TableCell>STT</TableCell>
                 <TableCell>Mã NCC</TableCell>
                 <TableCell>Tên NCC</TableCell>
                 <TableCell>Tên Đầy Đủ</TableCell>
@@ -556,8 +557,13 @@ const Suppliers: React.FC = () => {
             <TableBody>
               {filteredSuppliers
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((supplier) => (
+                .map((supplier, index) => (
                   <TableRow key={supplier.id} hover>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {page * rowsPerPage + index + 1}
+                      </Typography>
+                    </TableCell>
                     <TableCell>{supplier.id}</TableCell>
                     <TableCell>{supplier.ten_ncc}</TableCell>
                     <TableCell>{supplier.ten_day_du || 'N/A'}</TableCell>

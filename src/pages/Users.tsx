@@ -264,6 +264,7 @@ const Users: React.FC = () => {
           <Table stickyHeader>
             <TableHead>
               <TableRow>
+                <TableCell>STT</TableCell>
                 <TableCell>Mã ND</TableCell>
                 <TableCell>Họ Và Tên</TableCell>
                 <TableCell>Email</TableCell>
@@ -279,8 +280,13 @@ const Users: React.FC = () => {
             <TableBody>
               {filteredUsers
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((user) => (
+                .map((user, index) => (
                   <TableRow key={user.id} hover>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {page * rowsPerPage + index + 1}
+                      </Typography>
+                    </TableCell>
                     <TableCell>{user.id}</TableCell>
                     <TableCell>{user.ho_va_ten}</TableCell>
                     <TableCell>{user.email}</TableCell>
