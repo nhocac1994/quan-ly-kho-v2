@@ -1,4 +1,5 @@
 import { supabaseAPIs } from './supabaseService';
+import { supabase } from './supabaseService';
 import {
   Product,
   Supplier,
@@ -108,6 +109,45 @@ export const dataService = {
 
     delete: async (id: string): Promise<void> => {
       try {
+        // First, delete all shipment headers that reference this supplier
+        const { data: shipmentHeaders, error: headersError } = await supabase
+          .from('shipment_headers')
+          .select('id')
+          .or(`supplier_id.eq.${id},supplier_name.eq.${id}`);
+        
+        if (headersError) {
+          console.error('Failed to get shipment headers for supplier:', headersError);
+          throw headersError;
+        }
+        
+        // Delete shipment items for each header
+        if (shipmentHeaders && shipmentHeaders.length > 0) {
+          const headerIds = shipmentHeaders.map(header => header.id);
+          
+          // Delete shipment items first
+          const { error: itemsError } = await supabase
+            .from('shipment_items')
+            .delete()
+            .in('shipment_header_id', headerIds);
+          
+          if (itemsError) {
+            console.error('Failed to delete shipment items:', itemsError);
+            throw itemsError;
+          }
+          
+          // Then delete shipment headers
+          const { error: deleteHeadersError } = await supabase
+            .from('shipment_headers')
+            .delete()
+            .in('id', headerIds);
+          
+          if (deleteHeadersError) {
+            console.error('Failed to delete shipment headers:', deleteHeadersError);
+            throw deleteHeadersError;
+          }
+        }
+        
+        // Finally delete the supplier
         await supabaseAPIs.suppliers.delete(id);
       } catch (error) {
         console.error('Failed to delete supplier in Supabase:', error);
@@ -160,6 +200,45 @@ export const dataService = {
 
     delete: async (id: string): Promise<void> => {
       try {
+        // First, delete all shipment headers that reference this customer
+        const { data: shipmentHeaders, error: headersError } = await supabase
+          .from('shipment_headers')
+          .select('id')
+          .or(`customer_id.eq.${id},customer_name.eq.${id}`);
+        
+        if (headersError) {
+          console.error('Failed to get shipment headers for customer:', headersError);
+          throw headersError;
+        }
+        
+        // Delete shipment items for each header
+        if (shipmentHeaders && shipmentHeaders.length > 0) {
+          const headerIds = shipmentHeaders.map(header => header.id);
+          
+          // Delete shipment items first
+          const { error: itemsError } = await supabase
+            .from('shipment_items')
+            .delete()
+            .in('shipment_header_id', headerIds);
+          
+          if (itemsError) {
+            console.error('Failed to delete shipment items:', itemsError);
+            throw itemsError;
+          }
+          
+          // Then delete shipment headers
+          const { error: deleteHeadersError } = await supabase
+            .from('shipment_headers')
+            .delete()
+            .in('id', headerIds);
+          
+          if (deleteHeadersError) {
+            console.error('Failed to delete shipment headers:', deleteHeadersError);
+            throw deleteHeadersError;
+          }
+        }
+        
+        // Finally delete the customer
         await supabaseAPIs.customers.delete(id);
       } catch (error) {
         console.error('Failed to delete customer in Supabase:', error);

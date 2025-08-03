@@ -29,6 +29,7 @@ import AutoSync from './pages/AutoSync';
 import ProductDetail from './pages/ProductDetail';
 import SupplierDetail from './pages/SupplierDetail';
 import CustomerDetail from './pages/CustomerDetail';
+import InventoryReport from './pages/InventoryReport';
 
 // Create a theme instance
 const theme = createTheme({
@@ -82,6 +83,7 @@ function App() {
                         <Route path="/inbound-details/:shipmentId" element={<InboundShipmentDetails />} />
                         <Route path="/outbound-details/:shipmentId" element={<OutboundShipmentDetails />} />
                         <Route path="/transaction-history" element={<TransactionHistory />} />
+                        <Route path="/inventory-report" element={<InventoryReport />} />
                         <Route path="/auto-sync" element={<AutoSync />} />
                       </Routes>
                     </Layout>

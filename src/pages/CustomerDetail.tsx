@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { dataService } from '../services/dataService';
+import { useCustomers, useShipmentHeaders } from '../hooks/useSupabaseQueries';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../services/supabaseService';
 import {
   Box,
   Typography,
@@ -50,48 +52,145 @@ const CustomerDetail: React.FC = () => {
   const { customerId } = useParams<{ customerId: string }>();
   const navigate = useNavigate();
   
-  const [customer, setCustomer] = useState<Customer | null>(null);
-  const [outboundShipments, setOutboundShipments] = useState<OutboundShipment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (customerId) {
-      loadCustomerData();
-    }
-  }, [customerId]);
-
-  const loadCustomerData = async () => {
-    setLoading(true);
-    try {
-      const customers = await dataService.customers.getAll();
-      const foundCustomer = customers.find(c => c.ten_khach_hang === customerId);
+  // Fetch data using Supabase hooks
+  const { data: customers, isLoading: customersLoading, error: customersError } = useCustomers();
+  const { data: shipmentHeaders, isLoading: headersLoading } = useShipmentHeaders('outbound');
+  
+  // Get all shipment items for outbound shipments
+  const { data: allShipmentItems, isLoading: itemsLoading } = useQuery({
+    queryKey: ['allOutboundShipmentItems'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('shipment_items')
+        .select('*');
       
-      if (!foundCustomer) {
-        setError('Không tìm thấy khách hàng');
-        setLoading(false);
-        return;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!shipmentHeaders,
+  });
+
+  // Find customer by ID
+  const customer = useMemo(() => {
+    if (!customers || !customerId) return null;
+    console.log('Looking for customer with ID:', customerId);
+    console.log('All customers:', customers.map((c: any) => ({ id: c.id, ten_khach_hang: c.ten_khach_hang })));
+    const found = customers.find((c: any) => c.ten_khach_hang === customerId);
+    console.log('Found customer:', found);
+    return found;
+  }, [customers, customerId]);
+
+  // Filter outbound shipments for this customer (for history tab)
+  const outboundShipments = useMemo(() => {
+    if (!shipmentHeaders || !allShipmentItems || !customerId) return [];
+    
+    console.log('Customer ID:', customerId);
+    console.log('Customer object:', customer);
+    console.log('All shipment headers:', shipmentHeaders);
+    console.log('All shipment items:', allShipmentItems);
+    
+    const filtered = shipmentHeaders.filter(
+      (header: any) => {
+        const matches = header.customer_name === customerId || 
+                       header.customer_id === customer?.id ||
+                       header.customer_name === customer?.ten_khach_hang;
+        console.log(`Header ${header.id}: customer_name=${header.customer_name}, customer_id=${header.customer_id}, matches=${matches}`);
+        return matches;
+      }
+    );
+    
+    console.log('Filtered headers:', filtered);
+    
+    // Convert to OutboundShipment format for history display
+    return filtered.map((header: any) => {
+      const items = allShipmentItems.filter((item: any) => item.shipment_header_id === header.id);
+      console.log(`Items for shipment ${header.id}:`, items);
+      const firstItem = items[0];
+      
+      return {
+        id: header.id,
+        xuat_kho_id: header.shipment_id,
+        ngay_xuat: header.shipment_date,
+        ten_san_pham: firstItem?.product_name || 'N/A',
+        san_pham_id: firstItem?.product_id || 'N/A',
+        sl_xuat: header.total_quantity || 0, // Use header total for history
+        ghi_chu: header.content || '',
+        so_hd: header.invoice_number || '',
+        nguoi_tao: header.created_by || 'N/A',
+        ten_khach_hang: header.customer_name
+      };
+    });
+  }, [shipmentHeaders, allShipmentItems, customerId, customer]);
+
+  // Product statistics data (for statistics tab)
+  const productStatistics = useMemo(() => {
+    if (!shipmentHeaders || !allShipmentItems || !customerId) return [];
+    
+    const filtered = shipmentHeaders.filter(
+      (header: any) => {
+        const matches = header.customer_name === customerId || 
+                       header.customer_id === customer?.id ||
+                       header.customer_name === customer?.ten_khach_hang;
+        return matches;
+      }
+    );
+    
+    // Get all items for this customer
+    const allItems: any[] = [];
+    filtered.forEach((header: any) => {
+      const items = allShipmentItems.filter((item: any) => item.shipment_header_id === header.id);
+      items.forEach((item: any) => {
+        allItems.push({
+          product_id: item.product_id,
+          product_code: item.product_code, // Add product_code if available
+          product_name: item.product_name,
+          quantity: item.quantity || 0,
+          shipment_date: header.shipment_date,
+          shipment_id: header.id
+        });
+      });
+    });
+    
+    // Group by product and calculate statistics
+    const productMap = new Map();
+    allItems.forEach((item: any) => {
+      if (!productMap.has(item.product_id)) {
+        productMap.set(item.product_id, {
+          product_id: item.product_id,
+          product_code: item.product_code,
+          product_name: item.product_name,
+          total_quantity: 0,
+          shipment_count: new Set(),
+          last_shipment_date: item.shipment_date
+        });
       }
       
-      setCustomer(foundCustomer);
+      const product = productMap.get(item.product_id);
+      product.total_quantity += item.quantity;
+      product.shipment_count.add(item.shipment_id);
+      
+      if (new Date(item.shipment_date) > new Date(product.last_shipment_date)) {
+        product.last_shipment_date = item.shipment_date;
+      }
+    });
+    
+    return Array.from(productMap.values()).map((product: any) => ({
+      product_id: product.product_id,
+      product_code: product.product_code,
+      product_name: product.product_name,
+      total_quantity: product.total_quantity,
+      shipment_count: product.shipment_count.size,
+      last_shipment_date: product.last_shipment_date
+    }));
+  }, [shipmentHeaders, allShipmentItems, customerId, customer]);
 
-      const outboundData = await dataService.outboundShipments.getAll();
-      const customerOutbound = outboundData.filter(
-        shipment => shipment.ten_khach_hang === customerId
-      );
-      setOutboundShipments(customerOutbound);
-
-    } catch (error) {
-      console.error('Error loading customer data:', error);
-      setError('Có lỗi khi tải dữ liệu khách hàng');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = customersLoading || headersLoading || itemsLoading;
+  const error = customersError?.message || null;
 
   const calculateTotalOutbound = () => {
-    return outboundShipments.reduce((sum, shipment) => sum + shipment.sl_xuat, 0);
+    return outboundShipments.reduce((sum: number, shipment: any) => sum + (shipment.sl_xuat || 0), 0);
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -301,7 +400,7 @@ const CustomerDetail: React.FC = () => {
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
-          {outboundShipments.length === 0 ? (
+          {productStatistics.length === 0 ? (
             <Alert severity="info">Chưa có dữ liệu thống kê</Alert>
           ) : (
             <TableContainer>
@@ -316,37 +415,33 @@ const CustomerDetail: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {Array.from(new Set(outboundShipments.map(s => s.san_pham_id))).map(productId => {
-                    const productShipments = outboundShipments.filter(s => s.san_pham_id === productId);
-                    const totalQuantity = productShipments.reduce((sum, s) => sum + s.sl_xuat, 0);
-                    const lastShipment = productShipments.sort((a, b) => 
-                      new Date(b.ngay_xuat).getTime() - new Date(a.ngay_xuat).getTime()
-                    )[0];
-                    
-                    return (
-                      <TableRow key={productId} hover>
-                        <TableCell>
-                          <Typography variant="body2" fontWeight="medium">
-                            {lastShipment.ten_san_pham}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip label={productId} color="primary" size="small" />
-                        </TableCell>
-                        <TableCell align="right">
-                          <Chip
-                            label={totalQuantity}
-                            color="error"
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell align="right">{productShipments.length}</TableCell>
-                        <TableCell>
-                          {new Date(lastShipment.ngay_xuat).toLocaleDateString('vi-VN')}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {productStatistics.map((product: any) => (
+                    <TableRow key={product.product_id} hover>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="medium">
+                          {product.product_name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={product.product_code || product.product_id?.substring(0, 8) || 'N/A'} 
+                          color="primary" 
+                          size="small" 
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Chip
+                          label={product.total_quantity}
+                          color="error"
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell align="right">{product.shipment_count}</TableCell>
+                      <TableCell>
+                        {new Date(product.last_shipment_date).toLocaleDateString('vi-VN')}
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </TableContainer>

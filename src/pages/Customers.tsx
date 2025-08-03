@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { dataService } from '../services/dataService';
+import { dataService } from '../services/dataService-supabase-only';
 import {
   Box,
   Typography,

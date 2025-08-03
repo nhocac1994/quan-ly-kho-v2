@@ -26,6 +26,7 @@ import {
   Person as PersonIcon,
   ListAlt as ListAltIcon,
   History as HistoryIcon,
+  Assessment as AssessmentIcon,
 } from '@mui/icons-material';
 import { AutoSyncStatusIcon } from './AutoSyncStatus';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -53,6 +54,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { text: t('inbound_shipments'), icon: <InputIcon />, path: '/inbound' },
     { text: t('outbound_shipments'), icon: <OutputIcon />, path: '/outbound' },
     { text: t('transaction_history'), icon: <HistoryIcon />, path: '/transaction-history' },
+    { text: 'Báo cáo xuất nhập tồn', icon: <AssessmentIcon />, path: '/inventory-report' },
     { text: t('auto_sync'), icon: <SyncIcon />, path: '/auto-sync' },
   ];
 

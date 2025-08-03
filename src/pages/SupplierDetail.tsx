@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { dataService } from '../services/dataService';
+import { useSuppliers, useShipmentHeaders } from '../hooks/useSupabaseQueries';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../services/supabaseService';
 import {
   Box,
   Typography,
@@ -62,55 +64,133 @@ const SupplierDetail: React.FC = () => {
   const { supplierId } = useParams<{ supplierId: string }>();
   const navigate = useNavigate();
   
-  const [supplier, setSupplier] = useState<Supplier | null>(null);
-  const [inboundShipments, setInboundShipments] = useState<InboundShipment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (supplierId) {
-      loadSupplierData();
-    }
-  }, [supplierId]);
-
-  const loadSupplierData = async () => {
-    setLoading(true);
-    try {
-      // Lấy thông tin nhà cung cấp
-      const suppliers = await dataService.suppliers.getAll();
-      const foundSupplier = suppliers.find(s => s.ten_ncc === supplierId);
+  // Fetch data using Supabase hooks
+  const { data: suppliers, isLoading: suppliersLoading, error: suppliersError } = useSuppliers();
+  const { data: shipmentHeaders, isLoading: headersLoading } = useShipmentHeaders('inbound');
+  // Get all shipment items for inbound shipments
+  const { data: allShipmentItems, isLoading: itemsLoading } = useQuery({
+    queryKey: ['allShipmentItems'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('shipment_items')
+        .select('*');
       
-      if (!foundSupplier) {
-        setError('Không tìm thấy nhà cung cấp');
-        setLoading(false);
-        return;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!shipmentHeaders,
+  });
+
+  // Find supplier by ID
+  const supplier = useMemo(() => {
+    if (!suppliers || !supplierId) return null;
+    return suppliers.find((s: any) => s.ten_ncc === supplierId);
+  }, [suppliers, supplierId]);
+
+  // Filter inbound shipments for this supplier (for history tab)
+  const inboundShipments = useMemo(() => {
+    if (!shipmentHeaders || !allShipmentItems || !supplierId) return [];
+    
+    console.log('Supplier ID:', supplierId);
+    console.log('All shipment headers:', shipmentHeaders);
+    console.log('All shipment items:', allShipmentItems);
+    
+    const filtered = shipmentHeaders.filter(
+      (header: any) => header.supplier_name === supplierId
+    );
+    
+    console.log('Filtered headers:', filtered);
+    
+    // Convert to InboundShipment format for history display
+    return filtered.map((header: any) => {
+      const items = allShipmentItems.filter((item: any) => item.shipment_header_id === header.id);
+      console.log(`Items for shipment ${header.id}:`, items);
+      const firstItem = items[0];
+      
+      return {
+        id: header.id,
+        xuat_kho_id: header.shipment_id,
+        ngay_nhap: header.shipment_date,
+        ten_san_pham: firstItem?.product_name || 'N/A',
+        san_pham_id: firstItem?.product_id || 'N/A',
+        loai_nhap: header.content || 'Nhập kho',
+        sl_nhap: header.total_quantity || 0, // Use header total for history
+        ghi_chu: header.content || '',
+        nguoi_tao: header.created_by || 'N/A',
+        ten_nha_cung_cap: header.supplier_name
+      };
+    });
+  }, [shipmentHeaders, allShipmentItems, supplierId]);
+
+  // Product statistics data (for statistics tab)
+  const productStatistics = useMemo(() => {
+    if (!shipmentHeaders || !allShipmentItems || !supplierId) return [];
+    
+    const filtered = shipmentHeaders.filter(
+      (header: any) => header.supplier_name === supplierId
+    );
+    
+    // Get all items for this supplier
+    const allItems: any[] = [];
+    filtered.forEach((header: any) => {
+      const items = allShipmentItems.filter((item: any) => item.shipment_header_id === header.id);
+      items.forEach((item: any) => {
+        allItems.push({
+          product_id: item.product_id,
+          product_code: item.product_code, // Add product_code if available
+          product_name: item.product_name,
+          quantity: item.quantity || 0,
+          shipment_date: header.shipment_date,
+          shipment_id: header.id
+        });
+      });
+    });
+    
+    // Group by product and calculate statistics
+    const productMap = new Map();
+    allItems.forEach((item: any) => {
+      if (!productMap.has(item.product_id)) {
+        productMap.set(item.product_id, {
+          product_id: item.product_id,
+          product_code: item.product_code,
+          product_name: item.product_name,
+          total_quantity: 0,
+          shipment_count: new Set(),
+          last_shipment_date: item.shipment_date
+        });
       }
       
-      setSupplier(foundSupplier);
+      const product = productMap.get(item.product_id);
+      product.total_quantity += item.quantity;
+      product.shipment_count.add(item.shipment_id);
+      
+      if (new Date(item.shipment_date) > new Date(product.last_shipment_date)) {
+        product.last_shipment_date = item.shipment_date;
+      }
+    });
+    
+    return Array.from(productMap.values()).map((product: any) => ({
+      product_id: product.product_id,
+      product_code: product.product_code,
+      product_name: product.product_name,
+      total_quantity: product.total_quantity,
+      shipment_count: product.shipment_count.size,
+      last_shipment_date: product.last_shipment_date
+    }));
+  }, [shipmentHeaders, allShipmentItems, supplierId]);
 
-      // Lấy lịch sử nhập kho từ nhà cung cấp này
-      const inboundData = await dataService.inboundShipments.getAll();
-      const supplierInbound = inboundData.filter(
-        shipment => shipment.ten_nha_cung_cap === supplierId
-      );
-      setInboundShipments(supplierInbound);
-
-    } catch (error) {
-      console.error('Error loading supplier data:', error);
-      setError('Có lỗi khi tải dữ liệu nhà cung cấp');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = suppliersLoading || headersLoading || itemsLoading;
+  const error = suppliersError?.message || null;
 
   const calculateTotalInbound = () => {
-    return inboundShipments.reduce((sum, shipment) => sum + shipment.sl_nhap, 0);
+    return inboundShipments.reduce((sum: number, shipment: any) => sum + (shipment.sl_nhap || 0), 0);
   };
 
   const calculateTotalValue = () => {
     // Giả sử có trường giá trị, nếu không thì tính theo số lượng
-    return inboundShipments.reduce((sum, shipment) => sum + shipment.sl_nhap, 0);
+    return inboundShipments.reduce((sum: number, shipment: any) => sum + (shipment.sl_nhap || 0), 0);
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -320,7 +400,7 @@ const SupplierDetail: React.FC = () => {
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
-          {inboundShipments.length === 0 ? (
+          {productStatistics.length === 0 ? (
             <Alert severity="info">Chưa có dữ liệu thống kê</Alert>
           ) : (
             <TableContainer>
@@ -335,37 +415,33 @@ const SupplierDetail: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {Array.from(new Set(inboundShipments.map(s => s.san_pham_id))).map(productId => {
-                    const productShipments = inboundShipments.filter(s => s.san_pham_id === productId);
-                    const totalQuantity = productShipments.reduce((sum, s) => sum + s.sl_nhap, 0);
-                    const lastShipment = productShipments.sort((a, b) => 
-                      new Date(b.ngay_nhap).getTime() - new Date(a.ngay_nhap).getTime()
-                    )[0];
-                    
-                    return (
-                      <TableRow key={productId} hover>
-                        <TableCell>
-                          <Typography variant="body2" fontWeight="medium">
-                            {lastShipment.ten_san_pham}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip label={productId} color="primary" size="small" />
-                        </TableCell>
-                        <TableCell align="right">
-                          <Chip
-                            label={totalQuantity}
-                            color="success"
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell align="right">{productShipments.length}</TableCell>
-                        <TableCell>
-                          {new Date(lastShipment.ngay_nhap).toLocaleDateString('vi-VN')}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {productStatistics.map((product: any) => (
+                    <TableRow key={product.product_id} hover>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="medium">
+                          {product.product_name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={product.product_code || product.product_id?.substring(0, 8) || 'N/A'} 
+                          color="primary" 
+                          size="small" 
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Chip
+                          label={product.total_quantity}
+                          color="success"
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell align="right">{product.shipment_count}</TableCell>
+                      <TableCell>
+                        {new Date(product.last_shipment_date).toLocaleDateString('vi-VN')}
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </TableContainer>
