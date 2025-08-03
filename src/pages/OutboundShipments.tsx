@@ -101,6 +101,7 @@ interface ProductItem {
   ma_hang: string;
   dvt: string;
   sl_xuat: number;
+  don_gia: number;
   ghi_chu: string;
 }
 
@@ -164,6 +165,7 @@ const OutboundShipments: React.FC = () => {
     ma_hang: '',
     dvt: '',
     sl_xuat: 0,
+    don_gia: 0,
     ghi_chu: '',
   });
 
@@ -200,7 +202,7 @@ const OutboundShipments: React.FC = () => {
         const formattedItems = items.map((item: any) => ({
           id: item.id, product_id: item.product_id, san_pham_id: item.product_code,
           ten_san_pham: item.product_name, ma_hang: item.product_code, dvt: item.unit,
-          sl_xuat: item.quantity, ghi_chu: item.notes || '',
+          sl_xuat: item.quantity, don_gia: item.unit_price || 0, ghi_chu: item.notes || '',
         }));
         setProductItems(formattedItems);
       } catch (error) {
@@ -231,6 +233,7 @@ const OutboundShipments: React.FC = () => {
       ma_hang: '',
       dvt: '',
       sl_xuat: 0,
+      don_gia: 0,
       ghi_chu: '',
     });
     setOpenDialog(true);
@@ -280,6 +283,7 @@ const OutboundShipments: React.FC = () => {
       ma_hang: '',
       dvt: '',
       sl_xuat: 0,
+      don_gia: 0,
       ghi_chu: '',
     });
   };
@@ -437,8 +441,8 @@ const OutboundShipments: React.FC = () => {
           product_code: item.ma_hang,
           unit: item.dvt,
           quantity: item.sl_xuat,
-          unit_price: 0,
-          total_price: 0,
+          unit_price: item.don_gia,
+          total_price: item.sl_xuat * item.don_gia,
           notes: item.ghi_chu
         }));
 
@@ -519,6 +523,12 @@ const OutboundShipments: React.FC = () => {
     ));
   };
 
+  const handleUpdateItemPrice = (itemId: string, newPrice: number) => {
+    setProductItems(prev => prev.map(item => 
+      item.id === itemId ? { ...item, don_gia: newPrice } : item
+    ));
+  };
+
   const handleCopyShipment = () => {
     if (!viewingShipment || !shipmentItems) return;
 
@@ -546,6 +556,7 @@ const OutboundShipments: React.FC = () => {
       ma_hang: item.product_code,
       dvt: item.unit,
       sl_xuat: item.quantity,
+      don_gia: item.unit_price || 0,
       ghi_chu: item.notes || '',
     }));
 
@@ -1274,7 +1285,7 @@ const OutboundShipments: React.FC = () => {
               {/* Product Entry Row */}
               <Box sx={{ 
                 display: 'grid', 
-                gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr auto', 
+                gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr auto', 
                 gap: 1, 
                 alignItems: 'center',
                 p: 1,
@@ -1313,33 +1324,29 @@ const OutboundShipments: React.FC = () => {
                   size="small"
                   label="Mã hàng"
                   value={currentProduct.ma_hang}
-                  onChange={(e) => setCurrentProduct({ ...currentProduct, ma_hang: e.target.value })}
+                  InputProps={{ readOnly: true }}
+                  placeholder="Tự động điền"
                 />
-                <FormControl size="small" fullWidth>
-                  <InputLabel>ĐVT</InputLabel>
-                  <Select
-                    value={currentProduct.dvt}
-                    label="ĐVT"
-                    onChange={(e) => setCurrentProduct({ ...currentProduct, dvt: e.target.value })}
-                  >
-                    <MenuItem value="Cái">Cái</MenuItem>
-                    <MenuItem value="Chiếc">Chiếc</MenuItem>
-                    <MenuItem value="Bộ">Bộ</MenuItem>
-                    <MenuItem value="Hộp">Hộp</MenuItem>
-                    <MenuItem value="Thùng">Thùng</MenuItem>
-                    <MenuItem value="Kg">Kg</MenuItem>
-                    <MenuItem value="Gam">Gam</MenuItem>
-                    <MenuItem value="Lít">Lít</MenuItem>
-                    <MenuItem value="Mét">Mét</MenuItem>
-                    <MenuItem value="Cuộn">Cuộn</MenuItem>
-                  </Select>
-                </FormControl>
                 <TextField
                   size="small"
-                  label="Số lượng"
+                  label="ĐVT"
+                  value={currentProduct.dvt}
+                  InputProps={{ readOnly: true }}
+                  placeholder="Tự động điền"
+                />
+                <TextField
+                  size="small"
+                  label="SL"
                   type="number"
                   value={currentProduct.sl_xuat}
-                  onChange={(e) => setCurrentProduct({ ...currentProduct, sl_xuat: Number(e.target.value) })}
+                  onChange={(e) => setCurrentProduct({ ...currentProduct, sl_xuat: parseInt(e.target.value) || 0 })}
+                />
+                <TextField
+                  size="small"
+                  label="Đơn giá"
+                  type="number"
+                  value={currentProduct.don_gia}
+                  onChange={(e) => setCurrentProduct({ ...currentProduct, don_gia: Number(e.target.value) })}
                 />
                 <TextField
                   size="small"
@@ -1348,15 +1355,24 @@ const OutboundShipments: React.FC = () => {
                   onChange={(e) => setCurrentProduct({ ...currentProduct, ghi_chu: e.target.value })}
                 />
                 <IconButton
-                  onClick={handleAddProduct}
-                  sx={{ 
-                    bgcolor: 'primary.main', 
-                    color: 'white', 
-                    '&:hover': { bgcolor: 'primary.dark' },
-                    width: 40,
-                    height: 40
-                  }}
                   size="small"
+                  color="primary"
+                  onClick={() => {
+                    if (currentProduct.san_pham_id && currentProduct.ten_san_pham) {
+                      setProductItems([...productItems, { ...currentProduct, id: Date.now().toString() }]);
+                      setCurrentProduct({
+                        id: '',
+                        product_id: '',
+                        san_pham_id: '',
+                        ten_san_pham: '',
+                        ma_hang: '',
+                        dvt: '',
+                        sl_xuat: 1,
+                        don_gia: 0,
+                        ghi_chu: '',
+                      });
+                    }
+                  }}
                 >
                   <AddIcon />
                 </IconButton>
@@ -1364,21 +1380,22 @@ const OutboundShipments: React.FC = () => {
 
               {/* Danh sách sản phẩm */}
               {productItems.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold', color: 'text.secondary' }}>
+                <Box sx={{ mb: 1, p: 1, bgcolor: '#e3f2fd', borderRadius: 1, border: '1px solid #2196f3' }}>
+                  <Typography variant="body2" color="primary" sx={{ fontWeight: 500 }}>
                     Danh sách sản phẩm đã thêm ({productItems.length} sản phẩm)
                   </Typography>
-                  <TableContainer component={Paper} sx={{ boxShadow: 1, borderRadius: 1 }}>
+                  <TableContainer component={Paper} sx={{ mt: 1, boxShadow: 1, borderRadius: 1 }}>
                     <Table size="small">
                       <TableHead>
-                        <TableRow sx={{ bgcolor: 'primary.main' }}>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold', width: 60 }}>STT</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Tên sản phẩm</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold', width: 100 }}>Mã hàng</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold', width: 80 }}>ĐVT</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold', width: 100 }}>Số lượng</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Ghi chú</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold', width: 80 }} align="center">Thao tác</TableCell>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold', width: 60 }}>STT</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Tên sản phẩm</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Mã hàng</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', width: 80 }}>ĐVT</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Số lượng</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Đơn giá</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Ghi chú</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold', width: 80 }} align="center">Thao tác</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -1388,8 +1405,59 @@ const OutboundShipments: React.FC = () => {
                             <TableCell sx={{ fontWeight: 500 }}>{item.ten_san_pham}</TableCell>
                             <TableCell>{item.ma_hang}</TableCell>
                             <TableCell>{item.dvt}</TableCell>
-                            <TableCell sx={{ fontWeight: 500, color: 'primary.main' }}>{item.sl_xuat}</TableCell>
-                            <TableCell>{item.ghi_chu || '-'}</TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
+                                size="small"
+                                value={item.sl_xuat}
+                                onChange={(e) => handleUpdateItemQuantity(item.id, parseInt(e.target.value) || 0)}
+                                sx={{ 
+                                  width: 80,
+                                  '& .MuiOutlinedInput-root': {
+                                    fontSize: '0.75rem',
+                                    height: 32,
+                                  }
+                                }}
+                                inputProps={{ 
+                                  min: 1,
+                                  style: { textAlign: 'center' }
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
+                                size="small"
+                                value={item.don_gia}
+                                onChange={(e) => handleUpdateItemPrice(item.id, parseFloat(e.target.value) || 0)}
+                                sx={{ 
+                                  width: 80,
+                                  '& .MuiOutlinedInput-root': {
+                                    fontSize: '0.75rem',
+                                    height: 32,
+                                  }
+                                }}
+                                inputProps={{ 
+                                  min: 0,
+                                  style: { textAlign: 'center' }
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                size="small"
+                                value={item.ghi_chu}
+                                onChange={(e) => handleUpdateItemNotes(item.id, e.target.value)}
+                                placeholder="Ghi chú..."
+                                sx={{ 
+                                  width: 120,
+                                  '& .MuiOutlinedInput-root': {
+                                    fontSize: '0.75rem',
+                                    height: 32,
+                                  }
+                                }}
+                              />
+                            </TableCell>
                             <TableCell align="center">
                               <IconButton
                                 size="small"
