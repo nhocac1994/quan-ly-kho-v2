@@ -26,6 +26,9 @@ import InboundShipmentDetails from './pages/InboundShipmentDetails';
 import OutboundShipmentDetails from './pages/OutboundShipmentDetails';
 import TransactionHistory from './pages/TransactionHistory';
 import AutoSync from './pages/AutoSync';
+import ProductDetail from './pages/ProductDetail';
+import SupplierDetail from './pages/SupplierDetail';
+import CustomerDetail from './pages/CustomerDetail';
 
 // Create a theme instance
 const theme = createTheme({
@@ -67,8 +70,11 @@ function App() {
                       <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/products" element={<Products />} />
+                        <Route path="/products/:productId" element={<ProductDetail />} />
                         <Route path="/suppliers" element={<Suppliers />} />
+                        <Route path="/suppliers/:supplierId" element={<SupplierDetail />} />
                         <Route path="/customers" element={<Customers />} />
+                        <Route path="/customers/:customerId" element={<CustomerDetail />} />
                         <Route path="/inbound" element={<InboundShipments />} />
                         <Route path="/outbound" element={<OutboundShipments />} />
                         <Route path="/company-info" element={<CompanyInfoPage />} />

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { dataService } from '../services/dataService';
 import {
   Box,
@@ -39,6 +40,7 @@ import {
   Warning,
   CloudUpload,
   TableChart,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { Chip } from '@mui/material';
 import { useCustomers } from '../hooks/useSupabaseQueries';
@@ -61,6 +63,7 @@ interface CustomerFormData {
 
 const Customers: React.FC = () => {
   const { data: customers = [], refetch: refreshCustomers } = useCustomers();
+  const navigate = useNavigate();
   
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -584,7 +587,23 @@ const Customers: React.FC = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>{customer.id}</TableCell>
-                    <TableCell>{customer.ten_khach_hang}</TableCell>
+                    <TableCell>
+                      <Typography 
+                        variant="body2" 
+                        fontWeight="medium"
+                        sx={{ 
+                          cursor: 'pointer',
+                          color: 'primary.main',
+                          '&:hover': {
+                            textDecoration: 'underline',
+                            color: 'primary.dark'
+                          }
+                        }}
+                        onClick={() => navigate(`/customers/${customer.ten_khach_hang}`)}
+                      >
+                        {customer.ten_khach_hang}
+                      </Typography>
+                    </TableCell>
                     <TableCell>{customer.ten_day_du || 'N/A'}</TableCell>
                     <TableCell>{customer.loai_khach_hang || 'N/A'}</TableCell>
                     <TableCell>{customer.nguoi_dai_dien || 'N/A'}</TableCell>
@@ -598,19 +617,28 @@ const Customers: React.FC = () => {
                     </TableCell>
                     <TableCell>{customer.nv_phu_trach || 'N/A'}</TableCell>
                     <TableCell align="center">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenDrawer(customer)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDelete(customer.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton
+                          size="small"
+                          color="info"
+                          onClick={() => navigate(`/customers/${customer.ten_khach_hang}`)}
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenDrawer(customer)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDelete(customer.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { dataService } from '../services/dataService';
 import {
   Box,
@@ -27,6 +28,7 @@ import {
   Snackbar,
   Divider,
   Chip,
+  Tooltip,
 } from '@mui/material';
 
 import {
@@ -42,6 +44,7 @@ import {
   Warning,
   CloudUpload,
   TableChart,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { useSupabase } from '../contexts/SupabaseContext';
 import { Product } from '../types';
@@ -61,6 +64,7 @@ interface ProductFormData {
 
 const Products: React.FC = () => {
   const { products, refreshProducts } = useSupabase();
+  const navigate = useNavigate();
   
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -79,6 +83,8 @@ const Products: React.FC = () => {
   const [parsedData, setParsedData] = useState<any[]>([]);
   const [validCount, setValidCount] = useState(0);
   const [invalidCount, setInvalidCount] = useState(0);
+  const [inboundShipments, setInboundShipments] = useState<any[]>([]);
+  const [outboundShipments, setOutboundShipments] = useState<any[]>([]);
 
   const [formData, setFormData] = useState<ProductFormData>({
     san_pham_id: '',
@@ -90,6 +96,31 @@ const Products: React.FC = () => {
     hien_thi: 'Có',
     ghi_chu: '',
   });
+
+  // Load shipment data for stock calculation
+  useEffect(() => {
+    loadShipmentData();
+  }, []);
+
+  const loadShipmentData = async () => {
+    try {
+      const [inboundData, outboundData] = await Promise.all([
+        dataService.inboundShipments.getAll(),
+        dataService.outboundShipments.getAll()
+      ]);
+      setInboundShipments(inboundData);
+      setOutboundShipments(outboundData);
+    } catch (error) {
+      console.error('Error loading shipment data:', error);
+    }
+  };
+
+  // Refresh data when products change
+  useEffect(() => {
+    if (products.length > 0) {
+      loadShipmentData();
+    }
+  }, [products]);
 
   const generateSampleFile = () => {
     try {
@@ -457,6 +488,19 @@ const Products: React.FC = () => {
     }
   };
 
+  // Calculate actual stock from shipments
+  const calculateActualStock = (productId: string) => {
+    const totalInbound = inboundShipments
+      .filter(shipment => shipment.san_pham_id === productId)
+      .reduce((sum, shipment) => sum + shipment.sl_nhap, 0);
+    
+    const totalOutbound = outboundShipments
+      .filter(shipment => shipment.san_pham_id === productId)
+      .reduce((sum, shipment) => sum + shipment.sl_xuat, 0);
+    
+    return totalInbound - totalOutbound;
+  };
+
   // Filter products based on search term
   const filteredProducts = useMemo(() => {
     return products.filter(product =>
@@ -581,16 +625,21 @@ const Products: React.FC = () => {
       </Box>
 
       {/* Statistics */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Alert severity="info" sx={{ py: 0, px: 2 }}>
+          <Typography variant="body2">
+            Số lượng tồn kho được tính từ: Tổng nhập - Tổng xuất
+          </Typography>
+        </Alert>
         <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
           <Typography variant="body2">
             Tổng: {products.length}
           </Typography>
           <Typography variant="body2">
-            Có hàng: {products.filter(p => p.sl_ton > 0).length}
+            Có hàng: {products.filter(p => calculateActualStock(p.san_pham_id) > 0).length}
           </Typography>
           <Typography variant="body2" sx={{ color: 'warning.main' }}>
-            Hết hàng: {products.filter(p => p.sl_ton === 0).length}
+            Hết hàng: {products.filter(p => calculateActualStock(p.san_pham_id) === 0).length}
           </Typography>
         </Box>
       </Box>
@@ -629,7 +678,19 @@ const Products: React.FC = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2" fontWeight="medium">
+                    <Typography 
+                      variant="body2" 
+                      fontWeight="medium"
+                      sx={{ 
+                        cursor: 'pointer',
+                        color: 'primary.main',
+                        '&:hover': {
+                          textDecoration: 'underline',
+                          color: 'primary.dark'
+                        }
+                      }}
+                      onClick={() => navigate(`/products/${product.san_pham_id}`)}
+                    >
                       {product.ten_san_pham}
                     </Typography>
                   </TableCell>
@@ -638,8 +699,8 @@ const Products: React.FC = () => {
                   <TableCell>{product.dvt}</TableCell>
                   <TableCell align="right">
                     <Chip
-                      label={product.sl_ton}
-                      color={product.sl_ton > 0 ? 'success' : 'error'}
+                      label={calculateActualStock(product.san_pham_id)}
+                      color={calculateActualStock(product.san_pham_id) > 0 ? 'success' : 'error'}
                       size="small"
                     />
                   </TableCell>
@@ -657,20 +718,33 @@ const Products: React.FC = () => {
                   </TableCell>
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton
-                        size="small"
-                        color="primary"
-                        onClick={() => handleOpenDrawer(product)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDelete(product.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+                      <Tooltip title="Xem chi tiết">
+                        <IconButton
+                          size="small"
+                          color="info"
+                          onClick={() => navigate(`/products/${product.san_pham_id}`)}
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Chỉnh sửa">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() => handleOpenDrawer(product)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Xóa">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDelete(product.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
                     </Box>
                   </TableCell>
                 </TableRow>

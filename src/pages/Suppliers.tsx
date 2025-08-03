@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { dataService } from '../services/dataService';
 import {
   Box,
@@ -40,6 +41,7 @@ import {
   Warning,
   CloudUpload,
   TableChart,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { useSuppliers } from '../hooks/useSupabaseQueries';
 import { Supplier } from '../types';
@@ -61,6 +63,7 @@ interface SupplierFormData {
 
 const Suppliers: React.FC = () => {
   const { data: suppliers = [], refetch: refreshSuppliers } = useSuppliers();
+  const navigate = useNavigate();
   
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -565,7 +568,23 @@ const Suppliers: React.FC = () => {
                       </Typography>
                     </TableCell>
                     <TableCell>{supplier.id}</TableCell>
-                    <TableCell>{supplier.ten_ncc}</TableCell>
+                    <TableCell>
+                      <Typography 
+                        variant="body2" 
+                        fontWeight="medium"
+                        sx={{ 
+                          cursor: 'pointer',
+                          color: 'primary.main',
+                          '&:hover': {
+                            textDecoration: 'underline',
+                            color: 'primary.dark'
+                          }
+                        }}
+                        onClick={() => navigate(`/suppliers/${supplier.ten_ncc}`)}
+                      >
+                        {supplier.ten_ncc}
+                      </Typography>
+                    </TableCell>
                     <TableCell>{supplier.ten_day_du || 'N/A'}</TableCell>
                     <TableCell>{supplier.loai_ncc || 'N/A'}</TableCell>
                     <TableCell>{supplier.nguoi_dai_dien || 'N/A'}</TableCell>
@@ -579,19 +598,28 @@ const Suppliers: React.FC = () => {
                     </TableCell>
                     <TableCell>{supplier.nv_phu_trach || 'N/A'}</TableCell>
                     <TableCell align="center">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleOpenDrawer(supplier)}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDelete(supplier.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton
+                          size="small"
+                          color="info"
+                          onClick={() => navigate(`/suppliers/${supplier.ten_ncc}`)}
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenDrawer(supplier)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDelete(supplier.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}

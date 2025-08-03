@@ -600,37 +600,12 @@ export const usersAPI = {
   }
 };
 
-// Helper function để cập nhật số lượng tồn kho
+// Helper function để cập nhật số lượng tồn kho (đã tắt để tính toán từ dữ liệu thực tế)
 const updateProductStock = async (sanPhamId: string, quantity: number, type: 'inbound' | 'outbound') => {
-  try {
-    // Lấy sản phẩm hiện tại
-    const { data: product, error: fetchError } = await supabase
-      .from('products')
-      .select('sl_ton')
-      .eq('san_pham_id', sanPhamId)
-      .single();
-
-    if (fetchError) {
-      console.error('Error fetching product for stock update:', fetchError);
-      return;
-    }
-
-    // Tính toán số lượng mới
-    const currentStock = product.sl_ton || 0;
-    const newStock = type === 'inbound' ? currentStock + quantity : currentStock - quantity;
-
-    // Cập nhật số lượng tồn kho
-    const { error: updateError } = await supabase
-      .from('products')
-      .update({ sl_ton: Math.max(0, newStock) })
-      .eq('san_pham_id', sanPhamId);
-
-    if (updateError) {
-      console.error('Error updating product stock:', updateError);
-    }
-  } catch (error) {
-    console.error('Error in updateProductStock:', error);
-  }
+  // Tạm thời tắt tính năng tự động cập nhật số lượng tồn kho
+  // Số lượng tồn kho sẽ được tính toán từ dữ liệu nhập/xuất thực tế
+  console.log(`Stock update ${type}: ${sanPhamId} - ${quantity}`);
+  return;
 };
 
 // Shipment Headers API
