@@ -45,8 +45,9 @@ import {
   CloudUpload,
   TableChart,
   Visibility as VisibilityIcon,
+  Refresh as RefreshIcon,
 } from '@mui/icons-material';
-import { useSupabase } from '../contexts/SupabaseContext';
+import { useProducts, useRefreshProducts, useForceFetchProducts, useRefreshStockFromDatabase } from '../hooks/useSupabaseQueries';
 import { Product } from '../types';
 import * as XLSX from 'xlsx';
 
@@ -63,7 +64,10 @@ interface ProductFormData {
 }
 
 const Products: React.FC = () => {
-  const { products, refreshProducts } = useSupabase();
+  const { data: products = [], refetch: refreshProducts } = useProducts();
+  const refreshProductsManual = useRefreshProducts();
+  const forceFetchProducts = useForceFetchProducts();
+  const refreshStockFromDB = useRefreshStockFromDatabase();
   const navigate = useNavigate();
   
   const [page, setPage] = useState(0);
@@ -83,8 +87,7 @@ const Products: React.FC = () => {
   const [parsedData, setParsedData] = useState<any[]>([]);
   const [validCount, setValidCount] = useState(0);
   const [invalidCount, setInvalidCount] = useState(0);
-  const [inboundShipments, setInboundShipments] = useState<any[]>([]);
-  const [outboundShipments, setOutboundShipments] = useState<any[]>([]);
+  // Không cần state này nữa vì đã sử dụng sl_ton từ database
 
   const [formData, setFormData] = useState<ProductFormData>({
     san_pham_id: '',
@@ -97,30 +100,9 @@ const Products: React.FC = () => {
     ghi_chu: '',
   });
 
-  // Load shipment data for stock calculation
-  useEffect(() => {
-    loadShipmentData();
-  }, []);
+  // Không cần load shipment data nữa vì đã sử dụng sl_ton từ database
 
-  const loadShipmentData = async () => {
-    try {
-      const [inboundData, outboundData] = await Promise.all([
-        dataService.inboundShipments.getAll(),
-        dataService.outboundShipments.getAll()
-      ]);
-      setInboundShipments(inboundData);
-      setOutboundShipments(outboundData);
-    } catch (error) {
-      console.error('Error loading shipment data:', error);
-    }
-  };
-
-  // Refresh data when products change
-  useEffect(() => {
-    if (products.length > 0) {
-      loadShipmentData();
-    }
-  }, [products]);
+  // Không cần load shipment data nữa vì đã sử dụng sl_ton từ database
 
   const generateSampleFile = () => {
     try {
@@ -488,17 +470,10 @@ const Products: React.FC = () => {
     }
   };
 
-  // Calculate actual stock from shipments
+  // Calculate actual stock from products table (đã được tính toán từ database)
   const calculateActualStock = (productId: string) => {
-    const totalInbound = inboundShipments
-      .filter(shipment => shipment.san_pham_id === productId)
-      .reduce((sum, shipment) => sum + shipment.sl_nhap, 0);
-    
-    const totalOutbound = outboundShipments
-      .filter(shipment => shipment.san_pham_id === productId)
-      .reduce((sum, shipment) => sum + shipment.sl_xuat, 0);
-    
-    return totalInbound - totalOutbound;
+    const product = products.find(p => p.san_pham_id === productId);
+    return product ? product.sl_ton : 0;
   };
 
   // Filter products based on search term
@@ -526,7 +501,7 @@ const Products: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -547,6 +522,7 @@ const Products: React.FC = () => {
               minWidth: 200,
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
+                height: '35px',
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -562,12 +538,62 @@ const Products: React.FC = () => {
           
           <Button
             variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={async () => {
+              try {
+                setSnackbar({
+                  open: true,
+                  message: 'Đang cập nhật số lượng tồn kho...',
+                  severity: 'info'
+                });
+                
+                // Refresh stock từ database
+                await refreshStockFromDB();
+                
+                // Refresh cache để hiển thị dữ liệu mới
+                refreshProductsManual();
+                
+                setSnackbar({
+                  open: true,
+                  message: 'Đã cập nhật số lượng tồn kho từ database',
+                  severity: 'success'
+                });
+              } catch (error) {
+                console.error('Error refreshing stock:', error);
+                setSnackbar({
+                  open: true,
+                  message: 'Lỗi khi cập nhật số lượng tồn kho',
+                  severity: 'error'
+                });
+              }
+            }}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              height: '35px',
+              px: 2,
+              py: 1,
+              borderColor: 'success.main',
+              color: 'success.main',
+              '&:hover': {
+                backgroundColor: 'success.light',
+                color: 'white',
+                borderColor: 'success.light',
+              }
+            }}
+          >
+            Cập Nhật Tồn Kho
+          </Button>
+          <Button
+            variant="outlined"
             startIcon={<UploadIcon />}
             onClick={() => setOpenImportDialog(true)}
             sx={{
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               borderColor: 'primary.main',
@@ -589,6 +615,7 @@ const Products: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               borderColor: 'primary.main',
@@ -610,6 +637,7 @@ const Products: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               boxShadow: 2,
@@ -646,10 +674,20 @@ const Products: React.FC = () => {
 
       {/* Products Table */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 600 }}>
+        <TableContainer sx={{ maxHeight: 'calc(100vh - 295px)' }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                 <TableCell>STT</TableCell>
                 <TableCell>Mã SP</TableCell>
                 <TableCell>Tên Sản Phẩm</TableCell>

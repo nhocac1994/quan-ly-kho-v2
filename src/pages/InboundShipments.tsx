@@ -843,7 +843,7 @@ const InboundShipments: React.FC = () => {
   ).length;
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -864,6 +864,7 @@ const InboundShipments: React.FC = () => {
               minWidth: 200,
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
+                height: '35px',
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -885,6 +886,7 @@ const InboundShipments: React.FC = () => {
                 borderRadius: 2,
                 textTransform: 'none',
                 fontWeight: 500,
+                height: '35px',
                 px: 2,
                 py: 1,
                 borderColor: 'primary.main',
@@ -906,6 +908,7 @@ const InboundShipments: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               boxShadow: 2,
@@ -940,10 +943,20 @@ const InboundShipments: React.FC = () => {
 
       {/* InboundShipments Table */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 600 }}>
+        <TableContainer sx={{ maxHeight: 'calc(100vh - 295px)' }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                 <TableCell>STT</TableCell>
                 <TableCell>Mã Phiếu</TableCell>
                 <TableCell>Ngày Nhập</TableCell>

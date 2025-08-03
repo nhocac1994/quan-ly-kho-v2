@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../services/supabaseService';
 import {
   products,
   suppliers,
@@ -29,6 +30,7 @@ export const queryKeys = {
   outboundShipments: ['outboundShipments'] as const,
   companyInfo: ['companyInfo'] as const,
   users: ['users'] as const,
+  shipmentItems: ['shipmentItems'] as const,
 };
 
 // Products queries
@@ -36,9 +38,47 @@ export const useProducts = () => {
   return useQuery({
     queryKey: queryKeys.products,
     queryFn: async () => {
-      return await products.getAll();
+      console.log('🔄 Fetching products from Supabase...');
+      try {
+        // Lấy dữ liệu trực tiếp từ bảng products thay vì view
+        const { data: productsData, error } = await supabase
+          .from('products')
+          .select('*')
+          .order('ten_san_pham', { ascending: true });
+
+        if (error) {
+          console.error('❌ Error fetching products:', error);
+          const fallbackData = await products.getAll();
+          console.log(`📊 Fallback: Total products found: ${fallbackData.length}`);
+          return fallbackData;
+        }
+
+        console.log(`📊 Total products found: ${productsData.length}`);
+        console.log('📋 Products data:', productsData);
+
+        // Map dữ liệu trực tiếp từ bảng products
+        const mappedProducts = productsData.map(item => ({
+          id: item.id,
+          san_pham_id: item.san_pham_id,
+          ten_san_pham: item.ten_san_pham,
+          kho_id: item.kho_id || '',
+          ten_kho: item.ten_kho || '',
+          dvt: item.dvt || '',
+          sl_ton: item.sl_ton || 0, // Sử dụng sl_ton trực tiếp từ bảng products
+          hien_thi: item.hien_thi || 'Có',
+          ghi_chu: item.ghi_chu || '',
+          ngay_tao: item.ngay_tao || new Date().toISOString(),
+          nguoi_tao: item.nguoi_tao || 'System',
+          updated_at: item.updated_at || new Date().toISOString()
+        }));
+
+        return mappedProducts;
+      } catch (error) {
+        console.error('Error in useProducts:', error);
+        return [];
+      }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 1000, // 5 seconds - cập nhật nhanh hơn
   });
 };
 
@@ -79,6 +119,119 @@ export const useDeleteProduct = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.products });
     },
   });
+};
+
+// Hook để refresh products thủ công
+export const useRefreshProducts = () => {
+  const queryClient = useQueryClient();
+  
+  return () => {
+    console.log('🔄 Force refreshing products...');
+    // Clear cache và fetch lại từ Supabase
+    queryClient.removeQueries({ queryKey: queryKeys.products });
+    queryClient.invalidateQueries({ queryKey: queryKeys.products });
+    queryClient.refetchQueries({ queryKey: queryKeys.products });
+  };
+};
+
+// Hook để fetch products trực tiếp từ Supabase (không qua cache)
+export const useForceFetchProducts = () => {
+  return async () => {
+    console.log('🔄 Force fetching products directly from Supabase...');
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('ngay_tao', { ascending: false });
+      
+      if (error) {
+        console.error('❌ Error fetching products:', error);
+        throw error;
+      }
+      
+      console.log('✅ Products fetched directly:', data);
+      return data;
+    } catch (error) {
+      console.error('❌ Error in force fetch:', error);
+      throw error;
+    }
+  };
+};
+
+// Hook để so sánh dữ liệu cache với dữ liệu thực tế
+export const useCompareProductsData = () => {
+  return async () => {
+    console.log('🔍 Comparing cached data with Supabase data...');
+    try {
+      // Lấy dữ liệu từ cache
+      const cachedData = await products.getAll();
+      console.log('📦 Cached data:', cachedData);
+      
+      // Lấy dữ liệu trực tiếp từ Supabase
+      const { data: freshData, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('ngay_tao', { ascending: false });
+      
+      if (error) {
+        console.error('❌ Error fetching fresh data:', error);
+        return { cached: cachedData, fresh: null, error };
+      }
+      
+      console.log('🆕 Fresh data from Supabase:', freshData);
+      
+      // So sánh
+      const isDifferent = JSON.stringify(cachedData) !== JSON.stringify(freshData);
+      console.log('🔍 Data is different:', isDifferent);
+      
+      return { cached: cachedData, fresh: freshData, isDifferent };
+    } catch (error) {
+      console.error('❌ Error comparing data:', error);
+      throw error;
+    }
+  };
+};
+
+// Hook để gọi function refresh stock từ database
+export const useRefreshStockFromDatabase = () => {
+  const queryClient = useQueryClient();
+  
+  return async (productId?: string) => {
+    console.log('🔄 Refreshing stock from database...');
+    try {
+      if (productId) {
+        // Refresh cho một sản phẩm cụ thể
+        const { data, error } = await supabase
+          .rpc('refresh_product_stock', { product_id_param: productId });
+        
+        if (error) {
+          console.error('❌ Error refreshing stock for product:', error);
+          throw error;
+        }
+        
+        console.log('✅ Stock refreshed for product:', data);
+      } else {
+        // Refresh cho tất cả sản phẩm
+        const { error } = await supabase
+          .rpc('quick_update_stock');
+        
+        if (error) {
+          console.error('❌ Error refreshing all stocks:', error);
+          throw error;
+        }
+        
+        console.log('✅ All stocks refreshed');
+      }
+      
+      // Invalidate cache để fetch lại dữ liệu
+      queryClient.invalidateQueries({ queryKey: queryKeys.products });
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Error in refresh stock:', error);
+      throw error;
+    }
+  };
 };
 
 // Suppliers queries
@@ -270,6 +423,8 @@ export const useAddShipmentItems = () => {
         const headerId = variables[0].shipment_header_id;
         queryClient.invalidateQueries({ queryKey: ['shipmentItems', headerId] });
       }
+      // Invalidate products để cập nhật sl_ton
+      queryClient.invalidateQueries({ queryKey: queryKeys.products });
     },
   });
 };
@@ -283,6 +438,8 @@ export const useDeleteShipmentItems = () => {
     },
     onSuccess: (_, headerId) => {
       queryClient.invalidateQueries({ queryKey: ['shipmentItems', headerId] });
+      // Invalidate products để cập nhật sl_ton
+      queryClient.invalidateQueries({ queryKey: queryKeys.products });
     },
   });
 };

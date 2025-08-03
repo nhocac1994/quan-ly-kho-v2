@@ -87,10 +87,7 @@ const translations: Translations = {
     vi: 'Người dùng',
     en: 'Users'
   },
-  'auto_sync': {
-    vi: 'Đồng bộ tự động',
-    en: 'Auto Sync'
-  },
+
   'transaction_history': {
     vi: 'Lịch sử giao dịch',
     en: 'Transaction History'

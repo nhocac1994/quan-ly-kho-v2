@@ -120,61 +120,46 @@ CREATE TABLE IF NOT EXISTS products (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Tạo bảng inbound_shipments
-CREATE TABLE IF NOT EXISTS inbound_shipments (
+-- Tạo bảng shipment_headers (thông tin chung của phiếu)
+CREATE TABLE IF NOT EXISTS shipment_headers (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  xuat_kho_id VARCHAR(100) NOT NULL,
-  ngay_nhap DATE NOT NULL,
-  san_pham_id VARCHAR(100) NOT NULL,
-  ten_san_pham VARCHAR(255),
-  nhom_san_pham VARCHAR(100),
-  hang_sx VARCHAR(100),
-  hinh_anh TEXT,
-  thong_tin TEXT,
-  quy_cach VARCHAR(255),
-  dvt VARCHAR(50),
-  sl_nhap INTEGER NOT NULL,
-  ghi_chu TEXT,
-  nha_cung_cap_id VARCHAR(100),
-  ten_nha_cung_cap VARCHAR(255),
-  dia_chi TEXT,
-  so_dt VARCHAR(20),
-  noi_dung_nhap TEXT,
-  ngay_tao TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  nguoi_tao VARCHAR(255) DEFAULT 'Admin',
+  shipment_id VARCHAR(100) UNIQUE NOT NULL,
+  shipment_type VARCHAR(20) NOT NULL CHECK (shipment_type IN ('inbound', 'outbound')),
+  shipment_date DATE NOT NULL,
+  supplier_id VARCHAR(100),
+  supplier_name VARCHAR(255),
+  customer_id VARCHAR(100),
+  customer_name VARCHAR(255),
+  content TEXT,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_by VARCHAR(255) DEFAULT 'Admin',
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Tạo bảng outbound_shipments
-CREATE TABLE IF NOT EXISTS outbound_shipments (
+-- Tạo bảng shipment_items (chi tiết sản phẩm trong phiếu)
+CREATE TABLE IF NOT EXISTS shipment_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  xuat_kho_id VARCHAR(100) NOT NULL,
-  ngay_xuat DATE NOT NULL,
-  san_pham_id VARCHAR(100) NOT NULL,
-  ten_san_pham VARCHAR(255),
-  nhom_san_pham VARCHAR(100),
-  hang_sx VARCHAR(100),
-  hinh_anh TEXT,
-  thong_tin TEXT,
-  quy_cach VARCHAR(255),
-  dvt VARCHAR(50),
-  sl_xuat INTEGER NOT NULL,
-  ghi_chu TEXT,
-  so_hd VARCHAR(100),
-  ma_kh VARCHAR(100),
-  ten_khach_hang VARCHAR(255),
-  dia_chi TEXT,
-  so_dt VARCHAR(20),
-  noi_dung_xuat TEXT,
-  ngay_tao TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  nguoi_tao VARCHAR(255) DEFAULT 'Admin',
+  shipment_header_id UUID NOT NULL REFERENCES shipment_headers(id) ON DELETE CASCADE,
+  product_id VARCHAR(100) NOT NULL,
+  product_code VARCHAR(100),
+  product_name VARCHAR(255) NOT NULL,
+  unit VARCHAR(50),
+  quantity INTEGER NOT NULL,
+  unit_price DECIMAL(15,2) DEFAULT 0,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_by VARCHAR(255) DEFAULT 'Admin',
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Tạo indexes
 CREATE INDEX IF NOT EXISTS idx_products_san_pham_id ON products(san_pham_id);
-CREATE INDEX IF NOT EXISTS idx_inbound_shipments_ngay_nhap ON inbound_shipments(ngay_nhap);
-CREATE INDEX IF NOT EXISTS idx_outbound_shipments_ngay_xuat ON outbound_shipments(ngay_xuat);
+CREATE INDEX IF NOT EXISTS idx_shipment_headers_shipment_id ON shipment_headers(shipment_id);
+CREATE INDEX IF NOT EXISTS idx_shipment_headers_shipment_type ON shipment_headers(shipment_type);
+CREATE INDEX IF NOT EXISTS idx_shipment_headers_shipment_date ON shipment_headers(shipment_date);
+CREATE INDEX IF NOT EXISTS idx_shipment_items_shipment_header_id ON shipment_items(shipment_header_id);
+CREATE INDEX IF NOT EXISTS idx_shipment_items_product_id ON shipment_items(product_id);
 
 -- Insert sample data
 INSERT INTO company_info (ten_cong_ty, ten_day_du, loai_cong_ty, nguoi_dai_dien, sdt) 
@@ -187,6 +172,48 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO products (san_pham_id, ten_san_pham, kho_id, ten_kho, dvt, sl_ton) 
 VALUES ('SP001', 'Laptop Dell Inspiron', 'KHO1', 'Kho chính', 'Cái', 10)
+ON CONFLICT DO NOTHING;
+
+-- Insert sample suppliers
+INSERT INTO suppliers (ten_nha_cung_cap, sdt, email, dia_chi) 
+VALUES ('Công ty ABC', '0123456789', 'abc@company.com', 'Hà Nội')
+ON CONFLICT DO NOTHING;
+
+-- Insert sample customers
+INSERT INTO customers (ten_khach_hang, sdt, email, dia_chi) 
+VALUES ('Khách hàng XYZ', '0987654321', 'xyz@customer.com', 'TP.HCM')
+ON CONFLICT DO NOTHING;
+
+-- Insert sample shipment headers
+INSERT INTO shipment_headers (shipment_id, shipment_type, shipment_date, supplier_id, supplier_name, content) 
+VALUES ('NK001', 'inbound', '2024-01-01', 'SUP001', 'Công ty ABC', 'Nhập kho lần đầu')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO shipment_headers (shipment_id, shipment_type, shipment_date, customer_id, customer_name, content) 
+VALUES ('XK001', 'outbound', '2024-01-02', 'CUS001', 'Khách hàng XYZ', 'Xuất kho bán hàng')
+ON CONFLICT DO NOTHING;
+
+-- Insert sample shipment items
+INSERT INTO shipment_items (shipment_header_id, product_id, product_code, product_name, unit, quantity, unit_price) 
+SELECT 
+  (SELECT id FROM shipment_headers WHERE shipment_id = 'NK001'),
+  'SP001',
+  'SP001',
+  'Laptop Dell Inspiron',
+  'Cái',
+  5,
+  15000000
+ON CONFLICT DO NOTHING;
+
+INSERT INTO shipment_items (shipment_header_id, product_id, product_code, product_name, unit, quantity, unit_price) 
+SELECT 
+  (SELECT id FROM shipment_headers WHERE shipment_id = 'XK001'),
+  'SP001',
+  'SP001',
+  'Laptop Dell Inspiron',
+  'Cái',
+  2,
+  16000000
 ON CONFLICT DO NOTHING;
 ```
 
@@ -201,8 +228,8 @@ ON CONFLICT DO NOTHING;
 ALTER PUBLICATION supabase_realtime ADD TABLE products;
 ALTER PUBLICATION supabase_realtime ADD TABLE suppliers;
 ALTER PUBLICATION supabase_realtime ADD TABLE customers;
-ALTER PUBLICATION supabase_realtime ADD TABLE inbound_shipments;
-ALTER PUBLICATION supabase_realtime ADD TABLE outbound_shipments;
+ALTER PUBLICATION supabase_realtime ADD TABLE shipment_headers;
+ALTER PUBLICATION supabase_realtime ADD TABLE shipment_items;
 ALTER PUBLICATION supabase_realtime ADD TABLE company_info;
 ALTER PUBLICATION supabase_realtime ADD TABLE users;
 ```
@@ -218,8 +245,8 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE inbound_shipments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE outbound_shipments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE shipment_headers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE shipment_items ENABLE ROW LEVEL SECURITY;
 
 -- Tạo policy cho phép tất cả (cho development)
 CREATE POLICY "Allow all" ON company_info FOR ALL USING (true);
@@ -227,8 +254,8 @@ CREATE POLICY "Allow all" ON users FOR ALL USING (true);
 CREATE POLICY "Allow all" ON suppliers FOR ALL USING (true);
 CREATE POLICY "Allow all" ON customers FOR ALL USING (true);
 CREATE POLICY "Allow all" ON products FOR ALL USING (true);
-CREATE POLICY "Allow all" ON inbound_shipments FOR ALL USING (true);
-CREATE POLICY "Allow all" ON outbound_shipments FOR ALL USING (true);
+CREATE POLICY "Allow all" ON shipment_headers FOR ALL USING (true);
+CREATE POLICY "Allow all" ON shipment_items FOR ALL USING (true);
 ```
 
 ## Bước 6: Test kết nối

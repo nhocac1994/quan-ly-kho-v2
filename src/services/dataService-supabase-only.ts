@@ -251,107 +251,67 @@ export const dataService = {
     }
   },
 
-  // Inbound Shipments API
+  // Legacy Inbound Shipments API - Đã deprecated
   inboundShipments: {
     getAll: async (): Promise<InboundShipment[]> => {
-      try {
-        return await supabaseAPIs.inboundShipments.getAll();
-      } catch (error) {
-        console.error('Failed to get inbound shipments from Supabase:', error);
-        throw error;
-      }
+      console.warn('inboundShipments.getAll() is deprecated. Use shipmentHeaders.getByType("inbound") instead.');
+      return [];
     },
 
     getById: async (id: string): Promise<InboundShipment | null> => {
-      try {
-        return await supabaseAPIs.inboundShipments.getById(id);
-      } catch (error) {
-        console.error('Failed to get inbound shipment from Supabase:', error);
-        throw error;
-      }
+      console.warn('inboundShipments.getById() is deprecated. Use shipmentHeaders.getById() instead.');
+      return null;
     },
 
     create: async (shipment: Omit<InboundShipment, 'id' | 'ngay_tao' | 'nguoi_tao' | 'updated_at'>): Promise<InboundShipment> => {
-      try {
-        return await supabaseAPIs.inboundShipments.create(shipment);
-      } catch (error) {
-        console.error('Failed to create inbound shipment in Supabase:', error);
-        throw error;
-      }
+      console.warn('inboundShipments.create() is deprecated. Use shipmentHeaders.create() instead.');
+      throw new Error('Deprecated API');
     },
 
     update: async (id: string, shipment: Partial<InboundShipment>): Promise<InboundShipment> => {
-      try {
-        return await supabaseAPIs.inboundShipments.update(id, shipment);
-      } catch (error) {
-        console.error('Failed to update inbound shipment in Supabase:', error);
-        throw error;
-      }
+      console.warn('inboundShipments.update() is deprecated. Use shipmentHeaders.update() instead.');
+      throw new Error('Deprecated API');
     },
 
     delete: async (id: string): Promise<void> => {
-      try {
-        await supabaseAPIs.inboundShipments.delete(id);
-      } catch (error) {
-        console.error('Failed to delete inbound shipment in Supabase:', error);
-        throw error;
-      }
+      console.warn('inboundShipments.delete() is deprecated. Use shipmentHeaders.delete() instead.');
     },
 
     subscribe: (callback: (payload: any) => void) => {
-      return supabaseAPIs.inboundShipments.subscribe(callback);
+      console.warn('inboundShipments.subscribe() is deprecated. Use shipmentHeaders.subscribe() instead.');
+      return { unsubscribe: () => {} };
     }
   },
 
-  // Outbound Shipments API
+  // Legacy Outbound Shipments API - Đã deprecated
   outboundShipments: {
     getAll: async (): Promise<OutboundShipment[]> => {
-      try {
-        return await supabaseAPIs.outboundShipments.getAll();
-      } catch (error) {
-        console.error('Failed to get outbound shipments from Supabase:', error);
-        throw error;
-      }
+      console.warn('outboundShipments.getAll() is deprecated. Use shipmentHeaders.getByType("outbound") instead.');
+      return [];
     },
 
     getById: async (id: string): Promise<OutboundShipment | null> => {
-      try {
-        return await supabaseAPIs.outboundShipments.getById(id);
-      } catch (error) {
-        console.error('Failed to get outbound shipment from Supabase:', error);
-        throw error;
-      }
+      console.warn('outboundShipments.getById() is deprecated. Use shipmentHeaders.getById() instead.');
+      return null;
     },
 
     create: async (shipment: Omit<OutboundShipment, 'id' | 'ngay_tao' | 'nguoi_tao' | 'updated_at'>): Promise<OutboundShipment> => {
-      try {
-        return await supabaseAPIs.outboundShipments.create(shipment);
-      } catch (error) {
-        console.error('Failed to create outbound shipment in Supabase:', error);
-        throw error;
-      }
+      console.warn('outboundShipments.create() is deprecated. Use shipmentHeaders.create() instead.');
+      throw new Error('Deprecated API');
     },
 
     update: async (id: string, shipment: Partial<OutboundShipment>): Promise<OutboundShipment> => {
-      try {
-        return await supabaseAPIs.outboundShipments.update(id, shipment);
-      } catch (error) {
-        console.error('Failed to update outbound shipment in Supabase:', error);
-        throw error;
-      }
+      console.warn('outboundShipments.update() is deprecated. Use shipmentHeaders.update() instead.');
+      throw new Error('Deprecated API');
     },
 
     delete: async (id: string): Promise<void> => {
-      try {
-        await supabaseAPIs.outboundShipments.delete(id);
-      } catch (error) {
-        console.error('Failed to delete outbound shipment in Supabase:', error);
-        throw error;
-      }
+      console.warn('outboundShipments.delete() is deprecated. Use shipmentHeaders.delete() instead.');
     },
 
     subscribe: (callback: (payload: any) => void) => {
-      return supabaseAPIs.outboundShipments.subscribe(callback);
+      console.warn('outboundShipments.subscribe() is deprecated. Use shipmentHeaders.subscribe() instead.');
+      return { unsubscribe: () => {} };
     }
   },
 

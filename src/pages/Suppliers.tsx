@@ -426,7 +426,7 @@ const Suppliers: React.FC = () => {
   );
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -447,6 +447,7 @@ const Suppliers: React.FC = () => {
               minWidth: 200,
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
+                height: '35px',
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -489,6 +490,7 @@ const Suppliers: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               borderColor: 'primary.main',
@@ -510,6 +512,7 @@ const Suppliers: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               boxShadow: 2,
@@ -541,12 +544,21 @@ const Suppliers: React.FC = () => {
 
       {/* Suppliers Table */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 600 }}>
+        <TableContainer sx={{ maxHeight: 'calc(100vh - 295px)' }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                 <TableCell>STT</TableCell>
-                <TableCell>Mã NCC</TableCell>
                 <TableCell>Tên NCC</TableCell>
                 <TableCell>Tên Đầy Đủ</TableCell>
                 <TableCell>Loại NCC</TableCell>
@@ -567,7 +579,6 @@ const Suppliers: React.FC = () => {
                         {page * rowsPerPage + index + 1}
                       </Typography>
                     </TableCell>
-                    <TableCell>{supplier.id}</TableCell>
                     <TableCell>
                       <Typography 
                         variant="body2" 
@@ -666,36 +677,54 @@ const Suppliers: React.FC = () => {
               label="Tên Nhà Cung Cấp"
               value={formData.ten_ncc}
               onChange={(e) => setFormData({ ...formData, ten_ncc: e.target.value })}
+              sx={{
+                height: '35px',
+              }}
             />
             <TextField
               fullWidth
               label="Tên Đầy Đủ"
               value={formData.ten_day_du}
               onChange={(e) => setFormData({ ...formData, ten_day_du: e.target.value })}
+              sx={{
+                height: '35px',
+              }}
             />
             <TextField
               fullWidth
               label="Loại Nhà Cung Cấp"
               value={formData.loai_ncc}
               onChange={(e) => setFormData({ ...formData, loai_ncc: e.target.value })}
+              sx={{
+                height: '35px',
+              }}
             />
             <TextField
               fullWidth
               label="Logo"
               value={formData.logo}
               onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
+              sx={{
+                height: '35px',
+              }}
             />
             <TextField
               fullWidth
               label="Người Đại Diện"
               value={formData.nguoi_dai_dien}
               onChange={(e) => setFormData({ ...formData, nguoi_dai_dien: e.target.value })}
+              sx={{
+                height: '35px',
+              }}
             />
             <TextField
               fullWidth
               label="Số Điện Thoại"
               value={formData.sdt}
               onChange={(e) => setFormData({ ...formData, sdt: e.target.value })}
+              sx={{
+                height: '35px',
+              }}
             />
             <FormControl fullWidth>
               <InputLabel>Trạng Thái</InputLabel>
@@ -863,7 +892,17 @@ const Suppliers: React.FC = () => {
               <TableContainer>
                 <Table size="small">
                   <TableHead>
-                    <TableRow>
+                    <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                       <TableCell>Dòng</TableCell>
                       <TableCell>Tên NCC</TableCell>
                       <TableCell>Tên Đầy Đủ</TableCell>

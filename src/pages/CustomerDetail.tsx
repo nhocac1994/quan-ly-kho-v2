@@ -223,7 +223,7 @@ const CustomerDetail: React.FC = () => {
   const totalOutbound = calculateTotalOutbound();
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
         <IconButton onClick={() => navigate('/customers')}>
           <ArrowBackIcon />
@@ -336,7 +336,17 @@ const CustomerDetail: React.FC = () => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow>
+                  <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                     <TableCell>STT</TableCell>
                     <TableCell>Mã phiếu</TableCell>
                     <TableCell>Ngày xuất</TableCell>

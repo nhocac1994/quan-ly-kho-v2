@@ -178,7 +178,7 @@ const InboundShipmentDetails: React.FC = () => {
 
   if (!shipment) {
     return (
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
         <Typography variant="h6" color="error">
           Không tìm thấy thông tin phiếu nhập kho
         </Typography>
@@ -190,7 +190,7 @@ const InboundShipmentDetails: React.FC = () => {
   }
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
       {/* Header Section */}
       <Box sx={{ p: 3, pb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
@@ -286,7 +286,17 @@ const InboundShipmentDetails: React.FC = () => {
         <TableContainer sx={{ flex: 1, maxHeight: 'none' }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                 <TableCell>Mã CT</TableCell>
                 <TableCell>Mã SP</TableCell>
                 <TableCell>Tên Sản Phẩm</TableCell>

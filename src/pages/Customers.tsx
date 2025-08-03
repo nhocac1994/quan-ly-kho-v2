@@ -445,7 +445,7 @@ const Customers: React.FC = () => {
   );
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -466,6 +466,7 @@ const Customers: React.FC = () => {
               minWidth: 200,
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
+                height: '35px',
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -486,6 +487,7 @@ const Customers: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               borderColor: 'primary.main',
@@ -507,6 +509,7 @@ const Customers: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               borderColor: 'primary.main',
@@ -529,6 +532,7 @@ const Customers: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               boxShadow: 2,
@@ -563,9 +567,18 @@ const Customers: React.FC = () => {
         <TableContainer sx={{ maxHeight: 600 }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                 <TableCell>STT</TableCell>
-                <TableCell>Mã KH</TableCell>
                 <TableCell>Tên Khách Hàng</TableCell>
                 <TableCell>Tên Đầy Đủ</TableCell>
                 <TableCell>Loại KH</TableCell>
@@ -586,7 +599,6 @@ const Customers: React.FC = () => {
                         {page * rowsPerPage + index + 1}
                       </Typography>
                     </TableCell>
-                    <TableCell>{customer.id}</TableCell>
                     <TableCell>
                       <Typography 
                         variant="body2" 

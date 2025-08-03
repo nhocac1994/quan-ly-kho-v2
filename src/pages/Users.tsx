@@ -15,16 +15,14 @@ import {
   Button,
   IconButton,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Drawer,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   FormControlLabel,
   Switch,
+  Divider,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -187,7 +185,7 @@ const Users: React.FC = () => {
   );
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -208,6 +206,7 @@ const Users: React.FC = () => {
               minWidth: 200,
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
+                height: '35px',
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -229,6 +228,7 @@ const Users: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               boxShadow: 2,
@@ -260,12 +260,21 @@ const Users: React.FC = () => {
 
       {/* Users Table */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 600 }}>
+        <TableContainer sx={{ maxHeight: 'calc(100vh - 295px)' }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                 <TableCell>STT</TableCell>
-                <TableCell>Mã ND</TableCell>
                 <TableCell>Họ Và Tên</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Chức Vụ</TableCell>
@@ -287,7 +296,6 @@ const Users: React.FC = () => {
                         {page * rowsPerPage + index + 1}
                       </Typography>
                     </TableCell>
-                    <TableCell>{user.id}</TableCell>
                     <TableCell>{user.ho_va_ten}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.chuc_vu}</TableCell>
@@ -362,34 +370,92 @@ const Users: React.FC = () => {
         />
       </Paper>
 
-      {/* Dialog thêm/sửa người dùng */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {editingUser ? 'Sửa Người Dùng' : 'Thêm Người Dùng Mới'}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-            <Box sx={{ display: 'flex', gap: 2 }}>
+      {/* Drawer thêm/sửa người dùng */}
+      <Drawer
+        anchor="right"
+        open={openDialog}
+        onClose={handleCloseDialog}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: 400,
+            boxSizing: 'border-box',
+            background: '#f8f9fa',
+          },
+        }}
+      >
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          {/* Header */}
+          <Box sx={{ 
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            p: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2
+          }}>
+            <PersonIcon sx={{ fontSize: 20 }} />
+            <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
+              {editingUser ? 'Sửa Người Dùng' : 'Thêm Người Dùng Mới'}
+            </Typography>
+          </Box>
+
+          {/* Form Content */}
+          <Box sx={{ flex: 1, p: 3, overflow: 'auto' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               <TextField
                 fullWidth
                 label="Họ Và Tên"
+                placeholder="Nhập họ và tên"
                 value={formData.ho_va_ten}
                 onChange={(e) => setFormData({ ...formData, ho_va_ten: e.target.value })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
               />
               <TextField
                 fullWidth
                 label="Email"
                 type="email"
+                placeholder="Nhập email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
               />
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
                 fullWidth
                 label="Chức Vụ"
+                placeholder="Nhập chức vụ"
                 value={formData.chuc_vu}
                 onChange={(e) => setFormData({ ...formData, chuc_vu: e.target.value })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
               />
               <FormControl fullWidth>
                 <InputLabel>Phân Quyền</InputLabel>
@@ -397,107 +463,172 @@ const Users: React.FC = () => {
                   value={formData.phan_quyen}
                   label="Phân Quyền"
                   onChange={(e) => setFormData({ ...formData, phan_quyen: e.target.value })}
+                  sx={{
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'primary.main',
+                    },
+                  }}
                 >
                   <MenuItem value="User">User</MenuItem>
                   <MenuItem value="Admin">Admin</MenuItem>
                   <MenuItem value="Manager">Manager</MenuItem>
                 </Select>
               </FormControl>
-            </Box>
-            {!editingUser && (
-              <TextField
-                fullWidth
-                label="Mật Khẩu"
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
-            )}
-            
-            <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>Quyền Hạn</Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2 }}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.quyen_xem}
-                    onChange={(e) => setFormData({ ...formData, quyen_xem: e.target.checked })}
-                  />
-                }
-                label="Quyền Xem"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.quyen_them}
-                    onChange={(e) => setFormData({ ...formData, quyen_them: e.target.checked })}
-                  />
-                }
-                label="Quyền Thêm"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.quyen_sua}
-                    onChange={(e) => setFormData({ ...formData, quyen_sua: e.target.checked })}
-                  />
-                }
-                label="Quyền Sửa"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.quyen_xoa}
-                    onChange={(e) => setFormData({ ...formData, quyen_xoa: e.target.checked })}
-                  />
-                }
-                label="Quyền Xóa"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.quyen_xuat}
-                    onChange={(e) => setFormData({ ...formData, quyen_xuat: e.target.checked })}
-                  />
-                }
-                label="Quyền Xuất"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.quyen_nhap}
-                    onChange={(e) => setFormData({ ...formData, quyen_nhap: e.target.checked })}
-                  />
-                }
-                label="Quyền Nhập"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.quyen_bao_cao}
-                    onChange={(e) => setFormData({ ...formData, quyen_bao_cao: e.target.checked })}
-                  />
-                }
-                label="Quyền Báo Cáo"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.quyen_cai_dat}
-                    onChange={(e) => setFormData({ ...formData, quyen_cai_dat: e.target.checked })}
-                  />
-                }
-                label="Quyền Cài Đặt"
-              />
+              {!editingUser && (
+                <TextField
+                  fullWidth
+                  label="Mật Khẩu"
+                  type="password"
+                  placeholder="Nhập mật khẩu"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      '&:hover fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                      },
+                    }
+                  }}
+                />
+              )}
+              
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                Quyền Hạn
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.quyen_xem}
+                      onChange={(e) => setFormData({ ...formData, quyen_xem: e.target.checked })}
+                    />
+                  }
+                  label="Quyền Xem"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.quyen_them}
+                      onChange={(e) => setFormData({ ...formData, quyen_them: e.target.checked })}
+                    />
+                  }
+                  label="Quyền Thêm"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.quyen_sua}
+                      onChange={(e) => setFormData({ ...formData, quyen_sua: e.target.checked })}
+                    />
+                  }
+                  label="Quyền Sửa"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.quyen_xoa}
+                      onChange={(e) => setFormData({ ...formData, quyen_xoa: e.target.checked })}
+                    />
+                  }
+                  label="Quyền Xóa"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.quyen_xuat}
+                      onChange={(e) => setFormData({ ...formData, quyen_xuat: e.target.checked })}
+                    />
+                  }
+                  label="Quyền Xuất"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.quyen_nhap}
+                      onChange={(e) => setFormData({ ...formData, quyen_nhap: e.target.checked })}
+                    />
+                  }
+                  label="Quyền Nhập"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.quyen_bao_cao}
+                      onChange={(e) => setFormData({ ...formData, quyen_bao_cao: e.target.checked })}
+                    />
+                  }
+                  label="Quyền Báo Cáo"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.quyen_cai_dat}
+                      onChange={(e) => setFormData({ ...formData, quyen_cai_dat: e.target.checked })}
+                    />
+                  }
+                  label="Quyền Cài Đặt"
+                />
+              </Box>
             </Box>
           </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Hủy</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {editingUser ? 'Cập Nhật' : 'Tạo Người Dùng'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+
+          {/* Footer Buttons */}
+          <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button 
+                onClick={handleCloseDialog}
+                fullWidth
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  height: '35px',
+                  py: 1,
+                  color: 'text.secondary',
+                  border: '1px solid',
+                  borderColor: 'grey.300',
+                  '&:hover': {
+                    backgroundColor: 'grey.100',
+                  }
+                }}
+              >
+                HỦY
+              </Button>
+              <Button 
+                onClick={handleSubmit} 
+                variant="contained"
+                fullWidth
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  height: '35px',
+                  py: 1,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                  }
+                }}
+              >
+                {editingUser ? 'CẬP NHẬT' : 'THÊM'}
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Drawer>
     </Box>
   );
 };

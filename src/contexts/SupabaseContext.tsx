@@ -173,7 +173,8 @@ export const SupabaseProvider: React.FC<SupabaseProviderProps> = ({ children }) 
     setErrors(prev => ({ ...prev, inboundShipments: null }));
     
     try {
-      const data = await dataService.inboundShipments.getAll();
+      // Sử dụng shipmentHeaders thay vì inboundShipments
+      const data = await dataService.shipmentHeaders.getByType('inbound');
       setInboundShipments(data);
     } catch (error) {
       console.error('Error fetching inbound shipments:', error);
@@ -188,7 +189,8 @@ export const SupabaseProvider: React.FC<SupabaseProviderProps> = ({ children }) 
     setErrors(prev => ({ ...prev, outboundShipments: null }));
     
     try {
-      const data = await dataService.outboundShipments.getAll();
+      // Sử dụng shipmentHeaders thay vì outboundShipments
+      const data = await dataService.shipmentHeaders.getByType('outbound');
       setOutboundShipments(data);
     } catch (error) {
       console.error('Error fetching outbound shipments:', error);

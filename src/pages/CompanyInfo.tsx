@@ -17,14 +17,12 @@ import {
   Chip,
   Card,
   CardContent,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Drawer,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
+  Divider,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -161,7 +159,7 @@ const CompanyInfoPage: React.FC = () => {
   );
 
     return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -182,6 +180,7 @@ const CompanyInfoPage: React.FC = () => {
               minWidth: 200,
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
+                height: '35px',
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -203,6 +202,7 @@ const CompanyInfoPage: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               boxShadow: 2,
@@ -237,9 +237,18 @@ const CompanyInfoPage: React.FC = () => {
         <TableContainer sx={{ maxHeight: 600 }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                 <TableCell>STT</TableCell>
-                <TableCell>Mã CT</TableCell>
                 <TableCell>Tên Công Ty</TableCell>
                 <TableCell>Tên Đầy Đủ</TableCell>
                 <TableCell>Loại CT</TableCell>
@@ -260,7 +269,6 @@ const CompanyInfoPage: React.FC = () => {
                         {page * rowsPerPage + index + 1}
                       </Typography>
                     </TableCell>
-                    <TableCell>{company.id}</TableCell>
                     <TableCell>{company.ten_cong_ty}</TableCell>
                     <TableCell>{company.ten_day_du}</TableCell>
                     <TableCell>{company.loai_cong_ty}</TableCell>
@@ -310,62 +318,163 @@ const CompanyInfoPage: React.FC = () => {
         />
       </Paper>
 
-      {/* Dialog thêm/sửa công ty */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {editingCompany ? 'Sửa Thông Tin Công Ty' : 'Thêm Công Ty Mới'}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <Box sx={{ display: 'flex', gap: 2 }}>
+      {/* Drawer thêm/sửa công ty */}
+      <Drawer
+        anchor="right"
+        open={openDialog}
+        onClose={handleCloseDialog}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: 400,
+            boxSizing: 'border-box',
+            background: '#f8f9fa',
+          },
+        }}
+      >
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          {/* Header */}
+          <Box sx={{ 
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            p: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2
+          }}>
+            <BusinessIcon sx={{ fontSize: 20 }} />
+            <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
+              {editingCompany ? 'Sửa Thông Tin Công Ty' : 'Thêm Công Ty Mới'}
+            </Typography>
+          </Box>
+
+          {/* Form Content */}
+          <Box sx={{ flex: 1, p: 3, overflow: 'auto' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               <TextField
                 fullWidth
                 label="Tên Công Ty"
+                placeholder="Nhập tên công ty"
                 value={formData.ten_cong_ty}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, ten_cong_ty: e.target.value })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
               />
               <TextField
                 fullWidth
                 label="Tên Đầy Đủ"
+                placeholder="Nhập tên đầy đủ"
                 value={formData.ten_day_du}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, ten_day_du: e.target.value })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
               />
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
                 fullWidth
                 label="Loại Công Ty"
+                placeholder="Nhập loại công ty"
                 value={formData.loai_cong_ty}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, loai_cong_ty: e.target.value })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
               />
               <TextField
                 fullWidth
                 label="Logo"
+                placeholder="Nhập đường dẫn logo"
                 value={formData.logo}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, logo: e.target.value })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
               />
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
                 fullWidth
                 label="Người Đại Diện"
+                placeholder="Nhập tên người đại diện"
                 value={formData.nguoi_dai_dien}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, nguoi_dai_dien: e.target.value })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
               />
               <TextField
                 fullWidth
                 label="Số Điện Thoại"
+                placeholder="Nhập số điện thoại"
                 value={formData.sdt}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, sdt: e.target.value })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
               />
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
               <FormControl fullWidth>
                 <InputLabel>Trạng Thái</InputLabel>
                 <Select
                   value={formData.tinh_trang}
                   label="Trạng Thái"
                   onChange={(e) => setFormData({ ...formData, tinh_trang: e.target.value })}
+                  sx={{
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'primary.main',
+                    },
+                  }}
                 >
                   <MenuItem value="Hoạt động">Hoạt động</MenuItem>
                   <MenuItem value="Tạm ngưng">Tạm ngưng</MenuItem>
@@ -375,40 +484,112 @@ const CompanyInfoPage: React.FC = () => {
               <TextField
                 fullWidth
                 label="NV Phụ Trách"
+                placeholder="Nhập tên nhân viên phụ trách"
                 value={formData.nv_phu_trach}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, nv_phu_trach: e.target.value })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
               />
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
               <FormControl fullWidth>
                 <InputLabel>Hiển Thị</InputLabel>
                 <Select
                   value={formData.hien_thi}
                   label="Hiển Thị"
                   onChange={(e) => setFormData({ ...formData, hien_thi: e.target.value })}
+                  sx={{
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                      },
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'primary.main',
+                    },
+                  }}
                 >
                   <MenuItem value="Có">Có</MenuItem>
                   <MenuItem value="Không">Không</MenuItem>
                 </Select>
               </FormControl>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label="Ghi Chú"
+                placeholder="Nhập ghi chú (nếu có)"
+                value={formData.ghi_chu}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, ghi_chu: e.target.value })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
+              />
             </Box>
-            <TextField
-              fullWidth
-              multiline
-              rows={3}
-              label="Ghi Chú"
-              value={formData.ghi_chu}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, ghi_chu: e.target.value })}
-            />
           </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Hủy</Button>
-          <Button onClick={handleSubmit} variant="contained">
-            {editingCompany ? 'Cập Nhật' : 'Thêm'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+
+          {/* Footer Buttons */}
+          <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button 
+                onClick={handleCloseDialog}
+                fullWidth
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  height: '35px',
+                  py: 1,
+                  color: 'text.secondary',
+                  border: '1px solid',
+                  borderColor: 'grey.300',
+                  '&:hover': {
+                    backgroundColor: 'grey.100',
+                  }
+                }}
+              >
+                HỦY
+              </Button>
+              <Button 
+                onClick={handleSubmit} 
+                variant="contained"
+                fullWidth
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  height: '35px',
+                  py: 1,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                  }
+                }}
+              >
+                {editingCompany ? 'CẬP NHẬT' : 'THÊM'}
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Drawer>
     </Box>
   );
 };

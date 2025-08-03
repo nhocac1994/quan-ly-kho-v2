@@ -35,8 +35,8 @@ import {
 } from '@mui/icons-material';
 import { useProducts, useShipmentHeaders, useShipmentItems } from '../hooks/useSupabaseQueries';
 import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
 
 interface InventoryReportProps {}
 
@@ -52,6 +52,9 @@ interface ProductReport {
 }
 
 const InventoryReport: React.FC<InventoryReportProps> = () => {
+  // Cấu hình pdfmake fonts
+  (pdfMake as any).vfs = (pdfFonts as any).pdfMake ? (pdfFonts as any).pdfMake.vfs : pdfFonts;
+  
   const { data: products = [], isLoading: loadingProducts } = useProducts();
   const { data: shipmentHeaders = [], isLoading: loadingShipments } = useShipmentHeaders();
   const { data: shipmentItems = [], isLoading: loadingItems } = useShipmentItems('');
@@ -207,76 +210,113 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
 
   // Xuất PDF
   const exportToPDF = () => {
-    const doc = new jsPDF('landscape', 'mm', 'a4');
-    
-    // Header
-    doc.setFontSize(18);
-    doc.text('Báo cáo xuất nhập tồn', 140, 20, { align: 'center' });
-    
-    doc.setFontSize(12);
-    doc.text(`Từ ngày ${formatDate(dateFrom)} đến ngày ${formatDate(dateTo)}`, 140, 30, { align: 'center' });
-    doc.text(`Chi nhánh: ${branch}`, 140, 37, { align: 'center' });
-    doc.text(`Ngày lập: ${new Date().toLocaleString('vi-VN')}`, 20, 20);
-    
-    // Table data
-    const tableData = [
-      // Headers
-      [
-        'Mã hàng',
-        'Tên hàng',
-        'Tồn đầu kỳ',
-        'SL Nhập',
-        'SL Xuất',
-        'Tồn cuối kỳ'
-      ],
-      // Summary row
-      [
-        `SL mặt hàng: ${inventoryReport.length}`,
-        '',
-        totals.beginning_stock.toString(),
-        totals.inbound_quantity.toString(),
-        totals.outbound_quantity.toString(),
-        totals.ending_stock.toString()
-      ],
-      // Data rows
-      ...inventoryReport.map(item => [
-        item.product_code,
-        item.product_name,
-        item.beginning_stock.toString(),
-        item.inbound_quantity.toString(),
-        item.outbound_quantity.toString(),
-        item.ending_stock.toString()
-      ])
-    ];
+    try {
+      // Định nghĩa document
+      const docDefinition = {
+        pageOrientation: 'landscape',
+        pageSize: 'A4',
+        content: [
+          // Header
+          {
+            text: 'Báo cáo xuất nhập tồn',
+            style: 'header',
+            alignment: 'center',
+            margin: [0, 0, 0, 10]
+          },
+          {
+            text: `Từ ngày ${formatDate(dateFrom)} đến ngày ${formatDate(dateTo)}`,
+            style: 'subheader',
+            alignment: 'center',
+            margin: [0, 0, 0, 5]
+          },
+          {
+            text: `Chi nhánh: ${branch || 'Tất cả'}`,
+            style: 'subheader',
+            alignment: 'center',
+            margin: [0, 0, 0, 5]
+          },
+          {
+            text: `Ngày lập: ${new Date().toLocaleString('vi-VN')}`,
+            style: 'subheader',
+            alignment: 'left',
+            margin: [0, 0, 0, 20]
+          },
+          // Table
+          {
+            table: {
+              headerRows: 1,
+              widths: ['15%', '35%', '12%', '12%', '12%', '14%'],
+              body: [
+                // Header row
+                [
+                  { text: 'Mã hàng', style: 'tableHeader' },
+                  { text: 'Tên hàng', style: 'tableHeader' },
+                  { text: 'Tồn đầu kỳ', style: 'tableHeader' },
+                  { text: 'SL Nhập', style: 'tableHeader' },
+                  { text: 'SL Xuất', style: 'tableHeader' },
+                  { text: 'Tồn cuối kỳ', style: 'tableHeader' }
+                ],
+                // Summary row
+                [
+                  { text: `SL mặt hàng: ${inventoryReport.length}`, style: 'summaryRow' },
+                  { text: '', style: 'summaryRow' },
+                  { text: formatNumber(totals.beginning_stock), style: 'summaryRow' },
+                  { text: formatNumber(totals.inbound_quantity), style: 'summaryRow' },
+                  { text: formatNumber(totals.outbound_quantity), style: 'summaryRow' },
+                  { text: formatNumber(totals.ending_stock), style: 'summaryRow' }
+                ],
+                // Data rows
+                ...inventoryReport.map(item => [
+                  { text: item.product_code, style: 'tableCell' },
+                  { text: item.product_name, style: 'tableCell' },
+                  { text: formatNumber(item.beginning_stock), style: 'tableCell' },
+                  { text: formatNumber(item.inbound_quantity), style: 'tableCell' },
+                  { text: formatNumber(item.outbound_quantity), style: 'tableCell' },
+                  { text: formatNumber(item.ending_stock), style: 'tableCell' }
+                ])
+              ]
+            }
+          }
+        ],
+        styles: {
+          header: {
+            fontSize: 18,
+            bold: true,
+            color: '#000000'
+          },
+          subheader: {
+            fontSize: 12,
+            color: '#000000'
+          },
+          tableHeader: {
+            bold: true,
+            fontSize: 10,
+            color: '#ffffff',
+            fillColor: '#4285f4',
+            alignment: 'center'
+          },
+          tableCell: {
+            fontSize: 9,
+            color: '#000000'
+          },
+          summaryRow: {
+            bold: true,
+            fontSize: 9,
+            color: '#000000',
+            fillColor: '#f5f5f5'
+          }
+        },
+        defaultStyle: {
+          font: 'Roboto'
+        }
+      };
 
-    autoTable(doc, {
-      startY: 50,
-      head: [tableData[0]],
-      body: tableData.slice(1),
-      theme: 'grid',
-      headStyles: {
-        fillColor: [66, 139, 202],
-        textColor: 255,
-        fontSize: 10,
-        fontStyle: 'bold'
-      },
-      bodyStyles: {
-        fontSize: 9
-      },
-      alternateRowStyles: {
-        fillColor: [245, 245, 245]
-      },
-      columnStyles: {
-        0: { cellWidth: 25 },
-        1: { cellWidth: 60 },
-        2: { cellWidth: 20, halign: 'right' },
-        3: { cellWidth: 20, halign: 'right' },
-        4: { cellWidth: 20, halign: 'right' },
-        5: { cellWidth: 20, halign: 'right' }
-      }
-    });
-
-    doc.save(`bao-cao-xuat-nhap-ton-${formatDate(dateFrom)}-${formatDate(dateTo)}.pdf`);
+      // Tạo và download PDF
+      pdfMake.createPdf(docDefinition as any).download(`bao-cao-xuat-nhap-ton-${formatDate(dateFrom)}-${formatDate(dateTo)}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Lỗi khi tạo file PDF');
+    }
   };
 
   if (isLoading) {
@@ -288,7 +328,7 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -308,6 +348,7 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               borderColor: 'primary.main',
@@ -330,6 +371,7 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               borderColor: 'success.main',
@@ -352,6 +394,7 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               borderColor: 'error.main',
@@ -421,21 +464,41 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
 
       {/* Report Table */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 'calc(100vh - 300px)' }}>
+        <TableContainer sx={{ maxHeight: 'calc(100vh - 180px)' }}>
           <Table stickyHeader size="small">
-            <TableHead>
-              <TableRow sx={{ bgcolor: 'primary.main' }}>
+            <TableHead sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
+              <TableRow sx={{ bgcolor: '#f5f5f5', position: 'sticky', top: 0, zIndex: 1000, height: '50px' }}>
                 <TableCell sx={{ color: '#000', fontWeight: 'bold', width: 120 }}>Mã hàng</TableCell>
                 <TableCell sx={{ color: '#000', fontWeight: 'bold' }}>Tên hàng</TableCell>
-                <TableCell sx={{ color: '#000', fontWeight: 'bold', width: 100, textAlign: 'right' }}>Tồn đầu kỳ</TableCell>
-                <TableCell sx={{ color: '#000', fontWeight: 'bold', width: 80, textAlign: 'right' }}>SL Nhập</TableCell>
-                <TableCell sx={{ color: '#000', fontWeight: 'bold', width: 80, textAlign: 'right' }}>SL Xuất</TableCell>
-                <TableCell sx={{ color: '#000', fontWeight: 'bold', width: 100, textAlign: 'right' }}>Tồn cuối kỳ</TableCell>
+                <TableCell sx={{ color: '#000', fontWeight: 'bold', width: 200, textAlign: 'right' }}>Tồn đầu kỳ</TableCell>
+                <TableCell sx={{ color: '#000', fontWeight: 'bold', width: 200, textAlign: 'right' }}>SL Nhập</TableCell>
+                <TableCell sx={{ color: '#000', fontWeight: 'bold', width: 200, textAlign: 'right' }}>SL Xuất</TableCell>
+                <TableCell sx={{ color: '#000', fontWeight: 'bold', width: 200, textAlign: 'right' }}>Tồn cuối kỳ</TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {/* Summary Row */}
-              <TableRow sx={{ bgcolor: 'success.light' }}>
+              </TableHead>
+              <TableHead>
+              {/* Summary Row - Sticky */}
+              <TableRow sx={{ 
+                backgroundColor: '#FFF8E1 !important', 
+                position: 'sticky', 
+                top: 50, 
+                zIndex: 999,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#FFF8E1 !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                }
+              }}>
                 <TableCell colSpan={2} sx={{ fontWeight: 'bold' }}>
                   SL mặt hàng: {inventoryReport.length}
                 </TableCell>
@@ -452,6 +515,8 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
                   {formatNumber(totals.ending_stock)}
                 </TableCell>
               </TableRow>
+            </TableHead>
+            <TableBody>
               
               {/* Data Rows */}
               {inventoryReport.map((item, index) => (

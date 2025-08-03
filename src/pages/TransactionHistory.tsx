@@ -246,7 +246,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -267,6 +267,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
               minWidth: 200,
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
+                height: '35px',
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -289,6 +290,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               borderColor: 'primary.main',
@@ -310,6 +312,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               borderColor: 'error.main',
@@ -343,12 +346,12 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
 
       {/* Filter Dialog - Slide down from header */}
       <Slide direction="down" in={filterDialogOpen} mountOnEnter unmountOnExit>
-        <Paper sx={{ p: 2, mb: 2, boxShadow: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+        <Paper sx={{ p: 2, mb: 2, boxShadow: 3, borderRadius: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 , fontSize: '1.2rem' }}>
             Bộ Lọc Nâng Cao
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
+            <Box sx={{ flex: '1 1 200px', minWidth: 200,height: '35px' }}>
               <TextField
                 type="date"
                 label="Từ ngày"
@@ -357,6 +360,10 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
                 InputLabelProps={{ shrink: true }}
                 size="small"
                 fullWidth
+                sx={{
+                  height: '35px',
+                  borderRadius: 2,
+                }}
               />
             </Box>
             <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
@@ -368,6 +375,9 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
                 InputLabelProps={{ shrink: true }}
                 size="small"
                 fullWidth
+                sx={{
+                  height: '35px',
+                }}
               />
             </Box>
             <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
@@ -423,17 +433,23 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
       </Slide>
 
       {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2, }}>
         <Tabs value={tabValue} onChange={handleTabChange} aria-label="transaction tabs">
           <Tab 
             label={`TẤT CẢ (${totalTransactions})`} 
             icon={<CalendarIcon />} 
             iconPosition="start"
+            sx={{
+              height: '35px',
+            }}
           />
           <Tab 
             label={`NHẬP KHO (${totalInbound})`} 
             icon={<InputIcon />} 
             iconPosition="start"
+            sx={{
+              height: '35px',
+            }}
           />
           <Tab 
             label={`XUẤT KHO (${totalOutbound})`} 
@@ -448,7 +464,17 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
         <TableContainer sx={{ maxHeight: 'calc(100vh - 300px)' }}>
           <Table stickyHeader size="small">
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                 <TableCell sx={{ fontWeight: 'bold', width: 60 }}>STT</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', width: 80 }}>Loại</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', width: 120 }}>Mã Phiếu</TableCell>

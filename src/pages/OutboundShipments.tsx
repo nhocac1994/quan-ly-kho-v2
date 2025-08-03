@@ -575,6 +575,201 @@ const OutboundShipments: React.FC = () => {
     });
   };
 
+  const handlePrintShipment = () => {
+    if (!viewingShipment) {
+      console.log('No viewingShipment data found');
+      return;
+    }
+    
+    console.log('=== DEBUG PRINT SHIPMENT ===');
+    console.log('ViewingShipment:', viewingShipment);
+    console.log('ShipmentItems:', shipmentItems);
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    // Tìm các trường có thể chứa thông tin
+    const possibleDateFields = ['created_at', 'shipment_date', 'ngay_xuat', 'date', 'created_date'];
+    const possibleIdFields = ['id', 'shipment_id', 'xuat_kho_id', 'ma_phieu'];
+    const possibleCustomerFields = ['customer_name', 'ten_khach_hang', 'khach_hang'];
+    const possibleContentFields = ['content', 'noi_dung_xuat', 'description', 'ghi_chu'];
+    
+    const foundDate = possibleDateFields.find(field => viewingShipment[field]);
+    const foundId = possibleIdFields.find(field => viewingShipment[field]);
+    const foundCustomer = possibleCustomerFields.find(field => viewingShipment[field]);
+    const foundContent = possibleContentFields.find(field => viewingShipment[field]);
+    
+    console.log('Found date field:', foundDate, 'Value:', foundDate ? viewingShipment[foundDate] : 'Not found');
+    console.log('Found ID field:', foundId, 'Value:', foundId ? viewingShipment[foundId] : 'Not found');
+    console.log('Found customer field:', foundCustomer, 'Value:', foundCustomer ? viewingShipment[foundCustomer] : 'Not found');
+    console.log('Found content field:', foundContent, 'Value:', foundContent ? viewingShipment[foundContent] : 'Not found');
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>PHIẾU XUẤT KHO</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+          }
+          .date-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+          }
+          .info-section {
+            margin-bottom: 20px;
+          }
+          .info-row {
+            display: flex;
+            margin-bottom: 10px;
+          }
+          .info-label {
+            font-weight: bold;
+            width: 150px;
+            min-width: 150px;
+          }
+          .info-value {
+            flex: 1;
+          }
+          .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+          }
+          .table th, .table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+          }
+          .table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+          }
+          .total-row {
+            font-weight: bold;
+          }
+          .signatures {
+            display: flex; justify-content: space-between; margin-top: 40px;
+          }
+          .signature-box {
+            text-align: center;
+            width: 200px;
+          }
+          .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 50px;
+            padding-top: 5px;
+          }
+          @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">PHIẾU XUẤT KHO</div>
+          <div class="date-info">
+            <div>Ngày Tháng: ${foundDate && viewingShipment[foundDate] ? formatDate(viewingShipment[foundDate]) : ''}</div>
+            <div>Số Phiếu: ${foundId ? viewingShipment[foundId] : ''}</div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-row">
+            <div class="info-label">Người nhận hàng:</div>
+            <div class="info-value">${foundCustomer ? viewingShipment[foundCustomer] : ''}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Địa chỉ:</div>
+            <div class="info-value">${viewingShipment.dia_chi || viewingShipment.address || ''}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Số điện thoại:</div>
+            <div class="info-value">${viewingShipment.so_dt || viewingShipment.phone || ''}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">Nội dung xuất:</div>
+            <div class="info-value">${foundContent ? viewingShipment[foundContent] : ''}</div>
+          </div>
+        </div>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Mã Hàng</th>
+              <th>Tên Hàng</th>
+              <th>ĐVT</th>
+              <th>Số Lượng</th>
+              <th>Ghi Chú</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${shipmentItems && shipmentItems.length > 0 ? 
+              shipmentItems.map((item: any, index: number) => `
+                <tr>
+                  <td>${index + 1}</td>
+                  <td>${item.product_code || item.product_id || ''}</td>
+                  <td>${item.product_name || ''}</td>
+                  <td>${item.unit || ''}</td>
+                  <td>${item.quantity || 0}</td>
+                  <td>${item.notes || ''}</td>
+                </tr>
+              `).join('') : 
+              '<tr><td colspan="6">Chưa có sản phẩm nào</td></tr>'
+            }
+            <tr class="total-row">
+              <td colspan="4">Tổng Cộng:</td>
+              <td>${shipmentItems ? shipmentItems.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) : 0}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="signatures">
+          <div class="signature-box">
+            <div class="signature-line">Người Lập Phiếu</div>
+            <div>(Ký, họ tên)</div>
+          </div>
+          <div class="signature-box">
+            <div class="signature-line">Trưởng Bộ Phận</div>
+            <div>(Ký, họ tên)</div>
+          </div>
+          <div class="signature-box">
+            <div class="signature-line">Tài Xế</div>
+            <div>(Ký, họ tên)</div>
+          </div>
+          <div class="signature-box">
+            <div class="signature-line">Người Nhận Hàng</div>
+            <div>(Ký, họ tên)</div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  };
+
   const handleImportExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -781,175 +976,7 @@ const OutboundShipments: React.FC = () => {
     }
   };
 
-  const handlePrintShipment = () => {
-    if (!viewingShipment) return;
-    
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
 
-    const printContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>PHIẾU XUẤT KHO</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            font-size: 14px;
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 30px;
-          }
-          .title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-          }
-          .date-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-          }
-          .info-section {
-            margin-bottom: 20px;
-          }
-          .info-row {
-            display: flex;
-            margin-bottom: 10px;
-          }
-          .info-label {
-            font-weight: bold;
-            width: 150px;
-            min-width: 150px;
-          }
-          .info-value {
-            flex: 1;
-          }
-          .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-          }
-          .table th, .table td {
-            border: 1px solid #000;
-            padding: 8px;
-            text-align: left;
-          }
-          .table th {
-            background-color: #f0f0f0;
-            font-weight: bold;
-          }
-          .total-row {
-            font-weight: bold;
-          }
-          .signatures {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 40px;
-          }
-          .signature-box {
-            text-align: center;
-            width: 200px;
-          }
-          .signature-line {
-            border-top: 1px solid #000;
-            margin-top: 50px;
-            padding-top: 5px;
-          }
-          @media print {
-            body { margin: 0; }
-            .no-print { display: none; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div class="title">PHIẾU XUẤT KHO</div>
-          <div class="date-info">
-            <div>Ngày Tháng: ${formatDate(viewingShipment.ngay_xuat)}</div>
-            <div>Số Phiếu: ${viewingShipment.xuat_kho_id}</div>
-          </div>
-        </div>
-
-        <div class="info-section">
-          <div class="info-row">
-            <div class="info-label">Người nhận hàng:</div>
-            <div class="info-value">${viewingShipment.ten_khach_hang || 'N/A'}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Địa chỉ:</div>
-            <div class="info-value">${viewingShipment.dia_chi || 'N/A'}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Số điện thoại:</div>
-            <div class="info-value">${viewingShipment.so_dt || 'N/A'}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Nội dung xuất:</div>
-            <div class="info-value">${viewingShipment.noi_dung_xuat || 'N/A'}</div>
-          </div>
-        </div>
-
-        <table class="table">
-          <thead>
-            <tr>
-              <th>STT</th>
-              <th>Mã Hàng</th>
-              <th>Tên Hàng</th>
-              <th>ĐVT</th>
-              <th>Số Lượng</th>
-              <th>Ghi Chú</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td>${viewingShipment.san_pham_id || 'N/A'}</td>
-              <td>${viewingShipment.ten_san_pham || 'N/A'}</td>
-              <td>${viewingShipment.dvt || 'N/A'}</td>
-              <td>${viewingShipment.sl_xuat || 0}</td>
-              <td>${viewingShipment.ghi_chu || 'N/A'}</td>
-            </tr>
-            <tr class="total-row">
-              <td colspan="3">Tổng Cộng:</td>
-              <td>${viewingShipment.dvt || 'N/A'}</td>
-              <td>${viewingShipment.sl_xuat || 0}</td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="signatures">
-          <div class="signature-box">
-            <div class="signature-line">Người Lập Phiếu</div>
-            <div>(Ký, họ tên)</div>
-          </div>
-          <div class="signature-box">
-            <div class="signature-line">Trưởng Bộ Phận</div>
-            <div>(Ký, họ tên)</div>
-          </div>
-          <div class="signature-box">
-            <div class="signature-line">Tài Xế</div>
-            <div>(Ký, họ tên)</div>
-          </div>
-          <div class="signature-box">
-            <div class="signature-line">Người Nhận Hàng</div>
-            <div>(Ký, họ tên)</div>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
-  };
 
   const filteredShipments = useMemo(() => {
     return (shipmentHeaders || []).filter((shipment: any) =>
@@ -960,7 +987,7 @@ const OutboundShipments: React.FC = () => {
   }, [shipmentHeaders, searchTerm]);
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -981,6 +1008,7 @@ const OutboundShipments: React.FC = () => {
               minWidth: 200,
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
+                height: '35px',
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -1002,6 +1030,7 @@ const OutboundShipments: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               borderColor: 'primary.main',
@@ -1023,6 +1052,7 @@ const OutboundShipments: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               boxShadow: 2,
@@ -1057,10 +1087,20 @@ const OutboundShipments: React.FC = () => {
 
       {/* OutboundShipments Table */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 600 }}>
+        <TableContainer sx={{ maxHeight: 'calc(100vh - 295px)' }}>
           <Table stickyHeader>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                 <TableCell>STT</TableCell>
                 <TableCell>Mã Phiếu</TableCell>
                 <TableCell>Ngày Xuất</TableCell>

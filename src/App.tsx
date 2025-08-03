@@ -3,11 +3,11 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Box, Container } from '@mui/material';
+import { Box } from '@mui/material';
 
 // Context
 import { InventoryProvider } from './context/InventoryContext';
-import { SupabaseAutoSyncProvider } from './contexts/SupabaseAutoSyncContext';
+
 import { SupabaseProvider } from './contexts/SupabaseContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 
@@ -25,7 +25,7 @@ import Users from './pages/Users';
 import InboundShipmentDetails from './pages/InboundShipmentDetails';
 import OutboundShipmentDetails from './pages/OutboundShipmentDetails';
 import TransactionHistory from './pages/TransactionHistory';
-import AutoSync from './pages/AutoSync';
+
 import ProductDetail from './pages/ProductDetail';
 import SupplierDetail from './pages/SupplierDetail';
 import CustomerDetail from './pages/CustomerDetail';
@@ -63,7 +63,6 @@ function App() {
         <CssBaseline />
         <LanguageProvider>
           <SupabaseProvider>
-            <SupabaseAutoSyncProvider>
               <InventoryProvider>
                 <Router>
                   <Box sx={{ display: 'flex', height: '100vh' }}>
@@ -84,13 +83,11 @@ function App() {
                         <Route path="/outbound-details/:shipmentId" element={<OutboundShipmentDetails />} />
                         <Route path="/transaction-history" element={<TransactionHistory />} />
                         <Route path="/inventory-report" element={<InventoryReport />} />
-                        <Route path="/auto-sync" element={<AutoSync />} />
                       </Routes>
                     </Layout>
                   </Box>
                 </Router>
               </InventoryProvider>
-            </SupabaseAutoSyncProvider>
           </SupabaseProvider>
         </LanguageProvider>
       </ThemeProvider>

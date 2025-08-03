@@ -278,167 +278,67 @@ export const customersAPI = {
   }
 };
 
-// Inbound Shipments API với realtime
+// Legacy Inbound Shipments API - Đã deprecated, sử dụng shipmentHeadersAPI thay thế
 export const inboundShipmentsAPI = {
   getAll: async (): Promise<InboundShipment[]> => {
-    const { data, error } = await supabase
-      .from('inbound_shipments')
-      .select('*')
-      .order('ngay_nhap', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching inbound shipments:', error);
-      throw error;
-    }
-
-    return data || [];
+    console.warn('inboundShipmentsAPI.getAll() is deprecated. Use shipmentHeadersAPI.getByType("inbound") instead.');
+    return [];
   },
 
   getById: async (id: string): Promise<InboundShipment | null> => {
-    const { data, error } = await supabase
-      .from('inbound_shipments')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching inbound shipment:', error);
-      throw error;
-    }
-
-    return data;
+    console.warn('inboundShipmentsAPI.getById() is deprecated. Use shipmentHeadersAPI.getById() instead.');
+    return null;
   },
 
   create: async (shipment: Omit<InboundShipment, 'id' | 'ngay_tao' | 'nguoi_tao' | 'updated_at'>): Promise<InboundShipment> => {
-    const { data, error } = await supabase
-      .from('inbound_shipments')
-      .insert([shipment])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating inbound shipment:', error);
-      throw error;
-    }
-
-    // Cập nhật số lượng tồn kho
-    await updateProductStock(shipment.san_pham_id, shipment.sl_nhap, 'inbound');
-
-    return data;
+    console.warn('inboundShipmentsAPI.create() is deprecated. Use shipmentHeadersAPI.create() instead.');
+    throw new Error('Deprecated API');
   },
 
   update: async (id: string, shipment: Partial<InboundShipment>): Promise<InboundShipment> => {
-    const { data, error } = await supabase
-      .from('inbound_shipments')
-      .update(shipment)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating inbound shipment:', error);
-      throw error;
-    }
-
-    return data;
+    console.warn('inboundShipmentsAPI.update() is deprecated. Use shipmentHeadersAPI.update() instead.');
+    throw new Error('Deprecated API');
   },
 
   delete: async (id: string): Promise<void> => {
-    const { error } = await supabase
-      .from('inbound_shipments')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error deleting inbound shipment:', error);
-      throw error;
-    }
+    console.warn('inboundShipmentsAPI.delete() is deprecated. Use shipmentHeadersAPI.delete() instead.');
   },
 
   subscribe: (callback: (payload: any) => void) => {
-    return subscribeToRealtime('inbound_shipments', callback);
+    console.warn('inboundShipmentsAPI.subscribe() is deprecated. Use shipmentHeadersAPI.subscribe() instead.');
+    return { unsubscribe: () => {} };
   }
 };
 
-// Outbound Shipments API với realtime
+// Legacy Outbound Shipments API - Đã deprecated, sử dụng shipmentHeadersAPI thay thế
 export const outboundShipmentsAPI = {
   getAll: async (): Promise<OutboundShipment[]> => {
-    const { data, error } = await supabase
-      .from('outbound_shipments')
-      .select('*')
-      .order('ngay_xuat', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching outbound shipments:', error);
-      throw error;
-    }
-
-    return data || [];
+    console.warn('outboundShipmentsAPI.getAll() is deprecated. Use shipmentHeadersAPI.getByType("outbound") instead.');
+    return [];
   },
 
   getById: async (id: string): Promise<OutboundShipment | null> => {
-    const { data, error } = await supabase
-      .from('outbound_shipments')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      console.error('Error fetching outbound shipment:', error);
-      throw error;
-    }
-
-    return data;
+    console.warn('outboundShipmentsAPI.getById() is deprecated. Use shipmentHeadersAPI.getById() instead.');
+    return null;
   },
 
   create: async (shipment: Omit<OutboundShipment, 'id' | 'ngay_tao' | 'nguoi_tao' | 'updated_at'>): Promise<OutboundShipment> => {
-    const { data, error } = await supabase
-      .from('outbound_shipments')
-      .insert([shipment])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating outbound shipment:', error);
-      throw error;
-    }
-
-    // Cập nhật số lượng tồn kho
-    await updateProductStock(shipment.san_pham_id, shipment.sl_xuat, 'outbound');
-
-    return data;
+    console.warn('outboundShipmentsAPI.create() is deprecated. Use shipmentHeadersAPI.create() instead.');
+    throw new Error('Deprecated API');
   },
 
   update: async (id: string, shipment: Partial<OutboundShipment>): Promise<OutboundShipment> => {
-    const { data, error } = await supabase
-      .from('outbound_shipments')
-      .update(shipment)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating outbound shipment:', error);
-      throw error;
-    }
-
-    return data;
+    console.warn('outboundShipmentsAPI.update() is deprecated. Use shipmentHeadersAPI.update() instead.');
+    throw new Error('Deprecated API');
   },
 
   delete: async (id: string): Promise<void> => {
-    const { error } = await supabase
-      .from('outbound_shipments')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error deleting outbound shipment:', error);
-      throw error;
-    }
+    console.warn('outboundShipmentsAPI.delete() is deprecated. Use shipmentHeadersAPI.delete() instead.');
   },
 
   subscribe: (callback: (payload: any) => void) => {
-    return subscribeToRealtime('outbound_shipments', callback);
+    console.warn('outboundShipmentsAPI.subscribe() is deprecated. Use shipmentHeadersAPI.subscribe() instead.');
+    return { unsubscribe: () => {} };
   }
 };
 

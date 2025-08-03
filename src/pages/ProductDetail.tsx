@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { dataService } from '../services/dataService';
+import { supabase } from '../services/supabaseService';
 import {
   Box,
   Typography,
@@ -62,8 +62,8 @@ const ProductDetail: React.FC = () => {
   const navigate = useNavigate();
   
   const [product, setProduct] = useState<Product | null>(null);
-  const [inboundShipments, setInboundShipments] = useState<InboundShipment[]>([]);
-  const [outboundShipments, setOutboundShipments] = useState<OutboundShipment[]>([]);
+  const [inboundShipments, setInboundShipments] = useState<any[]>([]);
+  const [outboundShipments, setOutboundShipments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -78,30 +78,86 @@ const ProductDetail: React.FC = () => {
     setLoading(true);
     try {
       // Lấy thông tin sản phẩm
-      const products = await dataService.products.getAll();
-      const foundProduct = products.find(p => p.san_pham_id === productId);
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('san_pham_id', productId);
       
-      if (!foundProduct) {
+      if (productsError || !products || products.length === 0) {
         setError('Không tìm thấy sản phẩm');
         setLoading(false);
         return;
       }
       
-      setProduct(foundProduct);
+      setProduct(products[0]);
 
-      // Lấy lịch sử nhập kho
-      const inboundData = await dataService.inboundShipments.getAll();
-      const productInbound = inboundData.filter(
-        shipment => shipment.san_pham_id === productId
-      );
-      setInboundShipments(productInbound);
+      // Lấy lịch sử nhập kho - sử dụng shipment_headers và shipment_items
+      const { data: inboundHeaders, error: inboundError } = await supabase
+        .from('shipment_headers')
+        .select(`
+          id,
+          shipment_id,
+          shipment_date,
+          supplier_name,
+          notes,
+          shipment_items!inner(
+            id,
+            product_id,
+            quantity
+          )
+        `)
+        .eq('shipment_type', 'inbound')
+        .eq('shipment_items.product_id', productId);
+      
+      console.log('Inbound query result:', { inboundHeaders, inboundError });
+      
+      if (!inboundError && inboundHeaders) {
+        const inboundData = inboundHeaders.map(header => ({
+          id: header.id,
+          phieu_nhap_id: header.shipment_id,
+          ngay_nhap: header.shipment_date,
+          nha_cung_cap: header.supplier_name,
+          san_pham_id: productId,
+          sl_nhap: header.shipment_items?.[0]?.quantity || 0,
+          ghi_chu: header.notes
+        }));
+        console.log('Mapped inbound data:', inboundData);
+        setInboundShipments(inboundData);
+      }
 
-      // Lấy lịch sử xuất kho
-      const outboundData = await dataService.outboundShipments.getAll();
-      const productOutbound = outboundData.filter(
-        shipment => shipment.san_pham_id === productId
-      );
-      setOutboundShipments(productOutbound);
+      // Lấy lịch sử xuất kho - sử dụng shipment_headers và shipment_items
+      const { data: outboundHeaders, error: outboundError } = await supabase
+        .from('shipment_headers')
+        .select(`
+          id,
+          shipment_id,
+          shipment_date,
+          customer_name,
+          notes,
+          shipment_items!inner(
+            id,
+            product_id,
+            quantity
+          )
+        `)
+        .eq('shipment_type', 'outbound')
+        .eq('shipment_items.product_id', productId);
+      
+      console.log('Outbound query result:', { outboundHeaders, outboundError });
+      
+      if (!outboundError && outboundHeaders) {
+        const outboundData = outboundHeaders.map(header => ({
+          id: header.id,
+          phieu_xuat_id: header.shipment_id,
+          ngay_xuat: header.shipment_date,
+          khach_hang: header.customer_name,
+          san_pham_id: productId,
+          sl_xuat: header.shipment_items?.[0]?.quantity || 0,
+          ghi_chu: header.notes
+        }));
+        console.log('Mapped outbound data:', outboundData);
+        setOutboundShipments(outboundData);
+      }
 
     } catch (error) {
       console.error('Error loading product data:', error);
@@ -112,9 +168,7 @@ const ProductDetail: React.FC = () => {
   };
 
   const calculateStock = () => {
-    const totalInbound = inboundShipments.reduce((sum, shipment) => sum + shipment.sl_nhap, 0);
-    const totalOutbound = outboundShipments.reduce((sum, shipment) => sum + shipment.sl_xuat, 0);
-    return totalInbound - totalOutbound;
+    return product ? product.sl_ton : 0;
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -145,11 +199,11 @@ const ProductDetail: React.FC = () => {
   }
 
   const currentStock = calculateStock();
-  const totalInbound = inboundShipments.reduce((sum, shipment) => sum + shipment.sl_nhap, 0);
-  const totalOutbound = outboundShipments.reduce((sum, shipment) => sum + shipment.sl_xuat, 0);
+  const totalInbound = inboundShipments.reduce((sum, shipment) => sum + (shipment.sl_nhap || 0), 0);
+  const totalOutbound = outboundShipments.reduce((sum, shipment) => sum + (shipment.sl_xuat || 0), 0);
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
         <IconButton onClick={() => navigate('/products')}>
@@ -257,7 +311,17 @@ const ProductDetail: React.FC = () => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow>
+                  <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                     <TableCell>STT</TableCell>
                     <TableCell>Mã phiếu</TableCell>
                     <TableCell>Ngày nhập</TableCell>
@@ -273,7 +337,7 @@ const ProductDetail: React.FC = () => {
                     <TableRow key={shipment.id} hover>
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>
-                        <Chip label={shipment.xuat_kho_id} color="primary" size="small" />
+                        <Chip label={shipment.phieu_nhap_id} color="primary" size="small" />
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -281,7 +345,7 @@ const ProductDetail: React.FC = () => {
                           {new Date(shipment.ngay_nhap).toLocaleDateString('vi-VN')}
                         </Box>
                       </TableCell>
-                      <TableCell>{shipment.loai_nhap}</TableCell>
+                      <TableCell>Nhập hàng</TableCell>
                       <TableCell align="right">
                         <Chip
                           label={shipment.sl_nhap}
@@ -289,16 +353,16 @@ const ProductDetail: React.FC = () => {
                           size="small"
                         />
                       </TableCell>
-                      <TableCell>{shipment.ten_nha_cung_cap}</TableCell>
+                      <TableCell>{shipment.nha_cung_cap}</TableCell>
                       <TableCell>
                         <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
-                          {shipment.ghi_chu}
+                          {shipment.ghi_chu || '-'}
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <PersonIcon sx={{ fontSize: 16 }} />
-                          {shipment.nguoi_tao}
+                          Admin
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -332,7 +396,7 @@ const ProductDetail: React.FC = () => {
                     <TableRow key={shipment.id} hover>
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>
-                        <Chip label={shipment.xuat_kho_id} color="secondary" size="small" />
+                        <Chip label={shipment.phieu_xuat_id} color="secondary" size="small" />
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -347,17 +411,17 @@ const ProductDetail: React.FC = () => {
                           size="small"
                         />
                       </TableCell>
-                      <TableCell>{shipment.ten_khach_hang}</TableCell>
-                      <TableCell>{shipment.so_hd}</TableCell>
+                      <TableCell>{shipment.khach_hang}</TableCell>
+                      <TableCell>-</TableCell>
                       <TableCell>
                         <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
-                          {shipment.ghi_chu}
+                          {shipment.ghi_chu || '-'}
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <PersonIcon sx={{ fontSize: 16 }} />
-                          {shipment.nguoi_tao}
+                          Admin
                         </Box>
                       </TableCell>
                     </TableRow>

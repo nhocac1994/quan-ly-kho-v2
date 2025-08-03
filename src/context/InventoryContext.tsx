@@ -296,7 +296,7 @@ interface InventoryProviderProps {
 export const InventoryProvider: React.FC<InventoryProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(inventoryReducer, initialState);
 
-  // Lắng nghe thay đổi từ localStorage khi auto sync
+  // Lắng nghe thay đổi từ localStorage
   useEffect(() => {
     const handleStorageChange = () => {
       try {

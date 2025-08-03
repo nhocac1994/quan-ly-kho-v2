@@ -224,7 +224,7 @@ const SupplierDetail: React.FC = () => {
   const totalValue = calculateTotalValue();
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
         <IconButton onClick={() => navigate('/suppliers')}>
@@ -340,7 +340,17 @@ const SupplierDetail: React.FC = () => {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow>
+                  <TableRow sx={{ 
+                backgroundColor: '#E3F2FD !important', 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 1000,
+                '& .MuiTableCell-root': {
+                  backgroundColor: '#E3F2FD !important',
+                  color: '#000 !important',
+                  fontWeight: 'bold'
+                } 
+                }}>
                     <TableCell>STT</TableCell>
                     <TableCell>Mã phiếu</TableCell>
                     <TableCell>Ngày nhập</TableCell>
