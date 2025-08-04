@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
@@ -27,12 +27,15 @@ import {
   History as HistoryIcon,
   Assessment as AssessmentIcon,
   Wifi as WifiIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
 
 import LanguageSwitcher from './LanguageSwitcher';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const drawerWidth = 240;
+const collapsedDrawerWidth = 64;
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -40,6 +43,11 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    // Lấy trạng thái từ localStorage, mặc định là thu gọn (true)
+    const saved = localStorage.getItem('sidebarCollapsed');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
@@ -66,6 +74,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     setMobileOpen(false);
   };
 
+  const handleSidebarToggle = () => {
+    const newCollapsedState = !sidebarCollapsed;
+    setSidebarCollapsed(newCollapsedState);
+    // Lưu trạng thái vào localStorage
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(newCollapsedState));
+  };
+
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Header của Sidebar */}
@@ -73,18 +88,44 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         sx={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           color: 'white',
-          p: 2,
+          p: sidebarCollapsed ? 1 : 2,
           textAlign: 'center',
           minHeight: 65,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
+          position: 'relative',
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
-          Quản Lý Kho
-        </Typography>
+        {!sidebarCollapsed && (
+          <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
+            Quản Lý Kho
+          </Typography>
+        )}
+        
+        {/* Toggle Button */}
+        <IconButton
+          onClick={handleSidebarToggle}
+          sx={{
+            position: 'absolute',
+            right: sidebarCollapsed ? '50%' : 8,
+            top: '50%',
+            transform: sidebarCollapsed ? 'translate(50%, -50%)' : 'translateY(-50%)',
+            color: 'white',
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            '&:hover': {
+              backgroundColor: 'rgba(255,255,255,0.2)',
+            },
+            width: 24,
+            height: 24,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {sidebarCollapsed ? <ChevronRightIcon fontSize="small" /> : <ChevronLeftIcon fontSize="small" />}
+        </IconButton>
       </Box>
 
       {/* Menu Items */}
@@ -92,46 +133,57 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <List sx={{ pt: 1 }}>
           {menuItems.map((item) => (
             <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-              <ListItemButton
-                selected={location.pathname === item.path}
-                onClick={() => handleNavigation(item.path)}
-                sx={{
-                  mx: 1,
-                  borderRadius: 2,
-                  '&.Mui-selected': {
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                    },
-                    '& .MuiListItemIcon-root': {
-                      color: 'white',
-                    },
-                  },
-                  '&:hover': {
-                    background: 'rgba(102, 126, 234, 0.1)',
-                    borderRadius: 2,
-                  },
-                }}
+              <Tooltip 
+                title={sidebarCollapsed ? item.text : ''} 
+                placement="right"
+                disableHoverListener={!sidebarCollapsed}
               >
-                <ListItemIcon
+                <ListItemButton
+                  selected={location.pathname === item.path}
+                  onClick={() => handleNavigation(item.path)}
                   sx={{
-                    minWidth: 40,
-                    color: location.pathname === item.path ? 'white' : 'text.secondary',
+                    mx: sidebarCollapsed ? 0.5 : 1,
+                    borderRadius: sidebarCollapsed ? 1 : 2,
+                    justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                    minHeight: 48,
+                    '&.Mui-selected': {
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                      },
+                      '& .MuiListItemIcon-root': {
+                        color: 'white',
+                      },
+                    },
+                    '&:hover': {
+                      background: 'rgba(102, 126, 234, 0.1)',
+                      borderRadius: sidebarCollapsed ? 1 : 2,
+                    },
                   }}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  sx={{
-                    '& .MuiTypography-root': {
-                      fontSize: '0.9rem',
-                      fontWeight: location.pathname === item.path ? 600 : 400,
-                    },
-                  }}
-                />
-              </ListItemButton>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: sidebarCollapsed ? 0 : 40,
+                      color: location.pathname === item.path ? 'white' : 'text.secondary',
+                      margin: sidebarCollapsed ? 0 : undefined,
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  {!sidebarCollapsed && (
+                    <ListItemText 
+                      primary={item.text} 
+                      sx={{
+                        '& .MuiTypography-root': {
+                          fontSize: '0.9rem',
+                          fontWeight: location.pathname === item.path ? 600 : 400,
+                        },
+                      }}
+                    />
+                  )}
+                </ListItemButton>
+              </Tooltip>
             </ListItem>
           ))}
         </List>
@@ -140,16 +192,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Footer của Sidebar */}
       <Box
         sx={{
-          p: 2,
+          p: sidebarCollapsed ? 1 : 2,
           textAlign: 'center',
           borderTop: '1px solid',
           borderColor: 'divider',
           background: 'background.paper',
         }}
       >
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          © 2025 Quản lý kho
-        </Typography>
+        {!sidebarCollapsed && (
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            © 2025 Quản lý kho
+          </Typography>
+        )}
       </Box>
     </Box>
   );
@@ -160,10 +214,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         position="fixed"
         elevation={0}
         sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
+          width: { sm: `calc(100% - ${sidebarCollapsed ? collapsedDrawerWidth : drawerWidth}px)` },
+          ml: { sm: `${sidebarCollapsed ? collapsedDrawerWidth : drawerWidth}px` },
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           borderBottom: '1px solid rgba(255,255,255,0.1)',
+          transition: 'width 0.3s ease, margin-left 0.3s ease',
         }}
       >
         <Toolbar sx={{ minHeight: 65 }}>
@@ -212,11 +267,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Box>
         </Toolbar>
       </AppBar>
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-        aria-label="mailbox folders"
-      >
+              <Box
+          component="nav"
+          sx={{ 
+            width: { sm: sidebarCollapsed ? collapsedDrawerWidth : drawerWidth }, 
+            flexShrink: { sm: 0 },
+            transition: 'width 0.3s ease',
+          }}
+          aria-label="mailbox folders"
+        >
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -231,6 +290,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               width: drawerWidth,
               border: 'none',
               boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
+              transition: 'width 0.3s ease',
             },
           }}
         >
@@ -242,10 +302,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             display: { xs: 'none', sm: 'block' },
             '& .MuiDrawer-paper': { 
               boxSizing: 'border-box', 
-              width: drawerWidth,
+              width: sidebarCollapsed ? collapsedDrawerWidth : drawerWidth,
               border: 'none',
               boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
               background: 'white',
+              transition: 'width 0.3s ease',
             },
           }}
           open
@@ -257,12 +318,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             component="main"
             sx={{
               flexGrow: 1,
-              width: { sm: `calc(100vw - ${drawerWidth}px)` },
+              width: { xs: '100vw', sm: `calc(100vw - ${sidebarCollapsed ? collapsedDrawerWidth : drawerWidth}px)` },
               height: '100vh',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
               background: '#f5f7fa',
+              transition: 'width 0.3s ease',
             }}
           >
             <Toolbar />

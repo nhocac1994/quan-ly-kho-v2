@@ -159,17 +159,48 @@ const CompanyInfoPage: React.FC = () => {
   );
 
     return (
-    <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
+    <Box sx={{ 
+      p: { xs: 1, sm: 2, md: 3 }, 
+      width: '100%', 
+      maxWidth: 1280, 
+      overflow: 'hidden', 
+      mx: 'auto' 
+    }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <BusinessIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, fontSize: '1.5rem', color: 'primary.main' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'center' }, 
+        mb: { xs: 2, sm: 3 },
+        gap: { xs: 2, sm: 0 },
+        mt: { xs: 2, sm: 0 }
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+          <BusinessIcon sx={{ 
+            fontSize: { xs: 24, sm: 28, md: 32 }, 
+            color: 'primary.main' 
+          }} />
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            sx={{ 
+              fontWeight: 600, 
+              fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' }, 
+              color: 'primary.main',
+              lineHeight: 1.2,
+            }}
+          >
             Quản Lý Thông Tin Công Ty
           </Typography>
         </Box>
         
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: { xs: 1, sm: 2 }, 
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
           <TextField
             placeholder="Tìm kiếm..."
             variant="outlined"
@@ -177,10 +208,12 @@ const CompanyInfoPage: React.FC = () => {
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
             sx={{ 
-              minWidth: 200,
+              minWidth: { xs: '100%', sm: 200 },
+              maxWidth: { xs: '100%', sm: 300 },
+              height: { xs: '35px', sm: '35px' },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                height: '35px',
+                height: { xs: '35px', sm: '35px' },
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -202,24 +235,51 @@ const CompanyInfoPage: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
-              height: '35px',
-              px: 2,
+              height: { xs: '50px', sm: '35px' },
+              px: { xs: 1, sm: 2 },
               py: 1,
               boxShadow: 2,
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              width: { xs: '50px', sm: '35px', md: 'auto' },
+              minWidth: { xs: '50px', sm: '35px', md: 'auto' },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: { xs: 'fixed', sm: 'static' },
+              bottom: { xs: 20, sm: 'auto' },
+              right: { xs: 10, sm: 'auto' },
+              zIndex: { xs: 1000, sm: 'auto' },
               '&:hover': {
                 boxShadow: 4,
                 transform: 'translateY(-1px)',
+              },
+              '& .MuiButton-startIcon': {
+                margin: 0,
+                marginRight: { xs: 0, lg: '8px' }
               }
             }}
           >
-            Thêm Công Ty
+            <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>
+              Thêm Công Ty
+            </Box>
           </Button>
         </Box>
       </Box>
 
       {/* Statistics */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: { xs: 'center', sm: 'flex-end' }, 
+        mb: { xs: 2, sm: 2 }
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: { xs: 2, sm: 3 }, 
+          color: 'text.secondary', 
+          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+          flexWrap: 'wrap',
+          justifyContent: 'center'
+        }}>
           <Typography variant="body2">
             Tổng: {companyInfo.length}
           </Typography>
@@ -234,58 +294,212 @@ const CompanyInfoPage: React.FC = () => {
 
       {/* CompanyInfo Table */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 600 }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow sx={{ 
-                backgroundColor: '#E3F2FD !important', 
-                position: 'sticky', 
-                top: 0, 
-                zIndex: 1000,
-                '& .MuiTableCell-root': {
-                  backgroundColor: '#E3F2FD !important',
-                  color: '#000 !important',
-                  fontWeight: 'bold'
-                } 
+        {/* Desktop Table View */}
+        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+          <TableContainer sx={{ maxHeight: 600 }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow sx={{ 
+                  backgroundColor: '#E3F2FD !important', 
+                  position: 'sticky', 
+                  top: 0, 
+                  zIndex: 1000,
+                  '& .MuiTableCell-root': {
+                    backgroundColor: '#E3F2FD !important',
+                    color: '#000 !important',
+                    fontWeight: 'bold'
+                  } 
                 }}>
-                <TableCell>STT</TableCell>
-                <TableCell>Tên Công Ty</TableCell>
-                <TableCell>Tên Đầy Đủ</TableCell>
-                <TableCell>Loại CT</TableCell>
-                <TableCell>Người Đại Diện</TableCell>
-                <TableCell>Số Điện Thoại</TableCell>
-                <TableCell>Trạng Thái</TableCell>
-                <TableCell>NV Phụ Trách</TableCell>
-                <TableCell align="center">Thao Tác</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredCompanies
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((company, index) => (
-                  <TableRow key={company.id} hover>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {page * rowsPerPage + index + 1}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{company.ten_cong_ty}</TableCell>
-                    <TableCell>{company.ten_day_du}</TableCell>
-                    <TableCell>{company.loai_cong_ty}</TableCell>
-                    <TableCell>{company.nguoi_dai_dien}</TableCell>
-                    <TableCell>{company.sdt}</TableCell>
-                    <TableCell>
+                  <TableCell>STT</TableCell>
+                  <TableCell>Tên Công Ty</TableCell>
+                  <TableCell>Tên Đầy Đủ</TableCell>
+                  <TableCell>Loại CT</TableCell>
+                  <TableCell>Người Đại Diện</TableCell>
+                  <TableCell>Số Điện Thoại</TableCell>
+                  <TableCell>Trạng Thái</TableCell>
+                  <TableCell>NV Phụ Trách</TableCell>
+                  <TableCell align="center">Thao Tác</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredCompanies
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((company, index) => (
+                    <TableRow key={company.id} hover>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {page * rowsPerPage + index + 1}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{company.ten_cong_ty}</TableCell>
+                      <TableCell>{company.ten_day_du}</TableCell>
+                      <TableCell>{company.loai_cong_ty}</TableCell>
+                      <TableCell>{company.nguoi_dai_dien}</TableCell>
+                      <TableCell>{company.sdt}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={company.tinh_trang}
+                          color={company.tinh_trang === 'Hoạt động' ? 'success' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>{company.nv_phu_trach}</TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenDialog(company)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDelete(company.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={filteredCompanies.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={(_: unknown, newPage: number) => setPage(newPage)}
+            onRowsPerPageChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPage(0);
+            }}
+            labelRowsPerPage="Số hàng mỗi trang:"
+            sx={{ borderTop: 1, borderColor: 'divider' }}
+          />
+        </Box>
+
+        {/* Mobile Card View */}
+        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2 }}>
+            {filteredCompanies
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((company, index) => (
+                <Card key={company.id} sx={{ 
+                  p: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: { xs: 2, sm: 3 },
+                  '&:hover': {
+                    boxShadow: 2,
+                    borderColor: 'primary.main'
+                  }
+                }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {/* Header */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            fontSize: '0.75rem',
+                            color: 'text.secondary',
+                            fontWeight: 500
+                          }}
+                        >
+                          #{page * rowsPerPage + index + 1}
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          fontWeight="medium"
+                          sx={{ 
+                            fontSize: '0.875rem',
+                            color: 'primary.main'
+                          }}
+                        >
+                          {company.ten_cong_ty}
+                        </Typography>
+                      </Box>
                       <Chip
                         label={company.tinh_trang}
                         color={company.tinh_trang === 'Hoạt động' ? 'success' : 'default'}
                         size="small"
+                        sx={{ fontSize: '0.7rem' }}
                       />
-                    </TableCell>
-                    <TableCell>{company.nv_phu_trach}</TableCell>
-                    <TableCell align="center">
+                    </Box>
+
+                    {/* Full Name */}
+                    {company.ten_day_du && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          Tên đầy đủ: {company.ten_day_du}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Type */}
+                    {company.loai_cong_ty && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          Loại: {company.loai_cong_ty}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Representative */}
+                    {company.nguoi_dai_dien && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          Đại diện: {company.nguoi_dai_dien}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Phone */}
+                    {company.sdt && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          SĐT: {company.sdt}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Staff */}
+                    {company.nv_phu_trach && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          NV phụ trách: {company.nv_phu_trach}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Actions */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
                       <IconButton
                         size="small"
                         onClick={() => handleOpenDialog(company)}
+                        sx={{ 
+                          p: 0.5,
+                          '& .MuiSvgIcon-root': {
+                            fontSize: '1rem'
+                          }
+                        }}
                       >
                         <EditIcon />
                       </IconButton>
@@ -293,29 +507,52 @@ const CompanyInfoPage: React.FC = () => {
                         size="small"
                         color="error"
                         onClick={() => handleDelete(company.id)}
+                        sx={{ 
+                          p: 0.5,
+                          '& .MuiSvgIcon-root': {
+                            fontSize: '1rem'
+                          }
+                        }}
                       >
                         <DeleteIcon />
                       </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredCompanies.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={(_: unknown, newPage: number) => setPage(newPage)}
-          onRowsPerPageChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setRowsPerPage(parseInt(e.target.value, 10));
-            setPage(0);
-          }}
-          labelRowsPerPage="Số hàng mỗi trang:"
-          sx={{ borderTop: 1, borderColor: 'divider' }}
-        />
+                    </Box>
+                  </Box>
+                </Card>
+              ))}
+          </Box>
+          
+          {/* Mobile Pagination */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            gap: 1, 
+            p: 2,
+            borderTop: '1px solid',
+            borderColor: 'divider'
+          }}>
+            <Button
+              size="small"
+              disabled={page === 0}
+              onClick={() => setPage(page - 1)}
+              sx={{ fontSize: '0.75rem' }}
+            >
+              Trước
+            </Button>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
+              Trang {page + 1} / {Math.ceil(filteredCompanies.length / rowsPerPage)}
+            </Typography>
+            <Button
+              size="small"
+              disabled={page >= Math.ceil(filteredCompanies.length / rowsPerPage) - 1}
+              onClick={() => setPage(page + 1)}
+              sx={{ fontSize: '0.75rem' }}
+            >
+              Sau
+            </Button>
+          </Box>
+        </Box>
       </Paper>
 
       {/* Drawer thêm/sửa công ty */}

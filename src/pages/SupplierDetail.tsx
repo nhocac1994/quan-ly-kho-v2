@@ -23,6 +23,7 @@ import {
   Tab,
   IconButton,
   Tooltip,
+  Grid,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -224,54 +225,123 @@ const SupplierDetail: React.FC = () => {
   const totalValue = calculateTotalValue();
 
   return (
-    <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
+    <Box sx={{ 
+      p: { xs: 1, sm: 2, md: 3 }, 
+      width: '100%', 
+      maxWidth: '100%',
+      overflow: 'hidden', 
+      mx: 'auto',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: { xs: 1, sm: 3 },
+      mt: 2
+    }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <IconButton onClick={() => navigate('/suppliers')}>
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: { xs: 1, sm: 2 }, 
+        mb: { xs: 2, sm: 3 },
+        flexWrap: 'wrap'
+      }}>
+        <IconButton 
+          onClick={() => navigate('/suppliers')}
+          sx={{ 
+            p: { xs: 0.5, sm: 1 },
+            '& .MuiSvgIcon-root': {
+              fontSize: { xs: '1.2rem', sm: '1.5rem' }
+            }
+          }}
+        >
           <ArrowBackIcon />
         </IconButton>
-        <BusinessIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 600, fontSize: '1.5rem', color: 'primary.main' }}>
+        <BusinessIcon sx={{ 
+          fontSize: { xs: 24, sm: 28, md: 32 }, 
+          color: 'primary.main' 
+        }} />
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          sx={{ 
+            fontWeight: 600, 
+            fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' }, 
+            color: 'primary.main',
+            lineHeight: 1.2
+          }}
+        >
           Chi Tiết Nhà Cung Cấp
         </Typography>
       </Box>
 
       {/* Supplier Info Card */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
+      <Card sx={{ 
+        mb: { xs: 2, sm: 3 },
+        borderRadius: { xs: 2, sm: 3 }
+      }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 2, sm: 3 } }}>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography 
+                variant="h6" 
+                gutterBottom
+                sx={{ 
+                  fontSize: { xs: '1rem', sm: '1.25rem' },
+                  fontWeight: 600,
+                  mb: { xs: 1, sm: 2 }
+                }}
+              >
                 {supplier.ten_ncc}
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Chip label={supplier.loai_ncc} color="primary" size="small" />
-                  <Typography variant="body2" color="text.secondary">
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 0.5, sm: 1 } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                  <Chip 
+                    label={supplier.loai_ncc} 
+                    color="primary" 
+                    size="small"
+                    sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                  />
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                  >
                     Loại nhà cung cấp
                   </Typography>
                 </Box>
                 {supplier.ten_day_du && (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2">
+                    <Typography 
+                      variant="body2"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    >
                       Tên đầy đủ: {supplier.ten_day_du}
                     </Typography>
                   </Box>
                 )}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                  <Typography variant="body2">
+                  <PersonIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary' }} />
+                  <Typography 
+                    variant="body2"
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                  >
                     Người đại diện: {supplier.nguoi_dai_dien}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <PhoneIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                  <Typography variant="body2">
+                  <PhoneIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary' }} />
+                  <Typography 
+                    variant="body2"
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                  >
                     SĐT: {supplier.sdt}
                   </Typography>
                 </Box>
                 {supplier.ghi_chu && (
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                  >
                     Ghi chú: {supplier.ghi_chu}
                   </Typography>
                 )}
@@ -279,43 +349,63 @@ const SupplierDetail: React.FC = () => {
             </Box>
             
             <Box sx={{ flex: 1 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Typography variant="h5" color="primary">
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap' }}>
+                  <Typography 
+                    variant="h5" 
+                    color="primary"
+                    sx={{ 
+                      fontSize: { xs: '1.1rem', sm: '1.5rem' },
+                      fontWeight: 600
+                    }}
+                  >
                     Tổng nhập: {totalInbound}
                   </Typography>
                   <Chip
                     label={supplier.hien_thi ? 'Hiển thị' : 'Ẩn'}
                     color={supplier.hien_thi ? 'success' : 'default'}
                     size="small"
+                    sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
                   />
                 </Box>
                 
-                <Box sx={{ display: 'flex', gap: 3 }}>
+                <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, flexWrap: 'wrap' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <TrendingUpIcon color="success" />
-                    <Typography variant="body2">
+                    <TrendingUpIcon color="success" sx={{ fontSize: { xs: 14, sm: 16 } }} />
+                    <Typography 
+                      variant="body2"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    >
                       Tổng giá trị: {totalValue.toLocaleString('vi-VN')}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <LocalShippingIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                    <Typography variant="body2">
+                    <LocalShippingIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary' }} />
+                    <Typography 
+                      variant="body2"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    >
                       {inboundShipments.length} phiếu nhập
                     </Typography>
                   </Box>
                 </Box>
 
-                <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box sx={{ display: 'flex', gap: { xs: 2, sm: 2 }, flexWrap: 'wrap' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <InventoryIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                    <Typography variant="body2">
+                    <InventoryIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary' }} />
+                    <Typography 
+                      variant="body2"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    >
                       {new Set(inboundShipments.map(s => s.san_pham_id)).size} sản phẩm
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                    <Typography variant="body2">
+                    <PersonIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary' }} />
+                    <Typography 
+                      variant="body2"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    >
                       NV phụ trách: {supplier.nv_phu_trach}
                     </Typography>
                   </Box>
@@ -327,8 +417,22 @@ const SupplierDetail: React.FC = () => {
       </Card>
 
       {/* Tabs */}
-      <Paper sx={{ width: '100%' }}>
-        <Tabs value={tabValue} onChange={handleTabChange} aria-label="supplier history tabs">
+      <Paper sx={{ 
+        width: '100%',
+        borderRadius: { xs: 2, sm: 3 }
+      }}>
+        <Tabs 
+          value={tabValue} 
+          onChange={handleTabChange} 
+          aria-label="supplier history tabs"
+          sx={{
+            '& .MuiTab-root': {
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              minHeight: { xs: 40, sm: 48 },
+              padding: { xs: '6px 8px', sm: '12px 16px' }
+            }
+          }}
+        >
           <Tab label={`Lịch sử nhập kho (${inboundShipments.length})`} />
           <Tab label="Thống kê sản phẩm" />
         </Tabs>
@@ -337,75 +441,197 @@ const SupplierDetail: React.FC = () => {
           {inboundShipments.length === 0 ? (
             <Alert severity="info">Chưa có lịch sử nhập kho từ nhà cung cấp này</Alert>
           ) : (
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ 
-                backgroundColor: '#E3F2FD !important', 
-                position: 'sticky', 
-                top: 0, 
-                zIndex: 1000,
-                '& .MuiTableCell-root': {
-                  backgroundColor: '#E3F2FD !important',
-                  color: '#000 !important',
-                  fontWeight: 'bold'
-                } 
-                }}>
-                    <TableCell>STT</TableCell>
-                    <TableCell>Mã phiếu</TableCell>
-                    <TableCell>Ngày nhập</TableCell>
-                    <TableCell>Sản phẩm</TableCell>
-                    <TableCell>Loại nhập</TableCell>
-                    <TableCell align="right">Số lượng</TableCell>
-                    <TableCell>Ghi chú</TableCell>
-                    <TableCell>Người tạo</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
+            <>
+              {/* Desktop Table View */}
+              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ 
+                        backgroundColor: '#E3F2FD !important', 
+                        position: 'sticky', 
+                        top: 0, 
+                        zIndex: 1000,
+                        '& .MuiTableCell-root': {
+                          backgroundColor: '#E3F2FD !important',
+                          color: '#000 !important',
+                          fontWeight: 'bold'
+                        } 
+                      }}>
+                        <TableCell>STT</TableCell>
+                        <TableCell>Mã phiếu</TableCell>
+                        <TableCell>Ngày nhập</TableCell>
+                        <TableCell>Sản phẩm</TableCell>
+                        <TableCell>Loại nhập</TableCell>
+                        <TableCell align="right">Số lượng</TableCell>
+                        <TableCell>Ghi chú</TableCell>
+                        <TableCell>Người tạo</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {inboundShipments.map((shipment, index) => (
+                        <TableRow key={shipment.id} hover>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>
+                            <Chip label={shipment.xuat_kho_id} color="primary" size="small" />
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CalendarIcon sx={{ fontSize: 16 }} />
+                              {new Date(shipment.ngay_nhap).toLocaleDateString('vi-VN')}
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="medium">
+                              {shipment.ten_san_pham}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {shipment.san_pham_id}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>{shipment.loai_nhap}</TableCell>
+                          <TableCell align="right">
+                            <Chip
+                              label={shipment.sl_nhap}
+                              color="success"
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
+                              {shipment.ghi_chu}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <PersonIcon sx={{ fontSize: 16 }} />
+                              {shipment.nguoi_tao}
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+
+              {/* Mobile Card View */}
+              <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2 }}>
                   {inboundShipments.map((shipment, index) => (
-                    <TableRow key={shipment.id} hover>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>
-                        <Chip label={shipment.xuat_kho_id} color="primary" size="small" />
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CalendarIcon sx={{ fontSize: 16 }} />
-                          {new Date(shipment.ngay_nhap).toLocaleDateString('vi-VN')}
+                    <Card key={shipment.id} sx={{ 
+                      p: 2,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: { xs: 2, sm: 3 },
+                      '&:hover': {
+                        boxShadow: 2,
+                        borderColor: 'primary.main'
+                      }
+                    }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {/* Header */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography 
+                              variant="body2" 
+                              sx={{ 
+                                fontSize: '0.75rem',
+                                color: 'text.secondary',
+                                fontWeight: 500
+                              }}
+                            >
+                              #{index + 1}
+                            </Typography>
+                            <Chip 
+                              label={shipment.xuat_kho_id} 
+                              color="primary" 
+                              size="small"
+                              sx={{ fontSize: '0.7rem' }}
+                            />
+                          </Box>
+                          <Chip
+                            label={shipment.sl_nhap}
+                            color="success"
+                            size="small"
+                            sx={{ fontSize: '0.7rem' }}
+                          />
                         </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight="medium">
-                          {shipment.ten_san_pham}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {shipment.san_pham_id}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>{shipment.loai_nhap}</TableCell>
-                      <TableCell align="right">
-                        <Chip
-                          label={shipment.sl_nhap}
-                          color="success"
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
-                          {shipment.ghi_chu}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
+
+                        {/* Date */}
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <PersonIcon sx={{ fontSize: 16 }} />
-                          {shipment.nguoi_tao}
+                          <CalendarIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                          <Typography 
+                            variant="body2"
+                            sx={{ fontSize: '0.75rem' }}
+                          >
+                            {new Date(shipment.ngay_nhap).toLocaleDateString('vi-VN')}
+                          </Typography>
                         </Box>
-                      </TableCell>
-                    </TableRow>
+
+                        {/* Product */}
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                          <InventoryIcon sx={{ fontSize: 14, color: 'text.secondary', mt: 0.2 }} />
+                          <Box>
+                            <Typography 
+                              variant="body2"
+                              fontWeight="medium"
+                              sx={{ fontSize: '0.75rem' }}
+                            >
+                              {shipment.ten_san_pham}
+                            </Typography>
+                            <Typography 
+                              variant="caption" 
+                              color="text.secondary"
+                              sx={{ fontSize: '0.65rem' }}
+                            >
+                              {shipment.san_pham_id}
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        {/* Type */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Chip 
+                            label={shipment.loai_nhap} 
+                            color="info" 
+                            size="small"
+                            sx={{ fontSize: '0.65rem', height: 20 }}
+                          />
+                        </Box>
+
+                        {/* Notes */}
+                        {shipment.ghi_chu && (
+                          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                            <Typography 
+                              variant="body2"
+                              sx={{ 
+                                fontSize: '0.75rem',
+                                color: 'text.secondary',
+                                fontStyle: 'italic'
+                              }}
+                            >
+                              Ghi chú: {shipment.ghi_chu}
+                            </Typography>
+                          </Box>
+                        )}
+
+                        {/* Created by */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <PersonIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                          <Typography 
+                            variant="body2"
+                            sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                          >
+                            {shipment.nguoi_tao}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Card>
                   ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                </Box>
+              </Box>
+            </>
           )}
         </TabPanel>
 
@@ -413,48 +639,124 @@ const SupplierDetail: React.FC = () => {
           {productStatistics.length === 0 ? (
             <Alert severity="info">Chưa có dữ liệu thống kê</Alert>
           ) : (
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Sản phẩm</TableCell>
-                    <TableCell>Mã SP</TableCell>
-                    <TableCell align="right">Tổng nhập</TableCell>
-                    <TableCell align="right">Số phiếu</TableCell>
-                    <TableCell>Lần nhập cuối</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
+            <>
+              {/* Desktop Table View */}
+              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Sản phẩm</TableCell>
+                        <TableCell>Mã SP</TableCell>
+                        <TableCell align="right">Tổng nhập</TableCell>
+                        <TableCell align="right">Số phiếu</TableCell>
+                        <TableCell>Lần nhập cuối</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {productStatistics.map((product: any) => (
+                        <TableRow key={product.product_id} hover>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="medium">
+                              {product.product_name}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={product.product_code || product.product_id?.substring(0, 8) || 'N/A'} 
+                              color="primary" 
+                              size="small" 
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <Chip
+                              label={product.total_quantity}
+                              color="success"
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell align="right">{product.shipment_count}</TableCell>
+                          <TableCell>
+                            {new Date(product.last_shipment_date).toLocaleDateString('vi-VN')}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+
+              {/* Mobile Card View */}
+              <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2 }}>
                   {productStatistics.map((product: any) => (
-                    <TableRow key={product.product_id} hover>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight="medium">
-                          {product.product_name}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={product.product_code || product.product_id?.substring(0, 8) || 'N/A'} 
-                          color="primary" 
-                          size="small" 
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <Chip
-                          label={product.total_quantity}
-                          color="success"
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell align="right">{product.shipment_count}</TableCell>
-                      <TableCell>
-                        {new Date(product.last_shipment_date).toLocaleDateString('vi-VN')}
-                      </TableCell>
-                    </TableRow>
+                    <Card key={product.product_id} sx={{ 
+                      p: 2,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: { xs: 2, sm: 3 },
+                      '&:hover': {
+                        boxShadow: 2,
+                        borderColor: 'primary.main'
+                      }
+                    }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {/* Header */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography 
+                              variant="body2" 
+                              fontWeight="medium"
+                              sx={{ fontSize: '0.875rem' }}
+                            >
+                              {product.product_name}
+                            </Typography>
+                          </Box>
+                          <Chip
+                            label={product.total_quantity}
+                            color="success"
+                            size="small"
+                            sx={{ fontSize: '0.7rem' }}
+                          />
+                        </Box>
+
+                        {/* Product Code */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Chip 
+                            label={product.product_code || product.product_id?.substring(0, 8) || 'N/A'} 
+                            color="primary" 
+                            size="small"
+                            sx={{ fontSize: '0.7rem' }}
+                          />
+                        </Box>
+
+                        {/* Shipment Count */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <LocalShippingIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                          <Typography 
+                            variant="body2"
+                            sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                          >
+                            Số phiếu: {product.shipment_count}
+                          </Typography>
+                        </Box>
+
+                        {/* Last Shipment Date */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CalendarIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                          <Typography 
+                            variant="body2"
+                            sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                          >
+                            Lần nhập cuối: {new Date(product.last_shipment_date).toLocaleDateString('vi-VN')}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Card>
                   ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                </Box>
+              </Box>
+            </>
           )}
         </TabPanel>
       </Paper>

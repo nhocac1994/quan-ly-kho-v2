@@ -26,6 +26,9 @@ import {
   DialogContent,
   DialogActions,
   Alert,
+  Card,
+  CardContent,
+  Tooltip,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -445,17 +448,40 @@ const Customers: React.FC = () => {
   );
 
   return (
-    <Box sx={{ p: 3, width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
+    <Box sx={{ p: { xs: 1, sm: 2, md: 3 }, width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <PeopleIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, fontSize: '1.5rem', color: 'primary.main' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'center' }, 
+        mb: { xs: 2, sm: 3 },
+        gap: { xs: 2, sm: 0 },
+        mt: { xs: 2, sm: 0 }
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+          <PeopleIcon sx={{ fontSize: { xs: 24, sm: 28, md: 32 }, color: 'primary.main' }} />
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            sx={{ 
+              fontWeight: 600, 
+              fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' }, 
+              color: 'primary.main',
+              lineHeight: 1.2,
+            }}
+          >
             Quản Lý Khách Hàng
           </Typography>
         </Box>
         
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 2 }, 
+          alignItems: { xs: 'stretch', sm: 'center' },
+          width: { xs: '100%', sm: 'auto' }
+        }}>
           <TextField
             placeholder="Tìm kiếm..."
             variant="outlined"
@@ -463,10 +489,11 @@ const Customers: React.FC = () => {
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
             sx={{ 
-              minWidth: 200,
+              minWidth: { xs: '100%', sm: 200 },
+              maxWidth: { xs: '100%', sm: 300 },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                height: '35px',
+                height: { xs: '35px', sm: '35px' },
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -479,77 +506,140 @@ const Customers: React.FC = () => {
               startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
             }}
           />
-          <Button
-            variant="outlined"
-            startIcon={<UploadIcon />}
-            onClick={() => setOpenImportDialog(true)}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              height: '35px',
-              px: 2,
-              py: 1,
-              borderColor: 'primary.main',
-              color: 'primary.main',
-              '&:hover': {
-                backgroundColor: 'primary.light',
-                color: 'white',
-                borderColor: 'primary.light',
-              }
-            }}
-          >
-            Import Excel
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={handleExportExcel}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              height: '35px',
-              px: 2,
-              py: 1,
-              borderColor: 'primary.main',
-              color: 'primary.main',
-              '&:hover': {
-                backgroundColor: 'primary.light',
-                color: 'white',
-                borderColor: 'primary.light',
-              }
-            }}
-          >
-            Xuất Excel
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDrawer()}
-            disabled={loading}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              height: '35px',
-              px: 2,
-              py: 1,
-              boxShadow: 2,
-              '&:hover': {
-                boxShadow: 4,
-                transform: 'translateY(-1px)',
-              }
-            }}
-          >
-            Thêm Khách Hàng
-          </Button>
+          
+          <Box sx={{ 
+            display: 'flex', 
+            gap: { xs: 1, sm: 2 },
+            justifyContent: { xs: 'flex-end', sm: 'flex-start' }
+          }}>
+            <Tooltip title="Import Excel">
+              <Button
+                variant="outlined"
+                startIcon={<UploadIcon />}
+                onClick={() => setOpenImportDialog(true)}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  height: { xs: '35px', sm: '35px' },
+                  px: { xs: 0, sm: 2 },
+                  py: 1,
+                  borderColor: 'primary.main',
+                  color: 'primary.main',
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  width: { xs: '35px', sm: '35px', md: 'auto' },
+                  minWidth: { xs: '35px', sm: '35px', md: 'auto' },
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  '&:hover': {
+                    backgroundColor: 'primary.light',
+                    color: 'white',
+                    borderColor: 'primary.light',
+                  },
+                  '& .MuiButton-startIcon': {
+                    margin: 0,
+                    marginRight: { xs: 0, md: '8px' }
+                  }
+                }}
+              >
+                <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>
+                  Import Excel
+                </Box>
+              </Button>
+            </Tooltip>
+            
+            <Tooltip title="Xuất Excel">
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportExcel}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  height: { xs: '35px', sm: '35px' },
+                  px: { xs: 0, sm: 2 },
+                  py: 1,
+                  borderColor: 'primary.main',
+                  color: 'primary.main',
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  width: { xs: '35px', sm: '35px', md: 'auto' },
+                  minWidth: { xs: '35px', sm: '35px', md: 'auto' },
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  '&:hover': {
+                    backgroundColor: 'primary.light',
+                    color: 'white',
+                    borderColor: 'primary.light',
+                  },
+                  '& .MuiButton-startIcon': {
+                    margin: 0,
+                    marginRight: { xs: 0, md: '8px' }
+                  }
+                }}
+              >
+                <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>
+                  Xuất Excel
+                </Box>
+              </Button>
+            </Tooltip>
+            
+            <Tooltip title="Thêm Khách Hàng">
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => handleOpenDrawer()}
+                disabled={loading}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  height: { xs: '35px', sm: '35px' },
+                  px: { xs: 0, sm: 2 },
+                  py: 1,
+                  boxShadow: 2,
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  width: { xs: '35px', sm: '35px', md: 'auto' },
+                  minWidth: { xs: '35px', sm: '35px', md: 'auto' },
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  '&:hover': {
+                    boxShadow: 4,
+                    transform: 'translateY(-1px)',
+                  },
+                  '& .MuiButton-startIcon': {
+                    margin: 0,
+                    marginRight: { xs: 0, md: '8px' }
+                  }
+                }}
+              >
+                <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>
+                  Thêm Khách Hàng
+                </Box>
+              </Button>
+            </Tooltip>
+          </Box>
         </Box>
       </Box>
 
       {/* Statistics */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: { xs: 'space-between', sm: 'flex-end' }, 
+        mb: { xs: 1, sm: 2 },
+        flexWrap: 'wrap',
+        gap: { xs: 1, sm: 0 }
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: { xs: 2, sm: 3 }, 
+          color: 'text.secondary', 
+          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+          justifyContent: { xs: 'space-between', sm: 'flex-start' }
+        }}>
           <Typography variant="body2">
             Tổng: {customers.length}
           </Typography>
@@ -564,31 +654,33 @@ const Customers: React.FC = () => {
 
       {/* Customers Table */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 600 }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow sx={{ 
-                backgroundColor: '#E3F2FD !important', 
-                position: 'sticky', 
-                top: 0, 
-                zIndex: 1000,
-                '& .MuiTableCell-root': {
-                  backgroundColor: '#E3F2FD !important',
-                  color: '#000 !important',
-                  fontWeight: 'bold'
-                } 
+        {/* Desktop Table View */}
+        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+          <TableContainer sx={{ maxHeight: 600 }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow sx={{ 
+                  backgroundColor: '#E3F2FD !important', 
+                  position: 'sticky', 
+                  top: 0, 
+                  zIndex: 1000,
+                  '& .MuiTableCell-root': {
+                    backgroundColor: '#E3F2FD !important',
+                    color: '#000 !important',
+                    fontWeight: 'bold'
+                  } 
                 }}>
-                <TableCell>STT</TableCell>
-                <TableCell>Tên Khách Hàng</TableCell>
-                <TableCell>Tên Đầy Đủ</TableCell>
-                <TableCell>Loại KH</TableCell>
-                <TableCell>Người Đại Diện</TableCell>
-                <TableCell>Số Điện Thoại</TableCell>
-                <TableCell>Trạng Thái</TableCell>
-                <TableCell>NV Phụ Trách</TableCell>
-                <TableCell align="center">Thao Tác</TableCell>
-              </TableRow>
-            </TableHead>
+                  <TableCell>STT</TableCell>
+                  <TableCell>Tên Khách Hàng</TableCell>
+                  <TableCell>Tên Đầy Đủ</TableCell>
+                  <TableCell>Loại KH</TableCell>
+                  <TableCell>Người Đại Diện</TableCell>
+                  <TableCell>Số Điện Thoại</TableCell>
+                  <TableCell>Trạng Thái</TableCell>
+                  <TableCell>NV Phụ Trách</TableCell>
+                  <TableCell align="center">Thao Tác</TableCell>
+                </TableRow>
+              </TableHead>
             <TableBody>
               {filteredCustomers
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
@@ -675,6 +767,165 @@ const Customers: React.FC = () => {
             }
           }}
         />
+        </Box>
+
+        {/* Mobile Card View */}
+        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2 }}>
+            {filteredCustomers
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((customer, index) => (
+                <Card key={customer.id} sx={{ 
+                  p: 1,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  '&:hover': {
+                    boxShadow: 2,
+                    borderColor: 'primary.main'
+                  }
+                }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {/* Header */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            fontSize: '0.75rem',
+                            color: 'text.secondary',
+                            fontWeight: 500
+                          }}
+                        >
+                          #{page * rowsPerPage + index + 1}
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          fontWeight="medium"
+                          sx={{ 
+                            cursor: 'pointer',
+                            color: 'primary.main',
+                            fontSize: '0.875rem',
+                            '&:hover': {
+                              textDecoration: 'underline',
+                              color: 'primary.dark'
+                            }
+                          }}
+                          onClick={() => navigate(`/customers/${customer.ten_khach_hang}`)}
+                        >
+                          {customer.ten_khach_hang}
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={customer.tinh_trang}
+                        color={customer.tinh_trang === 'Hoạt động' ? 'success' : 'default'}
+                        size="small"
+                        sx={{ fontSize: '0.7rem' }}
+                      />
+                    </Box>
+
+                    {/* Full Name */}
+                    {customer.ten_day_du && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          Tên đầy đủ: {customer.ten_day_du}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Customer Type */}
+                    {customer.loai_khach_hang && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          Loại: {customer.loai_khach_hang}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Representative */}
+                    {customer.nguoi_dai_dien && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          Đại diện: {customer.nguoi_dai_dien}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Phone */}
+                    {customer.sdt && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          SĐT: {customer.sdt}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Staff */}
+                    {customer.nv_phu_trach && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          NV phụ trách: {customer.nv_phu_trach}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Actions */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+                      <IconButton
+                        size="small"
+                        color="info"
+                        onClick={() => navigate(`/customers/${customer.ten_khach_hang}`)}
+                        sx={{ 
+                          width: 32, 
+                          height: 32,
+                          '& .MuiSvgIcon-root': { fontSize: '1rem' }
+                        }}
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleOpenDrawer(customer)}
+                        sx={{ 
+                          width: 32, 
+                          height: 32,
+                          '& .MuiSvgIcon-root': { fontSize: '1rem' }
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDelete(customer.id)}
+                        sx={{ 
+                          width: 32, 
+                          height: 32,
+                          '& .MuiSvgIcon-root': { fontSize: '1rem' }
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                </Card>
+              ))}
+          </Box>
+        </Box>
       </Paper>
 
       {/* Drawer thêm/sửa khách hàng */}

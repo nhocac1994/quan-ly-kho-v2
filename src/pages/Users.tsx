@@ -15,6 +15,7 @@ import {
   Button,
   IconButton,
   Chip,
+  Card,
   Drawer,
   FormControl,
   InputLabel,
@@ -185,17 +186,49 @@ const Users: React.FC = () => {
   );
 
   return (
-    <Box sx={{ p: 3, width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
+    <Box sx={{ 
+      p: { xs: 1, sm: 2, md: 3 }, 
+      width: '100%', 
+      maxWidth: 1280, 
+      overflow: 'hidden', 
+      mx: 'auto',
+      height: '100vh-80px' 
+    }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <PersonIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, fontSize: '1.5rem', color: 'primary.main' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'center' }, 
+        mb: { xs: 2, sm: 3 },
+        gap: { xs: 2, sm: 0 },
+        mt: { xs: 2, sm: 0 }
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+          <PersonIcon sx={{ 
+            fontSize: { xs: 24, sm: 28, md: 32 }, 
+            color: 'primary.main' 
+          }} />
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            sx={{ 
+              fontWeight: 600, 
+              fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' }, 
+              color: 'primary.main',
+              lineHeight: 1.2,
+            }}
+          >
             Quản Lý Người Dùng
           </Typography>
         </Box>
         
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: { xs: 1, sm: 2 }, 
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
           <TextField
             placeholder="Tìm kiếm..."
             variant="outlined"
@@ -203,10 +236,12 @@ const Users: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             sx={{ 
-              minWidth: 200,
+              minWidth: { xs: '100%', sm: 200 },
+              maxWidth: { xs: '100%', sm: 300 },
+              height: { xs: '35px', sm: '35px' },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                height: '35px',
+                height: { xs: '35px', sm: '35px' },
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -228,24 +263,51 @@ const Users: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
-              height: '35px',
-              px: 2,
+              height: { xs: '50px', sm: '35px' },
+              px: { xs: 1, sm: 2 },
               py: 1,
               boxShadow: 2,
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              width: { xs: '50px', sm: '35px', md: 'auto' },
+              minWidth: { xs: '50px', sm: '35px', md: 'auto' },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: { xs: 'fixed', sm: 'static' },
+              bottom: { xs: 20, sm: 'auto' },
+              right: { xs: 10, sm: 'auto' },
+              zIndex: { xs: 1000, sm: 'auto' },
               '&:hover': {
                 boxShadow: 4,
                 transform: 'translateY(-1px)',
+              },
+              '& .MuiButton-startIcon': {
+                margin: 0,
+                marginRight: { xs: 0, lg: '8px' }
               }
             }}
           >
-            Thêm Người Dùng
+            <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>
+              Thêm Người Dùng
+            </Box>
           </Button>
         </Box>
       </Box>
 
       {/* Statistics */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: { xs: 'center', sm: 'flex-end' }, 
+        mb: { xs: 2, sm: 2 }
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: { xs: 2, sm: 3 }, 
+          color: 'text.secondary', 
+          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+          flexWrap: 'wrap',
+          justifyContent: 'center'
+        }}>
           <Typography variant="body2">
             Tổng: {users.length}
           </Typography>
@@ -260,84 +322,230 @@ const Users: React.FC = () => {
 
       {/* Users Table */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 'calc(100vh - 295px)' }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow sx={{ 
-                backgroundColor: '#E3F2FD !important', 
-                position: 'sticky', 
-                top: 0, 
-                zIndex: 1000,
-                '& .MuiTableCell-root': {
-                  backgroundColor: '#E3F2FD !important',
-                  color: '#000 !important',
-                  fontWeight: 'bold'
-                } 
+        {/* Desktop Table View */}
+        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+          <TableContainer sx={{ maxHeight: 'calc(100vh - 295px)' }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow sx={{ 
+                  backgroundColor: '#E3F2FD !important', 
+                  position: 'sticky', 
+                  top: 0, 
+                  zIndex: 1000,
+                  '& .MuiTableCell-root': {
+                    backgroundColor: '#E3F2FD !important',
+                    color: '#000 !important',
+                    fontWeight: 'bold'
+                  } 
                 }}>
-                <TableCell>STT</TableCell>
-                <TableCell>Họ Và Tên</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Chức Vụ</TableCell>
-                <TableCell>Phân Quyền</TableCell>
-                <TableCell>Quyền Xem</TableCell>
-                <TableCell>Quyền Thêm</TableCell>
-                <TableCell>Quyền Sửa</TableCell>
-                <TableCell>Quyền Xóa</TableCell>
-                <TableCell align="center">Thao Tác</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredUsers
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((user, index) => (
-                  <TableRow key={user.id} hover>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {page * rowsPerPage + index + 1}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{user.ho_va_ten}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.chuc_vu}</TableCell>
-                    <TableCell>
+                  <TableCell>STT</TableCell>
+                  <TableCell>Họ Và Tên</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Chức Vụ</TableCell>
+                  <TableCell>Phân Quyền</TableCell>
+                  <TableCell>Quyền Xem</TableCell>
+                  <TableCell>Quyền Thêm</TableCell>
+                  <TableCell>Quyền Sửa</TableCell>
+                  <TableCell>Quyền Xóa</TableCell>
+                  <TableCell align="center">Thao Tác</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredUsers
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((user, index) => (
+                    <TableRow key={user.id} hover>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {page * rowsPerPage + index + 1}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{user.ho_va_ten}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>{user.chuc_vu}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={user.phan_quyen}
+                          color={user.phan_quyen === 'Admin' ? 'error' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={user.quyen_xem ? 'Có' : 'Không'}
+                          color={user.quyen_xem ? 'success' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={user.quyen_them ? 'Có' : 'Không'}
+                          color={user.quyen_them ? 'success' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={user.quyen_sua ? 'Có' : 'Không'}
+                          color={user.quyen_sua ? 'success' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={user.quyen_xoa ? 'Có' : 'Không'}
+                          color={user.quyen_xoa ? 'success' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleOpenDialog(user)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDelete(user.id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={filteredUsers.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={(_: unknown, newPage: number) => setPage(newPage)}
+            onRowsPerPageChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPage(0);
+            }}
+            labelRowsPerPage="Số hàng mỗi trang:"
+            sx={{ borderTop: 1, borderColor: 'divider' }}
+          />
+        </Box>
+
+        {/* Mobile Card View */}
+        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2 }}>
+            {filteredUsers
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((user, index) => (
+                <Card key={user.id} sx={{ 
+                  p: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: { xs: 2, sm: 3 },
+                  '&:hover': {
+                    boxShadow: 2,
+                    borderColor: 'primary.main'
+                  }
+                }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {/* Header */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            fontSize: '0.75rem',
+                            color: 'text.secondary',
+                            fontWeight: 500
+                          }}
+                        >
+                          #{page * rowsPerPage + index + 1}
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          fontWeight="medium"
+                          sx={{ 
+                            fontSize: '0.875rem',
+                            color: 'primary.main'
+                          }}
+                        >
+                          {user.ho_va_ten}
+                        </Typography>
+                      </Box>
                       <Chip
                         label={user.phan_quyen}
                         color={user.phan_quyen === 'Admin' ? 'error' : 'default'}
                         size="small"
+                        sx={{ fontSize: '0.7rem' }}
                       />
-                    </TableCell>
-                    <TableCell>
+                    </Box>
+
+                    {/* Email */}
+                    {user.email && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          Email: {user.email}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Position */}
+                    {user.chuc_vu && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          Chức vụ: {user.chuc_vu}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Permissions */}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
                       <Chip
-                        label={user.quyen_xem ? 'Có' : 'Không'}
+                        label={`Xem: ${user.quyen_xem ? 'Có' : 'Không'}`}
                         color={user.quyen_xem ? 'success' : 'default'}
                         size="small"
+                        sx={{ fontSize: '0.65rem', height: 20 }}
                       />
-                    </TableCell>
-                    <TableCell>
                       <Chip
-                        label={user.quyen_them ? 'Có' : 'Không'}
+                        label={`Thêm: ${user.quyen_them ? 'Có' : 'Không'}`}
                         color={user.quyen_them ? 'success' : 'default'}
                         size="small"
+                        sx={{ fontSize: '0.65rem', height: 20 }}
                       />
-                    </TableCell>
-                    <TableCell>
                       <Chip
-                        label={user.quyen_sua ? 'Có' : 'Không'}
+                        label={`Sửa: ${user.quyen_sua ? 'Có' : 'Không'}`}
                         color={user.quyen_sua ? 'success' : 'default'}
                         size="small"
+                        sx={{ fontSize: '0.65rem', height: 20 }}
                       />
-                    </TableCell>
-                    <TableCell>
                       <Chip
-                        label={user.quyen_xoa ? 'Có' : 'Không'}
+                        label={`Xóa: ${user.quyen_xoa ? 'Có' : 'Không'}`}
                         color={user.quyen_xoa ? 'success' : 'default'}
                         size="small"
+                        sx={{ fontSize: '0.65rem', height: 20 }}
                       />
-                    </TableCell>
-                    <TableCell align="center">
+                    </Box>
+
+                    {/* Actions */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
                       <IconButton
                         size="small"
                         onClick={() => handleOpenDialog(user)}
+                        sx={{ 
+                          p: 0.5,
+                          '& .MuiSvgIcon-root': {
+                            fontSize: '1rem'
+                          }
+                        }}
                       >
                         <EditIcon />
                       </IconButton>
@@ -345,29 +553,52 @@ const Users: React.FC = () => {
                         size="small"
                         color="error"
                         onClick={() => handleDelete(user.id)}
+                        sx={{ 
+                          p: 0.5,
+                          '& .MuiSvgIcon-root': {
+                            fontSize: '1rem'
+                          }
+                        }}
                       >
                         <DeleteIcon />
                       </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredUsers.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={(_: unknown, newPage: number) => setPage(newPage)}
-          onRowsPerPageChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setRowsPerPage(parseInt(e.target.value, 10));
-            setPage(0);
-          }}
-          labelRowsPerPage="Số hàng mỗi trang:"
-          sx={{ borderTop: 1, borderColor: 'divider' }}
-        />
+                    </Box>
+                  </Box>
+                </Card>
+              ))}
+          </Box>
+          
+          {/* Mobile Pagination */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            gap: 1, 
+            p: 2,
+            borderTop: '1px solid',
+            borderColor: 'divider'
+          }}>
+            <Button
+              size="small"
+              disabled={page === 0}
+              onClick={() => setPage(page - 1)}
+              sx={{ fontSize: '0.75rem' }}
+            >
+              Trước
+            </Button>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
+              Trang {page + 1} / {Math.ceil(filteredUsers.length / rowsPerPage)}
+            </Typography>
+            <Button
+              size="small"
+              disabled={page >= Math.ceil(filteredUsers.length / rowsPerPage) - 1}
+              onClick={() => setPage(page + 1)}
+              sx={{ fontSize: '0.75rem' }}
+            >
+              Sau
+            </Button>
+          </Box>
+        </Box>
       </Paper>
 
       {/* Drawer thêm/sửa người dùng */}

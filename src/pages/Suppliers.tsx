@@ -27,6 +27,9 @@ import {
   MenuItem,
   Snackbar,
   Alert,
+  Card,
+  CardContent,
+  Tooltip,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -42,6 +45,7 @@ import {
   CloudUpload,
   TableChart,
   Visibility as VisibilityIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
 import { useSuppliers } from '../hooks/useSupabaseQueries';
 import { Supplier } from '../types';
@@ -426,17 +430,49 @@ const Suppliers: React.FC = () => {
   );
 
   return (
-    <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
+    <Box sx={{ 
+      p: { xs: 1, sm: 2, md: 3 }, 
+      width: '100%', 
+      maxWidth: 1280, 
+      overflow: 'hidden', 
+      mx: 'auto',
+      height: '100vh-80px' 
+    }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <BusinessIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600,fontSize: '1.5rem',color: 'primary.main' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'center' }, 
+        mb: { xs: 2, sm: 3 },
+        gap: { xs: 2, sm: 0 },
+        mt: { xs: 2, sm: 0 }
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+          <BusinessIcon sx={{ 
+            fontSize: { xs: 24, sm: 28, md: 32 }, 
+            color: 'primary.main' 
+          }} />
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            sx={{ 
+              fontWeight: 600,
+              fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' }, 
+              color: 'primary.main',
+              lineHeight: 1.2,
+            }}
+          >
             Quản Lý Nhà Cung Cấp
           </Typography>
         </Box>
         
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: { xs: 1, sm: 2 }, 
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
           <TextField
             placeholder="Tìm kiếm..."
             variant="outlined"
@@ -444,10 +480,12 @@ const Suppliers: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             sx={{ 
-              minWidth: 200,
+              minWidth: { xs: '100%', sm: 200 },
+              maxWidth: { xs: '100%', sm: 300 },
+              height: { xs: '35px', sm: '35px' },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                height: '35px',
+                height: { xs: '35px', sm: '35px' },
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -461,76 +499,131 @@ const Suppliers: React.FC = () => {
             }}
           />
           
-          <Button
-            variant="outlined"
-            startIcon={<UploadIcon />}
-            onClick={() => setOpenImportDialog(true)}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              height: '35px',
-              px: 2,
-              py: 1,
-              borderColor: 'primary.main',
-              color: 'primary.main',
-              '&:hover': {
-                backgroundColor: 'primary.light',
-                color: 'white',
-                borderColor: 'primary.light',
-              }
-            }}
-          >
-            Import Excel
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={handleExportExcel}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              height: '35px',
-              px: 2,
-              py: 1,
-              borderColor: 'primary.main',
-              color: 'primary.main',
-              '&:hover': {
-                backgroundColor: 'primary.light',
-                color: 'white',
-                borderColor: 'primary.light',
-              }
-            }}
-          >
-            Xuất Excel
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDrawer()}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              height: '35px',
-              px: 2,
-              py: 1,
-              boxShadow: 2,
-              '&:hover': {
-                boxShadow: 4,
-                transform: 'translateY(-1px)',
-              }
-            }}
-          >
-            Thêm NCC
-          </Button>
+          <Tooltip title="Import Excel">
+            <Button
+              variant="outlined"
+              startIcon={<UploadIcon />}
+              onClick={() => setOpenImportDialog(true)}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 500,
+                height: { xs: '35px', sm: '35px' },
+                px: { xs: 1, sm: 2 },
+                py: 1,
+                borderColor: 'primary.main',
+                color: 'primary.main',
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                width: { xs: '35px', sm: '35px', md: 'auto' },
+                minWidth: { xs: '35px', sm: '35px', md: 'auto' },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                '&:hover': {
+                  backgroundColor: 'primary.light',
+                  color: 'white',
+                  borderColor: 'primary.light',
+                },
+                '& .MuiButton-startIcon': {
+                  margin: 0,
+                  marginRight: { xs: 0, lg: '8px' }
+                }
+              }}
+            >
+              <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>
+                Import Excel
+              </Box>
+            </Button>
+          </Tooltip>
+          
+          <Tooltip title="Xuất Excel">
+            <Button
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              onClick={handleExportExcel}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 500,
+                height: { xs: '35px', sm: '35px' },
+                px: { xs: 1, sm: 2 },
+                py: 1,
+                borderColor: 'primary.main',
+                color: 'primary.main',
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                width: { xs: '35px', sm: '35px', md: 'auto' },
+                minWidth: { xs: '35px', sm: '35px', md: 'auto' },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                '&:hover': {
+                  backgroundColor: 'primary.light',
+                  color: 'white',
+                  borderColor: 'primary.light',
+                },
+                '& .MuiButton-startIcon': {
+                  margin: 0,
+                  marginRight: { xs: 0, lg: '8px' }
+                }
+              }}
+            >
+              <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>
+                Xuất Excel
+              </Box>
+            </Button>
+          </Tooltip>
+          
+          <Tooltip title="Thêm Nhà Cung Cấp">
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDrawer()}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 500,
+                height: { xs: '35px', sm: '35px' },
+                px: { xs: 1, sm: 2 },
+                py: 1,
+                boxShadow: 2,
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                width: { xs: '35px', sm: '35px', md: 'auto' },
+                minWidth: { xs: '35px', sm: '35px', md: 'auto' },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                '&:hover': {
+                  boxShadow: 4,
+                  transform: 'translateY(-1px)',
+                },
+                '& .MuiButton-startIcon': {
+                  margin: 0,
+                  marginRight: { xs: 0, lg: '8px' }
+                }
+              }}
+            >
+              <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>
+                Thêm NCC
+              </Box>
+            </Button>
+          </Tooltip>
         </Box>
       </Box>
 
       {/* Statistics */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: { xs: 'center', sm: 'flex-end' }, 
+        mb: { xs: 2, sm: 2 }
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: { xs: 2, sm: 3 }, 
+          color: 'text.secondary', 
+          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+          flexWrap: 'wrap',
+          justifyContent: 'center'
+        }}>
           <Typography variant="body2">
             Tổng: {suppliers.length}
           </Typography>
@@ -545,112 +638,315 @@ const Suppliers: React.FC = () => {
 
       {/* Suppliers Table */}
       <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 'calc(100vh - 295px)' }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow sx={{ 
-                backgroundColor: '#E3F2FD !important', 
-                position: 'sticky', 
-                top: 0, 
-                zIndex: 1000,
-                '& .MuiTableCell-root': {
-                  backgroundColor: '#E3F2FD !important',
-                  color: '#000 !important',
-                  fontWeight: 'bold'
-                } 
+        {/* Desktop Table View */}
+        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+          <TableContainer sx={{ maxHeight: 'calc(100vh - 295px)' }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow sx={{ 
+                  backgroundColor: '#E3F2FD !important', 
+                  position: 'sticky', 
+                  top: 0, 
+                  zIndex: 1000,
+                  '& .MuiTableCell-root': {
+                    backgroundColor: '#E3F2FD !important',
+                    color: '#000 !important',
+                    fontWeight: 'bold'
+                  } 
                 }}>
-                <TableCell>STT</TableCell>
-                <TableCell>Tên NCC</TableCell>
-                <TableCell>Tên Đầy Đủ</TableCell>
-                <TableCell>Loại NCC</TableCell>
-                <TableCell>Người Đại Diện</TableCell>
-                <TableCell>Số Điện Thoại</TableCell>
-                <TableCell>Trạng Thái</TableCell>
-                <TableCell>NV Phụ Trách</TableCell>
-                <TableCell align="center">Thao Tác</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredSuppliers
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((supplier, index) => (
-                  <TableRow key={supplier.id} hover>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {page * rowsPerPage + index + 1}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography 
-                        variant="body2" 
-                        fontWeight="medium"
-                        sx={{ 
-                          cursor: 'pointer',
-                          color: 'primary.main',
-                          '&:hover': {
-                            textDecoration: 'underline',
-                            color: 'primary.dark'
-                          }
-                        }}
-                        onClick={() => navigate(`/suppliers/${supplier.ten_ncc}`)}
-                      >
-                        {supplier.ten_ncc}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{supplier.ten_day_du || 'N/A'}</TableCell>
-                    <TableCell>{supplier.loai_ncc || 'N/A'}</TableCell>
-                    <TableCell>{supplier.nguoi_dai_dien || 'N/A'}</TableCell>
-                    <TableCell>{supplier.sdt || 'N/A'}</TableCell>
-                    <TableCell>
+                  <TableCell>STT</TableCell>
+                  <TableCell>Tên NCC</TableCell>
+                  <TableCell>Tên Đầy Đủ</TableCell>
+                  <TableCell>Loại NCC</TableCell>
+                  <TableCell>Người Đại Diện</TableCell>
+                  <TableCell>Số Điện Thoại</TableCell>
+                  <TableCell>Trạng Thái</TableCell>
+                  <TableCell>NV Phụ Trách</TableCell>
+                  <TableCell align="center">Thao Tác</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredSuppliers
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((supplier, index) => (
+                    <TableRow key={supplier.id} hover>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {page * rowsPerPage + index + 1}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography 
+                          variant="body2" 
+                          fontWeight="medium"
+                          sx={{ 
+                            cursor: 'pointer',
+                            color: 'primary.main',
+                            '&:hover': {
+                              textDecoration: 'underline',
+                              color: 'primary.dark'
+                            }
+                          }}
+                          onClick={() => navigate(`/suppliers/${supplier.ten_ncc}`)}
+                        >
+                          {supplier.ten_ncc}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{supplier.ten_day_du || 'N/A'}</TableCell>
+                      <TableCell>{supplier.loai_ncc || 'N/A'}</TableCell>
+                      <TableCell>{supplier.nguoi_dai_dien || 'N/A'}</TableCell>
+                      <TableCell>{supplier.sdt || 'N/A'}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={supplier.tinh_trang}
+                          color={supplier.tinh_trang === 'Hoạt động' ? 'success' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>{supplier.nv_phu_trach || 'N/A'}</TableCell>
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton
+                            size="small"
+                            color="info"
+                            onClick={() => navigate(`/suppliers/${supplier.ten_ncc}`)}
+                          >
+                            <VisibilityIcon />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleOpenDrawer(supplier)}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDelete(supplier.id)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[10, 25, 50]}
+            component="div"
+            count={filteredSuppliers.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={(_, newPage) => setPage(newPage)}
+            onRowsPerPageChange={(e) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPage(0);
+            }}
+            labelRowsPerPage="Số hàng mỗi trang:"
+          />
+        </Box>
+
+        {/* Mobile Card View */}
+        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2 }}>
+            {filteredSuppliers
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((supplier, index) => (
+                <Card key={supplier.id} sx={{ 
+                  p: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: { xs: 2, sm: 3 },
+                  '&:hover': {
+                    boxShadow: 2,
+                    borderColor: 'primary.main'
+                  }
+                }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {/* Header */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            fontSize: '0.75rem',
+                            color: 'text.secondary',
+                            fontWeight: 500
+                          }}
+                        >
+                          #{page * rowsPerPage + index + 1}
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          fontWeight="medium"
+                          sx={{ 
+                            fontSize: '0.875rem',
+                            cursor: 'pointer',
+                            color: 'primary.main',
+                            '&:hover': {
+                              textDecoration: 'underline',
+                              color: 'primary.dark'
+                            }
+                          }}
+                          onClick={() => navigate(`/suppliers/${supplier.ten_ncc}`)}
+                        >
+                          {supplier.ten_ncc}
+                        </Typography>
+                      </Box>
                       <Chip
                         label={supplier.tinh_trang}
                         color={supplier.tinh_trang === 'Hoạt động' ? 'success' : 'default'}
                         size="small"
+                        sx={{ fontSize: '0.7rem' }}
                       />
-                    </TableCell>
-                    <TableCell>{supplier.nv_phu_trach || 'N/A'}</TableCell>
-                    <TableCell align="center">
-                      <Box sx={{ display: 'flex', gap: 1 }}>
+                    </Box>
+
+                    {/* Full Name */}
+                    {supplier.ten_day_du && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          Tên đầy đủ: {supplier.ten_day_du}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Type */}
+                    {supplier.loai_ncc && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          Loại: {supplier.loai_ncc}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Representative */}
+                    {supplier.nguoi_dai_dien && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <PersonIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          Đại diện: {supplier.nguoi_dai_dien}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Phone */}
+                    {supplier.sdt && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          SĐT: {supplier.sdt}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Staff */}
+                    {supplier.nv_phu_trach && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant="body2"
+                          sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
+                        >
+                          NV phụ trách: {supplier.nv_phu_trach}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Actions */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+                      <Tooltip title="Xem chi tiết">
                         <IconButton
                           size="small"
                           color="info"
                           onClick={() => navigate(`/suppliers/${supplier.ten_ncc}`)}
+                          sx={{ 
+                            p: 0.5,
+                            '& .MuiSvgIcon-root': {
+                              fontSize: '1rem'
+                            }
+                          }}
                         >
                           <VisibilityIcon />
                         </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Sửa">
                         <IconButton
                           size="small"
                           onClick={() => handleOpenDrawer(supplier)}
+                          sx={{ 
+                            p: 0.5,
+                            '& .MuiSvgIcon-root': {
+                              fontSize: '1rem'
+                            }
+                          }}
                         >
                           <EditIcon />
                         </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Xóa">
                         <IconButton
                           size="small"
                           color="error"
                           onClick={() => handleDelete(supplier.id)}
+                          sx={{ 
+                            p: 0.5,
+                            '& .MuiSvgIcon-root': {
+                              fontSize: '1rem'
+                            }
+                          }}
                         >
                           <DeleteIcon />
                         </IconButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 50]}
-          component="div"
-          count={filteredSuppliers.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={(_, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(e) => {
-            setRowsPerPage(parseInt(e.target.value, 10));
-            setPage(0);
-          }}
-          labelRowsPerPage="Số hàng mỗi trang:"
-        />
+                      </Tooltip>
+                    </Box>
+                  </Box>
+                </Card>
+              ))}
+          </Box>
+          
+          {/* Mobile Pagination */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            gap: 1, 
+            p: 2,
+            borderTop: '1px solid',
+            borderColor: 'divider'
+          }}>
+            <Button
+              size="small"
+              disabled={page === 0}
+              onClick={() => setPage(page - 1)}
+              sx={{ fontSize: '0.75rem' }}
+            >
+              Trước
+            </Button>
+            <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
+              Trang {page + 1} / {Math.ceil(filteredSuppliers.length / rowsPerPage)}
+            </Typography>
+            <Button
+              size="small"
+              disabled={page >= Math.ceil(filteredSuppliers.length / rowsPerPage) - 1}
+              onClick={() => setPage(page + 1)}
+              sx={{ fontSize: '0.75rem' }}
+            >
+              Sau
+            </Button>
+          </Box>
+        </Box>
       </Paper>
 
       {/* Drawer thêm/sửa nhà cung cấp */}

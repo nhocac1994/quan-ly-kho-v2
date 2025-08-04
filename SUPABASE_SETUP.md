@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS shipment_headers (
 CREATE TABLE IF NOT EXISTS shipment_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   shipment_header_id UUID NOT NULL REFERENCES shipment_headers(id) ON DELETE CASCADE,
-  product_id VARCHAR(100) NOT NULL,
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   product_code VARCHAR(100),
   product_name VARCHAR(255) NOT NULL,
   unit VARCHAR(50),
@@ -160,6 +160,7 @@ CREATE INDEX IF NOT EXISTS idx_shipment_headers_shipment_type ON shipment_header
 CREATE INDEX IF NOT EXISTS idx_shipment_headers_shipment_date ON shipment_headers(shipment_date);
 CREATE INDEX IF NOT EXISTS idx_shipment_items_shipment_header_id ON shipment_items(shipment_header_id);
 CREATE INDEX IF NOT EXISTS idx_shipment_items_product_id ON shipment_items(product_id);
+CREATE INDEX IF NOT EXISTS idx_shipment_items_product_id_uuid ON shipment_items(product_id);
 
 -- Insert sample data
 INSERT INTO company_info (ten_cong_ty, ten_day_du, loai_cong_ty, nguoi_dai_dien, sdt) 

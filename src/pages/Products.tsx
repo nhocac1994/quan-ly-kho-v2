@@ -29,6 +29,8 @@ import {
   Divider,
   Chip,
   Tooltip,
+  Card,
+  CardContent,
 } from '@mui/material';
 
 import {
@@ -501,17 +503,47 @@ const Products: React.FC = () => {
   };
 
   return (
-    <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
+    <Box sx={{ 
+      p: { xs: 1, sm: 2, md: 3 }, 
+      width: '100%', 
+      maxWidth: { xs: '100%', sm: 1280 }, 
+      mx: 'auto',
+      minHeight: '100vh'
+    }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', md: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'flex-start', md: 'center' }, 
+        mb: { xs: 1, sm: 2, md: 3 },
+        gap: 2,
+        mt: 2
+      }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <InventoryIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600,fontSize: '1.5rem',color: 'primary.main' }}>
+          <InventoryIcon sx={{ fontSize: { xs: 24, sm: 28, md: 32 }, color: 'primary.main' }} />
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            sx={{ 
+              fontWeight: 600,
+              fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' },
+              color: 'primary.main' 
+            }}
+          >
             Quản Lý Sản Phẩm
           </Typography>
         </Box>
         
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 2 },
+          alignItems: { xs: 'stretch', sm: 'center' },
+          width: { xs: '100%', sm: 'auto' },
+          justifyContent: { xs: 'flex-start', sm: 'flex-start' }
+        }}>
+          {/* Search Bar */}
           <TextField
             placeholder="Tìm kiếm..."
             variant="outlined"
@@ -519,10 +551,11 @@ const Products: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             sx={{ 
-              minWidth: 200,
+              minWidth: { xs: '100%', sm: 200, md: 200 },
+              alignSelf: { xs: 'flex-start', sm: 'flex-start' },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                height: '35px',
+                height: { xs: '35px', sm: '35px' },
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -536,10 +569,19 @@ const Products: React.FC = () => {
             }}
           />
           
-          <Button
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={async () => {
+          {/* Action Buttons */}
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1,
+            justifyContent: { xs: 'flex-start', sm: 'flex-start' },
+            flexWrap: 'wrap'
+          }}>
+          
+          <Tooltip title="Cập nhật tồn kho">
+            <Button
+              variant="outlined"
+              startIcon={<RefreshIcon />}
+              onClick={async () => {
               try {
                 setSnackbar({
                   open: true,
@@ -571,33 +613,57 @@ const Products: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
-              height: '35px',
-              px: 2,
+              height: { xs: '35px', sm: '35px' },
+              px: { xs: 0, sm: 2 },
               py: 1,
               borderColor: 'success.main',
               color: 'success.main',
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              width: { xs: '35px', sm: '35px', md: 'auto' },
+              minWidth: { xs: '35px', sm: '35px', md: 'auto' },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              '& .MuiButton-startIcon': {
+                margin: 0,
+                marginRight: { xs: 0, md: '8px' }
+              },
               '&:hover': {
                 backgroundColor: 'success.light',
                 color: 'white',
                 borderColor: 'success.light',
               }
             }}
-          >
-            Cập Nhật Tồn Kho
+                      >
+            <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>
+              Cập Nhật Tồn Kho
+            </Box>
           </Button>
-          <Button
-            variant="outlined"
-            startIcon={<UploadIcon />}
-            onClick={() => setOpenImportDialog(true)}
-            sx={{
+          </Tooltip>
+          <Tooltip title="Import Excel">
+            <Button
+              variant="outlined"
+              startIcon={<UploadIcon />}
+              onClick={() => setOpenImportDialog(true)}
+                        sx={{
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
-              height: '35px',
-              px: 2,
+              height: { xs: '35px', sm: '35px' },
+              px: { xs: 0, sm: 2 },
               py: 1,
               borderColor: 'primary.main',
               color: 'primary.main',
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              width: { xs: '35px', sm: '35px', md: 'auto' },
+              minWidth: { xs: '35px', sm: '35px', md: 'auto' },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              '& .MuiButton-startIcon': {
+                margin: 0,
+                marginRight: { xs: 0, md: '8px' }
+              },
               '&:hover': {
                 backgroundColor: 'primary.light',
                 color: 'white',
@@ -605,21 +671,35 @@ const Products: React.FC = () => {
               }
             }}
           >
-            Import Excel
+            <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>
+              Import Excel
+            </Box>
           </Button>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={handleExportExcel}
-            sx={{
+          </Tooltip>
+          <Tooltip title="Xuất Excel">
+            <Button
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              onClick={handleExportExcel}
+                        sx={{
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
-              height: '35px',
-              px: 2,
+              height: { xs: '35px', sm: '35px' },
+              px: { xs: 0, sm: 2 },
               py: 1,
               borderColor: 'primary.main',
               color: 'primary.main',
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              width: { xs: '35px', sm: '35px', md: 'auto' },
+              minWidth: { xs: '35px', sm: '35px', md: 'auto' },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              '& .MuiButton-startIcon': {
+                margin: 0,
+                marginRight: { xs: 0, md: '8px' }
+              },
               '&:hover': {
                 backgroundColor: 'primary.light',
                 color: 'white',
@@ -627,39 +707,71 @@ const Products: React.FC = () => {
               }
             }}
           >
-            Xuất Excel
+            <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>
+              Xuất Excel
+            </Box>
           </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDrawer()}
-            sx={{
+          </Tooltip>
+          <Tooltip title="Thêm sản phẩm">
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDrawer()}
+                        sx={{
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
-              height: '35px',
-              px: 2,
+              height: { xs: '35px', sm: '35px' },
+              px: { xs: 0, sm: 2 },
               py: 1,
               boxShadow: 2,
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              width: { xs: '35px', sm: '35px', md: 'auto' },
+              minWidth: { xs: '35px', sm: '35px', md: 'auto' },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              '& .MuiButton-startIcon': {
+                margin: 0,
+                marginRight: { xs: 0, md: '8px' }
+              },
               '&:hover': {
                 boxShadow: 4,
                 transform: 'translateY(-1px)',
               }
             }}
           >
-            Thêm Sản Phẩm
+            <Box sx={{ display: { xs: 'none', lg: 'inline' } }}>
+              Thêm Sản Phẩm
+            </Box>
           </Button>
+          </Tooltip>
+          </Box>
         </Box>
       </Box>
 
       {/* Statistics */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'center' }, 
+        mb: 1,
+        gap: 2
+      }}>
         <Alert severity="info" sx={{ py: 0, px: 2 }}>
-          <Typography variant="body2">
+          <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
             Số lượng tồn kho được tính từ: Tổng nhập - Tổng xuất
           </Typography>
         </Alert>
-        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'row', sm: 'row' },
+          gap: { xs: 2, sm: 3 }, 
+          color: 'text.secondary', 
+          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+          justifyContent: { xs: 'flex-start', sm: 'flex-start' }
+        }}>
           <Typography variant="body2">
             Tổng: {products.length}
           </Typography>
@@ -672,137 +784,290 @@ const Products: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Products Table */}
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 'calc(100vh - 295px)' }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow sx={{ 
-                backgroundColor: '#E3F2FD !important', 
-                position: 'sticky', 
-                top: 0, 
-                zIndex: 1000,
-                '& .MuiTableCell-root': {
-                  backgroundColor: '#E3F2FD !important',
-                  color: '#000 !important',
-                  fontWeight: 'bold'
-                } 
-                }}>
-                <TableCell>STT</TableCell>
-                <TableCell>Mã SP</TableCell>
-                <TableCell>Tên Sản Phẩm</TableCell>
-                <TableCell>Mã Kho</TableCell>
-                <TableCell>Tên Kho</TableCell>
-                <TableCell>Đơn Vị</TableCell>
-                <TableCell align="right">Số Lượng Tồn</TableCell>
-                <TableCell>Hiển Thị</TableCell>
-                <TableCell>Ghi Chú</TableCell>
-                <TableCell align="center">Thao Tác</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedProducts.map((product, index) => (
-                <TableRow key={product.id} hover>
-                  <TableCell>
-                    <Typography variant="body2" color="text.secondary">
-                      {page * rowsPerPage + index + 1}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={product.san_pham_id}
-                      color="primary"
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography 
-                      variant="body2" 
-                      fontWeight="medium"
-                      sx={{ 
-                        cursor: 'pointer',
-                        color: 'primary.main',
-                        '&:hover': {
-                          textDecoration: 'underline',
-                          color: 'primary.dark'
-                        }
-                      }}
-                      onClick={() => navigate(`/products/${product.san_pham_id}`)}
-                    >
-                      {product.ten_san_pham}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>{product.kho_id}</TableCell>
-                  <TableCell>{product.ten_kho}</TableCell>
-                  <TableCell>{product.dvt}</TableCell>
-                  <TableCell align="right">
+            {/* Products Display */}
+      <Box sx={{ 
+        width: '100%', 
+        maxWidth: { xs: '100%', sm: 1280 }
+      }}>
+        {/* Desktop Table View */}
+        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+          <Paper sx={{ 
+            width: '100%', 
+            overflow: 'hidden',
+            borderRadius: 2
+          }}>
+            <TableContainer sx={{ 
+              maxHeight: 'calc(100vh - 295px)',
+              overflowX: 'auto',
+              '& .MuiTable-root': {
+                minWidth: { md: 1200 }
+              }
+            }}>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow sx={{ 
+                    backgroundColor: '#E3F2FD !important', 
+                    position: 'sticky', 
+                    top: 0, 
+                    zIndex: 1000,
+                    '& .MuiTableCell-root': {
+                      backgroundColor: '#E3F2FD !important',
+                      color: '#000 !important',
+                      fontWeight: 'bold',
+                      fontSize: '0.875rem',
+                      padding: 2
+                    } 
+                  }}>
+                    <TableCell>STT</TableCell>
+                    <TableCell>Mã SP</TableCell>
+                    <TableCell>Tên Sản Phẩm</TableCell>
+                    <TableCell>Mã Kho</TableCell>
+                    <TableCell>Tên Kho</TableCell>
+                    <TableCell>Đơn Vị</TableCell>
+                    <TableCell align="right">Số Lượng Tồn</TableCell>
+                    <TableCell>Hiển Thị</TableCell>
+                    <TableCell>Ghi Chú</TableCell>
+                    <TableCell align="center">Thao Tác</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedProducts.map((product, index) => (
+                    <TableRow key={product.id} hover>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {page * rowsPerPage + index + 1}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={product.san_pham_id}
+                          color="primary"
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography 
+                          variant="body2" 
+                          fontWeight="medium"
+                          sx={{ 
+                            cursor: 'pointer',
+                            color: 'primary.main',
+                            '&:hover': {
+                              textDecoration: 'underline',
+                              color: 'primary.dark'
+                            }
+                          }}
+                          onClick={() => navigate(`/products/${product.san_pham_id}`)}
+                        >
+                          {product.ten_san_pham}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{product.kho_id}</TableCell>
+                      <TableCell>{product.ten_kho}</TableCell>
+                      <TableCell>{product.dvt}</TableCell>
+                      <TableCell align="right">
+                        <Chip
+                          label={calculateActualStock(product.san_pham_id)}
+                          color={calculateActualStock(product.san_pham_id) > 0 ? 'success' : 'error'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={product.hien_thi ? 'Có' : 'Không'}
+                          color={product.hien_thi ? 'success' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
+                          {product.ghi_chu}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Tooltip title="Xem chi tiết">
+                            <IconButton
+                              size="small"
+                              color="info"
+                              onClick={() => navigate(`/products/${product.san_pham_id}`)}
+                            >
+                              <VisibilityIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Chỉnh sửa">
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => handleOpenDrawer(product)}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Xóa">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDelete(product.id)}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              component="div"
+              count={filteredProducts.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              labelRowsPerPage="Số dòng mỗi trang:"
+              labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
+              sx={{
+                '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                  fontSize: '0.875rem'
+                },
+                '& .MuiTablePagination-select': {
+                  fontSize: '0.875rem'
+                }
+              }}
+            />
+          </Paper>
+        </Box>
+
+        {/* Mobile Card View */}
+        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {paginatedProducts.map((product, index) => (
+              <Card key={product.id} sx={{ borderRadius: 2 }}>
+                <CardContent sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ minWidth: 30 }}>
+                        {page * rowsPerPage + index + 1}.
+                      </Typography>
+                      <Chip
+                        label={product.san_pham_id}
+                        color="primary"
+                        size="small"
+                      />
+                    </Box>
                     <Chip
                       label={calculateActualStock(product.san_pham_id)}
                       color={calculateActualStock(product.san_pham_id) > 0 ? 'success' : 'error'}
                       size="small"
                     />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={product.hien_thi ? 'Có' : 'Không'}
-                      color={product.hien_thi ? 'success' : 'default'}
-                      size="small"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
-                      {product.ghi_chu}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Tooltip title="Xem chi tiết">
-                        <IconButton
-                          size="small"
-                          color="info"
-                          onClick={() => navigate(`/products/${product.san_pham_id}`)}
-                        >
-                          <VisibilityIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Chỉnh sửa">
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          onClick={() => handleOpenDrawer(product)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Xóa">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDelete(product.id)}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
+                  </Box>
+                  
+                  <Typography 
+                    variant="body1" 
+                    fontWeight="medium"
+                    sx={{ 
+                      cursor: 'pointer',
+                      color: 'primary.main',
+                      mb: 1,
+                      '&:hover': {
+                        textDecoration: 'underline',
+                        color: 'primary.dark'
+                      }
+                    }}
+                    onClick={() => navigate(`/products/${product.san_pham_id}`)}
+                  >
+                    {product.ten_san_pham}
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Kho:</Typography>
+                      <Typography variant="body2">{product.ten_kho} ({product.kho_id})</Typography>
                     </Box>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25, 50]}
-          component="div"
-          count={filteredProducts.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage="Số dòng mỗi trang:"
-          labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
-        />
-      </Paper>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Đơn vị:</Typography>
+                      <Typography variant="body2">{product.dvt}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Hiển thị:</Typography>
+                      <Chip
+                        label={product.hien_thi ? 'Có' : 'Không'}
+                        color={product.hien_thi ? 'success' : 'default'}
+                        size="small"
+                      />
+                    </Box>
+                    {product.ghi_chu && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography variant="body2" color="text.secondary">Ghi chú:</Typography>
+                        <Typography variant="body2" sx={{ maxWidth: 150, textAlign: 'right' }}>
+                          {product.ghi_chu}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                    <Tooltip title="Xem chi tiết">
+                      <IconButton
+                        size="small"
+                        color="info"
+                        onClick={() => navigate(`/products/${product.san_pham_id}`)}
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Chỉnh sửa">
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => handleOpenDrawer(product)}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Xóa">
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDelete(product.id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              component="div"
+              count={filteredProducts.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              labelRowsPerPage="Số dòng mỗi trang:"
+              labelDisplayedRows={({ from, to, count }) => `${from}-${to} của ${count}`}
+              sx={{
+                '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                  fontSize: '0.75rem'
+                },
+                '& .MuiTablePagination-select': {
+                  fontSize: '0.75rem'
+                }
+              }}
+            />
+          </Box>
+        </Box>
+      </Box>
 
       {/* Add/Edit Product Drawer */}
       <Drawer
@@ -810,7 +1075,10 @@ const Products: React.FC = () => {
         open={openDrawer}
         onClose={handleCloseDrawer}
         PaperProps={{
-          sx: { width: 400, p: 3 }
+          sx: { 
+            width: { xs: '100%', sm: 400 }, 
+            p: { xs: 2, sm: 3 } 
+          }
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -921,6 +1189,13 @@ const Products: React.FC = () => {
         onClose={resetImportState} 
         maxWidth="lg" 
         fullWidth
+        PaperProps={{
+          sx: {
+            width: { xs: '95%', sm: '90%', md: '80%' },
+            maxWidth: '1200px',
+            maxHeight: { xs: '90vh', sm: '85vh' }
+          }
+        }}
       >
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1012,39 +1287,39 @@ const Products: React.FC = () => {
                 )}
               </Box>
 
-              <TableContainer component={Paper}>
+              <TableContainer component={Paper} sx={{ maxHeight: '400px' }}>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Mã SP</TableCell>
-                      <TableCell>Tên Sản Phẩm</TableCell>
-                      <TableCell>Mã Kho</TableCell>
-                      <TableCell>Tên Kho</TableCell>
-                      <TableCell>Đơn Vị</TableCell>
-                      <TableCell align="right">Số Lượng</TableCell>
-                      <TableCell>Hiển Thị</TableCell>
-                      <TableCell>Ghi Chú</TableCell>
-                      <TableCell>Trạng Thái</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Mã SP</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Tên Sản Phẩm</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' }, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Mã Kho</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' }, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Tên Kho</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Đơn Vị</TableCell>
+                      <TableCell align="right" sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Số Lượng</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Hiển Thị</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' }, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Ghi Chú</TableCell>
+                      <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Trạng Thái</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {parsedData.map((item, index) => (
                       <TableRow key={index}>
-                        <TableCell>{item.Ma_San_Pham}</TableCell>
-                        <TableCell>{item.Ten_San_Pham}</TableCell>
-                        <TableCell>{item.Ma_Kho}</TableCell>
-                        <TableCell>{item.Ten_Kho}</TableCell>
-                        <TableCell>{item.Dvt}</TableCell>
-                        <TableCell align="right">{item.Sl_Ton}</TableCell>
-                        <TableCell>{item.Hien_Thi}</TableCell>
-                        <TableCell>{item.Ghi_Chu}</TableCell>
-                        <TableCell>
+                        <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>{item.Ma_San_Pham}</TableCell>
+                        <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>{item.Ten_San_Pham}</TableCell>
+                        <TableCell sx={{ display: { xs: 'none', md: 'table-cell' }, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>{item.Ma_Kho}</TableCell>
+                        <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' }, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>{item.Ten_Kho}</TableCell>
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>{item.Dvt}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>{item.Sl_Ton}</TableCell>
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' }, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>{item.Hien_Thi}</TableCell>
+                        <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' }, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>{item.Ghi_Chu}</TableCell>
+                        <TableCell sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>
                           {item.isValid ? (
-                            <Alert severity="success" sx={{ py: 0, px: 1 }}>
+                            <Alert severity="success" sx={{ py: 0, px: 1, fontSize: { xs: '0.6rem', sm: '0.75rem' } }}>
                               Hợp lệ
                             </Alert>
                           ) : (
-                            <Alert severity="error" sx={{ py: 0, px: 1 }}>
+                            <Alert severity="error" sx={{ py: 0, px: 1, fontSize: { xs: '0.6rem', sm: '0.75rem' } }}>
                               Lỗi
                             </Alert>
                           )}
@@ -1073,8 +1348,11 @@ const Products: React.FC = () => {
           )}
         </DialogContent>
 
-        <DialogActions>
-          <Button onClick={resetImportState}>
+        <DialogActions sx={{ p: { xs: 1, sm: 2 } }}>
+          <Button 
+            onClick={resetImportState}
+            sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+          >
             Hủy
           </Button>
           {importStep === 'preview' && (
@@ -1082,6 +1360,7 @@ const Products: React.FC = () => {
               onClick={handleImport}
               variant="contained"
               disabled={validCount === 0}
+              sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
             >
               Import {validCount} sản phẩm
             </Button>
