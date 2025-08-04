@@ -34,6 +34,7 @@ import {
 
 import LanguageSwitcher from './LanguageSwitcher';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useSidebar } from '../contexts/SidebarContext';
 
 const drawerWidth = 240;
 const collapsedDrawerWidth = 64;
@@ -44,11 +45,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    // Lấy trạng thái từ localStorage, mặc định là thu gọn (true)
-    const saved = localStorage.getItem('sidebarCollapsed');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
+  const { sidebarCollapsed, setSidebarCollapsed, currentDrawerWidth } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useLanguage();
@@ -76,10 +73,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const handleSidebarToggle = () => {
-    const newCollapsedState = !sidebarCollapsed;
-    setSidebarCollapsed(newCollapsedState);
-    // Lưu trạng thái vào localStorage
-    localStorage.setItem('sidebarCollapsed', JSON.stringify(newCollapsedState));
+    setSidebarCollapsed(!sidebarCollapsed);
   };
 
   const drawer = (

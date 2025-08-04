@@ -448,7 +448,7 @@ const Customers: React.FC = () => {
   );
 
   return (
-    <Box sx={{ p: { xs: 1, sm: 2, md: 3 }, width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
+    <Box sx={{ p: { xs: 1, sm: 2, md: 3 }, width: '100%', maxWidth: '100%', overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
       {/* Header */}
       <Box sx={{ 
         display: 'flex', 
@@ -628,7 +628,7 @@ const Customers: React.FC = () => {
       {/* Statistics */}
       <Box sx={{ 
         display: 'flex', 
-        justifyContent: { xs: 'space-between', sm: 'flex-end' }, 
+        justifyContent: { xs: 'flex-end', sm: 'flex-end' }, 
         mb: { xs: 1, sm: 2 },
         flexWrap: 'wrap',
         gap: { xs: 1, sm: 0 }
@@ -638,7 +638,7 @@ const Customers: React.FC = () => {
           gap: { xs: 2, sm: 3 }, 
           color: 'text.secondary', 
           fontSize: { xs: '0.75rem', sm: '0.875rem' },
-          justifyContent: { xs: 'space-between', sm: 'flex-start' }
+          justifyContent: { xs: 'flex-end', sm: 'flex-end' }
         }}>
           <Typography variant="body2">
             Tổng: {customers.length}
@@ -943,14 +943,15 @@ const Customers: React.FC = () => {
       >
         {/* Header Drawer */}
         <Box sx={{ 
-          p: 2, 
-          borderBottom: '1px solid #e0e0e0',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1
+           background: '#667eea',
+           color: 'white',
+           p: 2,
+           display: 'flex',
+           alignItems: 'center',
+           gap: 2
         }}>
-          <PeopleIcon color="primary" />
-          <Typography variant="h6" fontWeight="600">
+          <PeopleIcon sx={{fontSize:{xs:'1.5rem',sm:'2rem'}}} />
+          <Typography variant="h6" fontWeight="600" sx={{fontSize:{xs:'1rem',sm:'1.2rem'}}}>
             {editingCustomer ? 'Sửa Khách Hàng' : 'Thêm Khách Hàng Mới'}
           </Typography>
         </Box>
@@ -1045,7 +1046,8 @@ const Customers: React.FC = () => {
           p: 2, 
           borderTop: '1px solid #e0e0e0',
           display: 'flex',
-          gap: 1
+          gap: 1,
+          mb:{xs:2,sm:0}
         }}>
           <Button 
             onClick={handleCloseDrawer}

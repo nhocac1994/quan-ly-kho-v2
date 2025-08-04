@@ -25,6 +25,10 @@ import {
   DialogContent,
   DialogActions,
   Chip,
+  Tooltip,
+  Card,
+  CardContent,
+  Autocomplete,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -50,6 +54,7 @@ import {
   useShipmentItems
 } from '../hooks/useSupabaseQueries';
 import { dataService } from '../services/dataService';
+import { useSidebar } from '../contexts/SidebarContext';
 import * as XLSX from 'xlsx';
 
 // Hàm chuyển đổi ngày Excel sang định dạng ISO
@@ -110,6 +115,7 @@ const OutboundShipments: React.FC = () => {
   const { data: shipmentHeaders, refetch: refreshShipmentHeaders } = useShipmentHeaders('outbound');
   const { data: customers } = useCustomers();
   const { data: products } = useProducts();
+  const { currentDrawerWidth } = useSidebar();
   
   const addShipmentHeader = useAddShipmentHeader();
   const addShipmentItems = useAddShipmentItems();
@@ -987,17 +993,35 @@ const OutboundShipments: React.FC = () => {
   }, [shipmentHeaders, searchTerm]);
 
   return (
-    <Box sx={{ p: 3, width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
+    <Box sx={{ p: { xs: 1, sm: 2, md: 3 }, width: '100%', maxWidth: '100%', overflow: 'hidden', mx: 'auto' }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'center' }, 
+        gap: { xs: 2, sm: 0 },
+        mb: 3,
+        mt: { xs: 2, md: 0 }
+      }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <ShippingIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, fontSize: '1.5rem', color: 'primary.main' }}>
+          <ShippingIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: 'primary.main' }} />
+          <Typography variant="h4" component="h1" sx={{ 
+            fontWeight: 600, 
+            fontSize: { xs: '1.25rem', sm: '1.5rem' }, 
+            color: 'primary.main' 
+          }}>
             Quản Lý Xuất Kho
           </Typography>
         </Box>
         
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 2 }, 
+          alignItems: { xs: 'stretch', sm: 'center' },
+          width: { xs: '100%', sm: 'auto' }
+        }}>
           <TextField
             placeholder="Tìm kiếm..."
             variant="outlined"
@@ -1005,10 +1029,12 @@ const OutboundShipments: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             sx={{ 
-              minWidth: 200,
+              minWidth: { xs: '100%', sm: 200 },
+              flexGrow: { xs: 1, sm: 0 },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                height: '35px',
+                height: { xs: '35px', sm: '35px' },
+                fontSize: { xs: '0.875rem', sm: '1rem' },
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -1022,71 +1048,113 @@ const OutboundShipments: React.FC = () => {
             }}
           />
           
-          <Button
-            variant="outlined"
-            startIcon={<UploadIcon />}
-            onClick={() => setOpenImportDialog(true)}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              height: '35px',
-              px: 2,
-              py: 1,
-              borderColor: 'primary.main',
-              color: 'primary.main',
-              '&:hover': {
-                backgroundColor: 'primary.light',
-                color: 'white',
-                borderColor: 'primary.light',
-              }
-            }}
-          >
-            Import Excel
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              height: '35px',
-              px: 2,
-              py: 1,
-              boxShadow: 2,
-              '&:hover': {
-                boxShadow: 4,
-                transform: 'translateY(-1px)',
-              }
-            }}
-          >
-            Thêm Xuất Kho
-          </Button>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1,
+            flexDirection: { xs: 'row', sm: 'row' },
+            justifyContent: { xs: 'flex-end', sm: 'flex-end' },
+            flexWrap: 'wrap'
+          }}>
+            <Tooltip title="Import Excel">
+              <Button
+                variant="outlined"
+                startIcon={<UploadIcon />}
+                onClick={() => setOpenImportDialog(true)}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  height: { xs: '35px', sm: '35px', md: '35px' },
+                  px: { xs: 1, sm: 2 },
+                  py: 1,
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  width: { xs: 'auto', sm: 'auto', md: 'auto' },
+                  minWidth: { xs: 'auto', sm: 'auto', md: 'auto' },
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderColor: 'primary.main',
+                  color: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.light',
+                    color: 'white',
+                    borderColor: 'primary.light',
+                  }
+                }}
+              >
+                Import Excel
+              </Button>
+            </Tooltip>
+            <Tooltip title="Thêm xuất kho">
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => handleOpenDialog()}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  height: { xs: '35px', sm: '35px' },
+                  px: { xs: 1, sm: 2 },
+                  py: 1,
+                  boxShadow: 2,
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  width: "auto",
+                  minWidth: "auto",
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  '& .MuiButton-startIcon': {
+                    margin: 0,
+                    marginRight: { xs: 0, md: '8px' }
+                  },
+                  '&:hover': {
+                    boxShadow: 4,
+                    transform: 'translateY(-1px)',
+                  }
+                }}
+              >
+                Thêm Xuất Kho
+              </Button>
+            </Tooltip>
+          </Box>
         </Box>
       </Box>
 
       {/* Statistics */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
-          <Typography variant="body2">
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: { xs: 'flex-end', sm: 'flex-end' }, 
+        mb: 2 
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: { xs: 2, sm: 3 }, 
+          color: 'text.secondary', 
+          fontSize: { xs: '0.65rem', sm: '0.875rem' },
+          flexWrap: 'wrap',
+          justifyContent: { xs: 'flex-end', sm: 'flex-end' }
+        }}>
+          <Typography variant="body2" sx={{ fontSize: 'inherit' }}>
             Tổng phiếu: {filteredShipments.length}
           </Typography>
-          <Typography variant="body2">
+          <Typography variant="body2" sx={{ fontSize: 'inherit' }}>
             Sản phẩm: {shipmentHeaders?.length || 0}
           </Typography>
-          <Typography variant="body2">
+          <Typography variant="body2" sx={{ fontSize: 'inherit' }}>
             Số lượng: {filteredShipments.reduce((sum, shipment) => sum + (shipment.total_quantity || 0), 0).toLocaleString()}
           </Typography>
-          <Typography variant="body2" sx={{ color: 'warning.main' }}>
+          <Typography variant="body2" sx={{ 
+            color: 'warning.main',
+            fontSize: 'inherit'
+          }}>
             Hôm nay: {filteredShipments.filter(s => formatDate(s.shipment_date) === new Date().toISOString().split('T')[0]).length}
           </Typography>
         </Box>
       </Box>
 
-      {/* OutboundShipments Table */}
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+      {/* Desktop Table View */}
+      <Paper sx={{ width: '100%', overflow: 'hidden', display: { xs: 'none', md: 'block' } }}>
         <TableContainer sx={{ maxHeight: 'calc(100vh - 295px)' }}>
           <Table stickyHeader>
             <TableHead>
@@ -1169,162 +1237,374 @@ const OutboundShipments: React.FC = () => {
         />
       </Paper>
 
+      {/* Mobile Card View */}
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {filteredShipments
+            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .map((shipment, index) => (
+              <Card key={shipment.id} sx={{ 
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                '&:hover': {
+                  boxShadow: 4,
+                  borderColor: 'primary.main'
+                }
+              }}>
+                <CardContent sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ minWidth: 30 }}>
+                        {page * rowsPerPage + index + 1}.
+                      </Typography>
+                      <Chip
+                        label={shipment.shipment_id}
+                        color="primary"
+                        size="small"
+                      />
+                    </Box>
+                    <Chip
+                      label={shipment.status === 'active' ? 'Hoạt động' : 'Đã hủy'}
+                      color={shipment.status === 'active' ? 'success' : 'error'}
+                      size="small"
+                    />
+                  </Box>
+                  
+                  <Typography 
+                    variant="body1" 
+                    fontWeight="medium"
+                    sx={{ 
+                      color: 'primary.main',
+                      mb: 1,
+                      fontSize: '1rem'
+                    }}
+                  >
+                    {shipment.customer_name || 'Chưa cập nhật'}
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Ngày xuất:</Typography>
+                      <Typography variant="body2">{formatDate(shipment.shipment_date)}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Số lượng:</Typography>
+                      <Chip label={shipment.total_quantity || 0} color="info" size="small" />
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Nội dung:</Typography>
+                      <Typography variant="body2" sx={{ 
+                        maxWidth: '60%',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {shipment.content || 'Chưa cập nhật'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                    <IconButton
+                      size="small"
+                      color="primary"
+                      onClick={() => handleViewDetails(shipment.id)}
+                    >
+                      <ViewIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      color="primary"
+                      onClick={() => handleOpenDialog(shipment)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => handleDelete(shipment.id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                </CardContent>
+              </Card>
+            ))}
+        </Box>
+        
+        {/* Mobile Pagination */}
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'flex-end', 
+          alignItems: 'center', 
+          gap: 1, 
+          mt: 2,
+          flexWrap: 'wrap'
+        }}>
+          <Button
+            size="small"
+            disabled={page === 0}
+            onClick={() => setPage(page - 1)}
+            sx={{ fontSize: '0.75rem' }}
+          >
+            Trước
+          </Button>
+          <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
+            Trang {page + 1} / {Math.ceil(filteredShipments.length / rowsPerPage)}
+          </Typography>
+          <Button
+            size="small"
+            disabled={page >= Math.ceil(filteredShipments.length / rowsPerPage) - 1}
+            onClick={() => setPage(page + 1)}
+            sx={{ fontSize: '0.75rem' }}
+          >
+            Sau
+          </Button>
+        </Box>
+      </Box>
+
       {/* Form Dialog */}
       {openDialog && (
         <Box sx={{
           position: 'fixed',
           top: 0,
-          left: 240,
+          left: { xs: 0, md: currentDrawerWidth }, // Điều chỉnh theo trạng thái sidebar
           right: 0,
           bottom: 0,
           bgcolor: 'white',
           zIndex: 1000,
           display: 'flex',
           flexDirection: 'column',
-          borderLeft: '1px solid #e0e0e0'
+          borderLeft: { xs: 'none', md: '1px solid #e0e0e0' },
+          mt: { xs: 8, md: 0 }
         }}>
           {/* Header */}
           <Box sx={{
-            bgcolor: 'primary.main',
-            color: 'white',
-            p: 2,
+            bgcolor: 'white',
+            color: 'primary.main',
+            p: { xs: 1, sm: 2 },
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #e0e0e0'
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <ShippingIcon sx={{ fontSize: 24 }} />
-              <Typography variant="h6">
+              <ShippingIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />
+              <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 {editingShipment ? 'Chỉnh sửa phiếu xuất kho' : 'Tạo phiếu xuất kho mới'}
               </Typography>
             </Box>
-            <Typography variant="body1" sx={{ py: 0.5 }}>
-              {formData.xuat_kho_id}
-            </Typography>
-            <IconButton
-              onClick={handleCloseDialog}
-              sx={{ color: 'white' }}
-              size="small"
-            >
-              <CloseIcon />
-            </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body1" sx={{ 
+                py: 0.5, 
+                fontSize: { xs: '0.875rem', sm: '1rem' },
+                fontWeight: 500
+              }}>
+                {formData.xuat_kho_id}
+              </Typography>
+              <IconButton
+                onClick={handleCloseDialog}
+                sx={{ color: 'primary.main' }}
+                size="small"
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
           </Box>
 
           {/* Content */}
-          <Box sx={{ flex: 1, overflow: 'auto', p: 2, bgcolor: '#f8f9fa' }}>
-            <Box sx={{ bgcolor: 'white', borderRadius: 1, p: 2, mb: 2, boxShadow: 1 }}>
+          <Box sx={{ 
+            flex: 1, 
+            overflow: 'auto', 
+            p: { xs: 1.5, sm: 2 }, 
+            bgcolor: '#f8f9fa' 
+          }}>
+            <Box sx={{ 
+              bgcolor: 'white', 
+              borderRadius: { xs: 0, sm: 1 }, 
+              p: { xs: 1.5, sm: 2 }, 
+              mb: 2, 
+              boxShadow: { xs: 'none', sm: 1 },
+              gap: { xs: 1.5, sm: 2 }
+            }}>
               {/* Thông tin chung */}
-              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold', color: 'primary.main' }}>
+              <Typography variant="subtitle1" sx={{ 
+                mb: 1, 
+                fontWeight: 'bold', 
+                color: 'primary.main',
+                fontSize: { xs: '1rem', sm: '1.25rem' }
+              }}>
                 Thông tin chung
               </Typography>
-                              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
-                  <TextField
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, 
+                gap: { xs: 1.5, sm: 2 } 
+              }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Ngày xuất"
+                  type="date"
+                  value={formData.ngay_xuat}
+                  onChange={(e) => setFormData({ ...formData, ngay_xuat: e.target.value })}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }
+                  }}
+                />
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Khách hàng</InputLabel>
+                  <Select
+                    value={formData.khach_hang_id}
+                    label="Khách hàng"
+                    onChange={(e) => handleCustomerChange(e.target.value)}
+                    disabled={bulkCreateMode}
+                    sx={{
+                      '& .MuiSelect-select': {
+                        fontSize: { xs: '0.875rem', sm: '1rem' }
+                      }
+                    }}
+                  >
+                    {(customers || []).map((customer: any) => (
+                      <MenuItem key={customer.id} value={customer.id}>
+                        {customer.ten_day_du || customer.ten_khach_hang}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {!bulkCreateMode && (
+                  <Button
+                    variant="outlined"
                     size="small"
-                    fullWidth
-                    label="Ngày xuất"
-                    type="date"
-                    value={formData.ngay_xuat}
-                    onChange={(e) => setFormData({ ...formData, ngay_xuat: e.target.value })}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                  <FormControl size="small" fullWidth>
-                    <InputLabel>Khách hàng</InputLabel>
-                    <Select
-                      value={formData.khach_hang_id}
-                      label="Khách hàng"
-                      onChange={(e) => handleCustomerChange(e.target.value)}
-                      disabled={bulkCreateMode}
-                    >
-                      {(customers || []).map((customer: any) => (
-                        <MenuItem key={customer.id} value={customer.id}>
-                          {customer.ten_day_du || customer.ten_khach_hang}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  {!bulkCreateMode && (
+                    onClick={handleBulkCustomerSelect}
+                    sx={{ 
+                      mt: 1,
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      height: { xs: '35px', sm: '40px' }
+                    }}
+                  >
+                    Chọn nhiều khách hàng
+                  </Button>
+                )}
+                {bulkCreateMode && (
+                  <Box sx={{ 
+                    mt: 1, 
+                    p: 1, 
+                    bgcolor: '#e3f2fd', 
+                    borderRadius: 1,
+                    gridColumn: { xs: '1 / -1', sm: '1 / -1' }
+                  }}>
+                    <Typography variant="body2" color="primary" sx={{ 
+                      fontWeight: 500,
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    }}>
+                      Chế độ tạo hàng loạt: {selectedCustomers.filter(c => c.selected).length} khách hàng đã chọn
+                    </Typography>
                     <Button
-                      variant="outlined"
+                      variant="text"
                       size="small"
-                      onClick={handleBulkCustomerSelect}
-                      sx={{ mt: 1 }}
+                      onClick={() => {
+                        setBulkCreateMode(false);
+                        setSelectedCustomers([]);
+                      }}
+                      sx={{ 
+                        mt: 0.5,
+                        fontSize: { xs: '0.7rem', sm: '0.875rem' }
+                      }}
                     >
-                      Chọn nhiều khách hàng
+                      Hủy chế độ hàng loạt
                     </Button>
-                  )}
-                  {bulkCreateMode && (
-                    <Box sx={{ mt: 1, p: 1, bgcolor: '#e3f2fd', borderRadius: 1 }}>
-                      <Typography variant="body2" color="primary" sx={{ fontWeight: 500 }}>
-                        Chế độ tạo hàng loạt: {selectedCustomers.filter(c => c.selected).length} khách hàng đã chọn
-                      </Typography>
-                      <Button
-                        variant="text"
-                        size="small"
-                        onClick={() => {
-                          setBulkCreateMode(false);
-                          setSelectedCustomers([]);
-                        }}
-                        sx={{ mt: 0.5 }}
-                      >
-                        Hủy chế độ hàng loạt
-                      </Button>
-                    </Box>
-                  )}
-                  <FormControl size="small" fullWidth>
-                    <InputLabel>Loại xuất</InputLabel>
-                    <Select
-                      value={formData.loai_xuat}
-                      label="Loại xuất"
-                      onChange={(e) => setFormData({ ...formData, loai_xuat: e.target.value })}
-                    >
-                      <MenuItem value="Xuất hàng">Xuất hàng</MenuItem>
-                      <MenuItem value="Xuất bán">Xuất bán</MenuItem>
-                      <MenuItem value="Xuất chuyển kho">Xuất chuyển kho</MenuItem>
-                      <MenuItem value="Xuất trả hàng">Xuất trả hàng</MenuItem>
-                      <MenuItem value="Xuất hủy">Xuất hủy</MenuItem>
-                      <MenuItem value="Xuất khác">Xuất khác</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" fullWidth>
-                    <InputLabel>Tài xế</InputLabel>
-                    <Select
-                      value={formData.tai_xe}
-                      label="Tài xế"
-                      onChange={(e) => setFormData({ ...formData, tai_xe: e.target.value })}
-                    >
-                      <MenuItem value="Tài xế 1">Tài xế 1</MenuItem>
-                      <MenuItem value="Tài xế 2">Tài xế 2</MenuItem>
-                      <MenuItem value="Tài xế 3">Tài xế 3</MenuItem>
-                      <MenuItem value="Tài xế 4">Tài xế 4</MenuItem>
-                      <MenuItem value="Tài xế 5">Tài xế 5</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    label="Nội dung xuất"
-                    value={formData.noi_dung_xuat}
-                    onChange={(e) => setFormData({ ...formData, noi_dung_xuat: e.target.value })}
-                  />
-                  <TextField
-                    size="small"
-                    fullWidth
-                    label="Ghi chú"
-                    value={formData.ghi_chu}
-                    onChange={(e) => setFormData({ ...formData, ghi_chu: e.target.value })}
-                  />
-                </Box>
+                  </Box>
+                )}
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Loại xuất</InputLabel>
+                  <Select
+                    value={formData.loai_xuat}
+                    label="Loại xuất"
+                    onChange={(e) => setFormData({ ...formData, loai_xuat: e.target.value })}
+                    sx={{
+                      '& .MuiSelect-select': {
+                        fontSize: { xs: '0.875rem', sm: '1rem' }
+                      }
+                    }}
+                  >
+                    <MenuItem value="Xuất hàng">Xuất hàng</MenuItem>
+                    <MenuItem value="Xuất bán">Xuất bán</MenuItem>
+                    <MenuItem value="Xuất chuyển kho">Xuất chuyển kho</MenuItem>
+                    <MenuItem value="Xuất trả hàng">Xuất trả hàng</MenuItem>
+                    <MenuItem value="Xuất hủy">Xuất hủy</MenuItem>
+                    <MenuItem value="Xuất khác">Xuất khác</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Tài xế</InputLabel>
+                  <Select
+                    value={formData.tai_xe}
+                    label="Tài xế"
+                    onChange={(e) => setFormData({ ...formData, tai_xe: e.target.value })}
+                    sx={{
+                      '& .MuiSelect-select': {
+                        fontSize: { xs: '0.875rem', sm: '1rem' }
+                      }
+                    }}
+                  >
+                    <MenuItem value="Tài xế 1">Tài xế 1</MenuItem>
+                    <MenuItem value="Tài xế 2">Tài xế 2</MenuItem>
+                    <MenuItem value="Tài xế 3">Tài xế 3</MenuItem>
+                    <MenuItem value="Tài xế 4">Tài xế 4</MenuItem>
+                    <MenuItem value="Tài xế 5">Tài xế 5</MenuItem>
+                  </Select>
+                </FormControl>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Nội dung xuất"
+                  value={formData.noi_dung_xuat}
+                  onChange={(e) => setFormData({ ...formData, noi_dung_xuat: e.target.value })}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }
+                  }}
+                />
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Ghi chú"
+                  value={formData.ghi_chu}
+                  onChange={(e) => setFormData({ ...formData, ghi_chu: e.target.value })}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }
+                  }}
+                />
+              </Box>
             </Box>
 
-            <Box sx={{ bgcolor: 'white', borderRadius: 1, p: 2, mb: 2, boxShadow: 1 }}>
+            <Box sx={{ 
+              bgcolor: 'white', 
+              borderRadius: { xs: 0, sm: 1 }, 
+              p: { xs: 1.5, sm: 2 }, 
+              mb: 2, 
+              boxShadow: { xs: 'none', sm: 1 } 
+            }}>
               {/* Thêm sản phẩm */}
-              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold', color: 'primary.main' }}>
+              <Typography variant="subtitle1" sx={{ 
+                mb: 1, 
+                fontWeight: 'bold', 
+                color: 'primary.main',
+                fontSize: { xs: '1rem', sm: '1.25rem' }
+              }}>
                 Chi tiết sản phẩm *
               </Typography>
               
-              {/* Product Entry Row */}
+              {/* Desktop Product Entry Row */}
               <Box sx={{ 
-                display: 'grid', 
+                display: { xs: 'none', lg: 'grid' },
                 gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr auto', 
                 gap: 1, 
                 alignItems: 'center',
@@ -1418,87 +1698,298 @@ const OutboundShipments: React.FC = () => {
                 </IconButton>
               </Box>
 
+              {/* Mobile Product Entry Row */}
+              <Box sx={{ 
+                display: { xs: 'flex', lg: 'none' },
+                flexDirection: 'column',
+                gap: 1.5,
+                p: 1.5,
+                border: '1px solid #e0e0e0',
+                borderRadius: 1,
+                mb: 1,
+                bgcolor: '#fafafa'
+              }}>
+                <Autocomplete
+                  size="small"
+                  options={products || []}
+                  getOptionLabel={(option: any) => `${option.san_pham_id} - ${option.ten_san_pham}`}
+                  value={products?.find(p => p.san_pham_id === currentProduct.san_pham_id) || null}
+                  onChange={(event, newValue) => {
+                    if (newValue) {
+                      setCurrentProduct({
+                        ...currentProduct,
+                        product_id: newValue.id,
+                        san_pham_id: newValue.san_pham_id,
+                        ten_san_pham: newValue.ten_san_pham,
+                        ma_hang: newValue.san_pham_id,
+                        dvt: newValue.dvt,
+                      });
+                    }
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Sản phẩm"
+                      placeholder="Gõ để tìm sản phẩm..."
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          fontSize: '0.875rem'
+                        }
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option: any) => (
+                    <Box component="li" {...props}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="body2" fontWeight="medium" sx={{ fontSize: '0.875rem' }}>
+                          {option.ten_san_pham}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                          Mã: {option.san_pham_id} | ĐVT: {option.dvt}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
+                  filterOptions={(options, { inputValue }) => {
+                    const filterValue = inputValue.toLowerCase();
+                    return options.filter((option: any) =>
+                      option.ten_san_pham.toLowerCase().includes(filterValue) ||
+                      option.san_pham_id.toLowerCase().includes(filterValue)
+                    );
+                  }}
+                  noOptionsText="Không tìm thấy sản phẩm"
+                  loading={!products}
+                  loadingText="Đang tải sản phẩm..."
+                />
+                
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                  <TextField
+                    size="small"
+                    label="Mã hàng"
+                    value={currentProduct.ma_hang}
+                    InputProps={{ readOnly: true }}
+                    placeholder="Tự động điền"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontSize: '0.875rem'
+                      }
+                    }}
+                  />
+                  <TextField
+                    size="small"
+                    label="ĐVT"
+                    value={currentProduct.dvt}
+                    InputProps={{ readOnly: true }}
+                    placeholder="Tự động điền"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontSize: '0.875rem'
+                      }
+                    }}
+                  />
+                </Box>
+                
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                  <TextField
+                    size="small"
+                    label="SL"
+                    type="number"
+                    value={currentProduct.sl_xuat}
+                    onChange={(e) => setCurrentProduct({ ...currentProduct, sl_xuat: parseInt(e.target.value) || 0 })}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontSize: '0.875rem'
+                      }
+                    }}
+                  />
+                  <TextField
+                    size="small"
+                    label="Đơn giá"
+                    type="number"
+                    value={currentProduct.don_gia}
+                    onChange={(e) => setCurrentProduct({ ...currentProduct, don_gia: Number(e.target.value) })}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontSize: '0.875rem'
+                      }
+                    }}
+                  />
+                </Box>
+                
+                <TextField
+                  size="small"
+                  label="Ghi chú"
+                  value={currentProduct.ghi_chu}
+                  onChange={(e) => setCurrentProduct({ ...currentProduct, ghi_chu: e.target.value })}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: '0.875rem'
+                    }
+                  }}
+                />
+                
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={() => {
+                    if (currentProduct.san_pham_id && currentProduct.ten_san_pham) {
+                      setProductItems([...productItems, { ...currentProduct, id: Date.now().toString() }]);
+                      setCurrentProduct({
+                        id: '',
+                        product_id: '',
+                        san_pham_id: '',
+                        ten_san_pham: '',
+                        ma_hang: '',
+                        dvt: '',
+                        sl_xuat: 1,
+                        don_gia: 0,
+                        ghi_chu: '',
+                      });
+                    }
+                  }}
+                  sx={{
+                    fontSize: '0.875rem',
+                    height: '40px'
+                  }}
+                >
+                  Thêm sản phẩm
+                </Button>
+              </Box>
+
               {/* Danh sách sản phẩm */}
               {productItems.length > 0 && (
                 <Box sx={{ mb: 1, p: 1, bgcolor: '#e3f2fd', borderRadius: 1, border: '1px solid #2196f3' }}>
-                  <Typography variant="body2" color="primary" sx={{ fontWeight: 500 }}>
+                  <Typography variant="body2" color="primary" sx={{ 
+                    fontWeight: 500,
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                  }}>
                     Danh sách sản phẩm đã thêm ({productItems.length} sản phẩm)
                   </Typography>
-                  <TableContainer component={Paper} sx={{ mt: 1, boxShadow: 1, borderRadius: 1 }}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 'bold', width: 60 }}>STT</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Tên sản phẩm</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Mã hàng</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', width: 80 }}>ĐVT</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Số lượng</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Đơn giá</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold' }}>Ghi chú</TableCell>
-                          <TableCell sx={{ fontWeight: 'bold', width: 80 }} align="center">Thao tác</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {productItems.map((item, index) => (
-                          <TableRow key={item.id} hover>
-                            <TableCell sx={{ fontWeight: 500 }}>{index + 1}</TableCell>
-                            <TableCell sx={{ fontWeight: 500 }}>{item.ten_san_pham}</TableCell>
-                            <TableCell>{item.ma_hang}</TableCell>
-                            <TableCell>{item.dvt}</TableCell>
-                            <TableCell>
-                              <TextField
-                                type="number"
-                                size="small"
-                                value={item.sl_xuat}
-                                onChange={(e) => handleUpdateItemQuantity(item.id, parseInt(e.target.value) || 0)}
-                                sx={{ 
-                                  width: 80,
-                                  '& .MuiOutlinedInput-root': {
-                                    fontSize: '0.75rem',
-                                    height: 32,
-                                  }
-                                }}
-                                inputProps={{ 
-                                  min: 1,
-                                  style: { textAlign: 'center' }
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <TextField
-                                type="number"
-                                size="small"
-                                value={item.don_gia}
-                                onChange={(e) => handleUpdateItemPrice(item.id, parseFloat(e.target.value) || 0)}
-                                sx={{ 
-                                  width: 80,
-                                  '& .MuiOutlinedInput-root': {
-                                    fontSize: '0.75rem',
-                                    height: 32,
-                                  }
-                                }}
-                                inputProps={{ 
-                                  min: 0,
-                                  style: { textAlign: 'center' }
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <TextField
-                                size="small"
-                                value={item.ghi_chu}
-                                onChange={(e) => handleUpdateItemNotes(item.id, e.target.value)}
-                                placeholder="Ghi chú..."
-                                sx={{ 
-                                  width: 120,
-                                  '& .MuiOutlinedInput-root': {
-                                    fontSize: '0.75rem',
-                                    height: 32,
-                                  }
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell align="center">
+                  
+                  {/* Desktop Table View */}
+                  <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
+                    <TableContainer component={Paper} sx={{ mt: 1, boxShadow: 1, borderRadius: 1 }}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'bold', width: 60 }}>STT</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Tên sản phẩm</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Mã hàng</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', width: 80 }}>ĐVT</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Số lượng</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Đơn giá</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Ghi chú</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', width: 80 }} align="center">Thao tác</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {productItems.map((item, index) => (
+                            <TableRow key={item.id} hover>
+                              <TableCell sx={{ fontWeight: 500 }}>{index + 1}</TableCell>
+                              <TableCell sx={{ fontWeight: 500 }}>{item.ten_san_pham}</TableCell>
+                              <TableCell>{item.ma_hang}</TableCell>
+                              <TableCell>{item.dvt}</TableCell>
+                              <TableCell>
+                                <TextField
+                                  type="number"
+                                  size="small"
+                                  value={item.sl_xuat}
+                                  onChange={(e) => handleUpdateItemQuantity(item.id, parseInt(e.target.value) || 0)}
+                                  sx={{ 
+                                    width: 80,
+                                    '& .MuiOutlinedInput-root': {
+                                      fontSize: '0.75rem',
+                                      height: 32,
+                                    }
+                                  }}
+                                  inputProps={{ 
+                                    min: 1,
+                                    style: { textAlign: 'center' }
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <TextField
+                                  type="number"
+                                  size="small"
+                                  value={item.don_gia}
+                                  onChange={(e) => handleUpdateItemPrice(item.id, parseFloat(e.target.value) || 0)}
+                                  sx={{ 
+                                    width: 80,
+                                    '& .MuiOutlinedInput-root': {
+                                      fontSize: '0.75rem',
+                                      height: 32,
+                                    }
+                                  }}
+                                  inputProps={{ 
+                                    min: 0,
+                                    style: { textAlign: 'center' }
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <TextField
+                                  size="small"
+                                  value={item.ghi_chu}
+                                  onChange={(e) => handleUpdateItemNotes(item.id, e.target.value)}
+                                  placeholder="Ghi chú..."
+                                  sx={{ 
+                                    width: 120,
+                                    '& .MuiOutlinedInput-root': {
+                                      fontSize: '0.75rem',
+                                      height: 32,
+                                    }
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleRemoveProduct(item.id)}
+                                  sx={{ 
+                                    '&:hover': { 
+                                      bgcolor: 'error.light',
+                                      color: 'white'
+                                    }
+                                  }}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
+
+                  {/* Mobile Card View */}
+                  <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
+                      {productItems.map((item, index) => (
+                        <Card key={item.id} sx={{ 
+                          borderRadius: 1,
+                          border: '1px solid #e0e0e0',
+                          '&:hover': {
+                            boxShadow: 2,
+                            borderColor: 'primary.main'
+                          }
+                        }}>
+                          <CardContent sx={{ p: 1.5 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ minWidth: 25, fontSize: '0.75rem' }}>
+                                  {index + 1}.
+                                </Typography>
+                                <Chip
+                                  label={item.ma_hang}
+                                  color="primary"
+                                  size="small"
+                                  sx={{ fontSize: '0.7rem' }}
+                                />
+                              </Box>
                               <IconButton
                                 size="small"
                                 color="error"
@@ -1512,12 +2003,90 @@ const OutboundShipments: React.FC = () => {
                               >
                                 <DeleteIcon fontSize="small" />
                               </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                            </Box>
+                            
+                            <Typography 
+                              variant="body2" 
+                              fontWeight="medium"
+                              sx={{ 
+                                color: 'primary.main',
+                                mb: 1,
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              {item.ten_san_pham}
+                            </Typography>
+                            
+                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mb: 1 }}>
+                              <Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>ĐVT:</Typography>
+                                <Typography variant="body2" sx={{ fontSize: '0.7rem' }}>{item.dvt}</Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Số lượng:</Typography>
+                                <TextField
+                                  type="number"
+                                  size="small"
+                                  value={item.sl_xuat}
+                                  onChange={(e) => handleUpdateItemQuantity(item.id, parseInt(e.target.value) || 0)}
+                                  sx={{ 
+                                    width: '100%',
+                                    '& .MuiOutlinedInput-root': {
+                                      fontSize: '0.7rem',
+                                      height: 28,
+                                    }
+                                  }}
+                                  inputProps={{ 
+                                    min: 1,
+                                    style: { textAlign: 'center' }
+                                  }}
+                                />
+                              </Box>
+                            </Box>
+                            
+                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                              <Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Đơn giá:</Typography>
+                                <TextField
+                                  type="number"
+                                  size="small"
+                                  value={item.don_gia}
+                                  onChange={(e) => handleUpdateItemPrice(item.id, parseFloat(e.target.value) || 0)}
+                                  sx={{ 
+                                    width: '100%',
+                                    '& .MuiOutlinedInput-root': {
+                                      fontSize: '0.7rem',
+                                      height: 28,
+                                    }
+                                  }}
+                                  inputProps={{ 
+                                    min: 0,
+                                    style: { textAlign: 'center' }
+                                  }}
+                                />
+                              </Box>
+                              <Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Ghi chú:</Typography>
+                                <TextField
+                                  size="small"
+                                  value={item.ghi_chu}
+                                  onChange={(e) => handleUpdateItemNotes(item.id, e.target.value)}
+                                  placeholder="Ghi chú..."
+                                  sx={{ 
+                                    width: '100%',
+                                    '& .MuiOutlinedInput-root': {
+                                      fontSize: '0.7rem',
+                                      height: 28,
+                                    }
+                                  }}
+                                />
+                              </Box>
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </Box>
+                  </Box>
                 </Box>
               )}
               
@@ -1541,10 +2110,12 @@ const OutboundShipments: React.FC = () => {
 
           {/* Footer */}
           <Box sx={{
-            p: 2,
+            p: { xs: 1.5, sm: 2 },
             borderTop: '1px solid #e0e0e0',
             display: 'flex',
-            justifyContent: 'flex-end',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             gap: 1
           }}>
             <Button 
@@ -1552,13 +2123,17 @@ const OutboundShipments: React.FC = () => {
               variant="outlined"
               size="small"
               sx={{
-                borderRadius: 1,
+                borderRadius: 2,
                 textTransform: 'none',
                 fontWeight: 500,
-                px: 2,
-                py: 0.5,
+                px: { xs: 1, sm: 2 },
+                py: { xs: 0.75, sm: 0.5 },
+                mb: {xs:2,sm:0},
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
                 borderColor: 'primary.main',
                 color: 'primary.main',
+                flex: { xs: 1, sm: 'none' },
+                minWidth: { xs: 'auto', sm: 'auto' },
                 '&:hover': {
                   backgroundColor: 'primary.light',
                   color: 'white',
@@ -1574,12 +2149,16 @@ const OutboundShipments: React.FC = () => {
               size="small"
               disabled={loading || productItems.length === 0}
               sx={{
-                borderRadius: 1,
+                borderRadius: 2,
                 textTransform: 'none',
                 fontWeight: 500,
-                px: 2,
-                py: 0.5,
+                px: { xs: 1, sm: 2 },
+                py: { xs: 0.75, sm: 0.5 },
+                mb:{xs:2,sm:0},
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
                 boxShadow: 1,
+                flex: { xs: 1, sm: 'none' },
+                minWidth: { xs: 'auto', sm: 'auto' },
                 '&:hover': {
                   boxShadow: 2,
                   transform: 'translateY(-1px)',
@@ -1597,90 +2176,96 @@ const OutboundShipments: React.FC = () => {
         <Box sx={{
           position: 'fixed',
           top: 0,
-          left: 240,
+          left: { xs: 0, md: currentDrawerWidth }, // Điều chỉnh theo trạng thái sidebar
           right: 0,
           bottom: 0,
           bgcolor: 'white',
           zIndex: 1000,
           display: 'flex',
           flexDirection: 'column',
-          borderLeft: '1px solid #e0e0e0'
+          borderLeft: { xs: 'none', md: '1px solid #e0e0e0' },
+          mt: { xs: 8, md: 8 }
         }}>
           {/* Header */}
           <Box sx={{
-            bgcolor: 'primary.main',
-            color: 'white',
-            p: 2,
+            bgcolor: 'white',
+            color: 'primary.main',
+            p: {xs:1,sm:2},
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <ShippingIcon sx={{ fontSize: 24 }} />
-              <Typography variant="h6">
+              <ShippingIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />
+              <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 Chi tiết phiếu xuất kho
               </Typography>
             </Box>
-            <Typography variant="body1" sx={{ py: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="body1" sx={{ py: 0.5, fontSize: { xs: '0.875rem', sm: '1rem' }, fontWeight: 500 }}>
               {viewingShipment.shipment_id}
             </Typography>
             <IconButton
               onClick={handleCloseDetails}
-              sx={{ color: 'white' }}
+              sx={{ color: 'primary.main' }}
               size="small"
             >
               <CloseIcon />
             </IconButton>
+            </Box>
           </Box>
 
           {/* Content */}
           <Box sx={{ 
             flex: 1, 
             overflow: 'auto', 
-            p: 2,
+            p: { xs: 1, sm: 2 },
             bgcolor: '#f8f9fa'
           }}>
             {/* Header với nút quay lại, copy và in */}
-            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleCloseDetails}
-                sx={{
-                  borderRadius: 1,
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  px: 2,
-                  py: 0.5,
-                  borderColor: 'primary.main',
-                  color: 'primary.main',
-                  '&:hover': {
-                    backgroundColor: 'primary.light',
-                    color: 'white',
-                    borderColor: 'primary.light',
-                  }
-                }}
-              >
-                ← Quay lại danh sách
-              </Button>
-              <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ 
+              mb: 2, 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'column' },
+              justifyContent: 'space-between', 
+              alignItems: { xs: 'stretch', sm: 'flex-end' },
+              gap: { xs: 1, sm: 0 }
+            }}>
+              <Box sx={{ 
+                display: 'flex', 
+                gap: { xs: 0.5, sm: 1 },
+                justifyContent: { xs: 'flex-end', sm: 'flex-end' },
+                flexWrap: 'nowrap',
+                width: { xs: '100%', sm: 'auto' }
+              }}>
                 <Button
                   variant="outlined"
                   size="small"
                   startIcon={<CopyIcon />}
                   onClick={handleCopyShipment}
                   sx={{
-                    borderRadius: 1,
+                    borderRadius: 2,
                     textTransform: 'none',
                     fontWeight: 500,
-                    px: 2,
-                    py: 0.5,
-                    borderColor: 'info.main',
-                    color: 'info.main',
+                    height: { xs: '35px', sm: '35px' },
+                    px: { xs: 1, sm: 2 },
+                    py: 1,
+                    borderColor: 'success.main',
+                    color: 'success.main',
+                    fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                    width: 'auto',
+                    minWidth: 'auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    '& .MuiButton-startIcon': {
+                      margin: 0,
+                      marginRight: { xs: 0, md: '8px' }
+                    },
                     '&:hover': {
-                      backgroundColor: 'info.light',
+                      backgroundColor: 'success.light',
                       color: 'white',
-                      borderColor: 'info.light',
+                      borderColor: 'success.light',
                     }
                   }}
                 >
@@ -1692,17 +2277,28 @@ const OutboundShipments: React.FC = () => {
                   startIcon={<PrintIcon />}
                   onClick={handlePrintShipment}
                   sx={{
-                    borderRadius: 1,
+                    borderRadius: 2,
                     textTransform: 'none',
                     fontWeight: 500,
-                    px: 2,
-                    py: 0.5,
-                    borderColor: 'success.main',
-                    color: 'success.main',
+                    height: { xs: '35px', sm: '35px' },
+                    px: { xs: 1, sm: 2 },
+                    py: 1,
+                    borderColor: 'primary.main',
+                    color: 'primary.main',
+                    fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                    width: 'auto',
+                    minWidth: 'auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                      '& .MuiButton-startIcon': {
+                        margin: 0,
+                        marginRight: { xs: 0, md: '8px' }
+                      },
                     '&:hover': {
-                      backgroundColor: 'success.light',
+                      backgroundColor: 'primary.light',
                       color: 'white',
-                      borderColor: 'success.light',
+                      borderColor: 'primary.light',
                     }
                   }}
                 >
@@ -1713,136 +2309,284 @@ const OutboundShipments: React.FC = () => {
             
             <Box sx={{ 
               bgcolor: 'white', 
-              borderRadius: 1, 
-              p: 2, 
+              borderRadius: { xs: 0, sm: 1 }, 
+              p: { xs: 1.5, sm: 2 }, 
               mb: 2,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              boxShadow: { xs: 'none', sm: '0 1px 3px rgba(0,0,0,0.1)' }
             }}>
               {/* Thông tin chung */}
-              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+              <Typography variant="subtitle1" sx={{ 
+                mb: 2, 
+                fontWeight: 'bold', 
+                color: 'primary.main',
+                fontSize: { xs: '1rem', sm: '1.25rem' }
+              }}>
                 Thông tin chung
               </Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, mb: 3 }}>
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, 
+                gap: { xs: 1.5, sm: 2, lg: 3 }, 
+                mb: 3 
+              }}>
                 <Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                     Mã phiếu
                   </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  <Typography variant="body1" sx={{ 
+                    fontWeight: 500,
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}>
                     {viewingShipment.shipment_id}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                     Ngày xuất
                   </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  <Typography variant="body1" sx={{ 
+                    fontWeight: 500,
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}>
                     {formatDate(viewingShipment.shipment_date)}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                     Khách hàng
                   </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  <Typography variant="body1" sx={{ 
+                    fontWeight: 500,
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}>
                     {viewingShipment.customer_name || 'Chưa cập nhật'}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                     Loại xuất
                   </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  <Typography variant="body1" sx={{ 
+                    fontWeight: 500,
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}>
                     {viewingShipment.import_type || 'Chưa cập nhật'}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                     Tài xế
                   </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  <Typography variant="body1" sx={{ 
+                    fontWeight: 500,
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}>
                     {viewingShipment.driver || 'Chưa cập nhật'}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                     Nội dung xuất
                   </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  <Typography variant="body1" sx={{ 
+                    fontWeight: 500,
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}>
                     {viewingShipment.content || 'Chưa cập nhật'}
                   </Typography>
                 </Box>
               </Box>
 
               {/* Thông tin sản phẩm */}
-              <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+              <Typography variant="subtitle1" sx={{ 
+                mb: 2, 
+                fontWeight: 'bold', 
+                color: 'primary.main',
+                fontSize: { xs: '1rem', sm: '1.25rem' }
+              }}>
                 Thông tin sản phẩm
               </Typography>
               {/* Danh sách sản phẩm */}
               <Box sx={{ mt: 3 }}>
-                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+                <Typography variant="subtitle1" sx={{ 
+                  mb: 2, 
+                  fontWeight: 'bold', 
+                  color: 'primary.main',
+                  fontSize: { xs: '0.875rem', sm: '1.25rem' }
+                }}>
                   Danh sách sản phẩm xuất ({shipmentItems?.length || 0} sản phẩm)
                 </Typography>
-                {shipmentItems && shipmentItems.length > 0 ? (
-                  <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow sx={{ bgcolor: 'primary.main' }}>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>STT</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Mã sản phẩm</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Tên sản phẩm</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>ĐVT</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Số lượng</TableCell>
-                          <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Ghi chú</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {shipmentItems.map((item, index) => (
-                          <TableRow key={item.id} hover>
-                            <TableCell>{index + 1}</TableCell>
-                            <TableCell sx={{ fontWeight: 500 }}>{item.product_code}</TableCell>
-                            <TableCell>{item.product_name}</TableCell>
-                            <TableCell>{item.unit}</TableCell>
-                            <TableCell sx={{ fontWeight: 500, color: 'primary.main' }}>{item.quantity}</TableCell>
-                            <TableCell>{item.notes || '-'}</TableCell>
+                
+                {/* Desktop Table View */}
+                <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
+                  {shipmentItems && shipmentItems.length > 0 ? (
+                    <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow sx={{ bgcolor: 'primary.main' }}>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>STT</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Mã sản phẩm</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Tên sản phẩm</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>ĐVT</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Số lượng</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Ghi chú</TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                ) : (
-                  <Box sx={{ 
-                    p: 3, 
-                    textAlign: 'center', 
-                    bgcolor: '#f5f5f5', 
-                    borderRadius: 1,
-                    border: '1px dashed #ccc'
-                  }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Chưa có sản phẩm nào trong phiếu này
-                    </Typography>
-                  </Box>
-                )}
+                        </TableHead>
+                        <TableBody>
+                          {shipmentItems.map((item, index) => (
+                            <TableRow key={item.id} hover>
+                              <TableCell>{index + 1}</TableCell>
+                              <TableCell sx={{ fontWeight: 500 }}>{item.product_code}</TableCell>
+                              <TableCell>{item.product_name}</TableCell>
+                              <TableCell>{item.unit}</TableCell>
+                              <TableCell sx={{ fontWeight: 500, color: 'primary.main' }}>{item.quantity}</TableCell>
+                              <TableCell>{item.notes || '-'}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  ) : (
+                    <Box sx={{ 
+                      p: 3, 
+                      textAlign: 'center', 
+                      bgcolor: '#f5f5f5', 
+                      borderRadius: 1,
+                      border: '1px dashed #ccc'
+                    }}>
+                      <Typography variant="body2" color="text.secondary">
+                        Chưa có sản phẩm nào trong phiếu này
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+
+                {/* Mobile Card View */}
+                <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
+                  {shipmentItems && shipmentItems.length > 0 ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {shipmentItems.map((item, index) => (
+                        <Card key={item.id} sx={{ 
+                          borderRadius: 1,
+                          border: '1px solid #e0e0e0',
+                          '&:hover': {
+                            boxShadow: 2,
+                            borderColor: 'primary.main'
+                          }
+                        }}>
+                          <CardContent sx={{ p: 1.5 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ minWidth: 25, fontSize: '0.75rem' }}>
+                                  {index + 1}.
+                                </Typography>
+                                <Chip
+                                  label={item.product_code}
+                                  color="primary"
+                                  size="small"
+                                  sx={{ fontSize: '0.7rem' }}
+                                />
+                              </Box>
+                              <Chip
+                                label={item.quantity}
+                                color="info"
+                                size="small"
+                                sx={{ fontSize: '0.7rem' }}
+                              />
+                            </Box>
+                            
+                            <Typography 
+                              variant="body2" 
+                              fontWeight="medium"
+                              sx={{ 
+                                color: 'primary.main',
+                                mb: 1,
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              {item.product_name}
+                            </Typography>
+                            
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>ĐVT:</Typography>
+                                <Typography variant="body2" sx={{ fontSize: '0.7rem' }}>{item.unit}</Typography>
+                              </Box>
+                              {item.notes && (
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Ghi chú:</Typography>
+                                  <Typography variant="body2" sx={{ 
+                                    fontSize: '0.7rem',
+                                    maxWidth: '60%',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap'
+                                  }}>
+                                    {item.notes}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </Box>
+                  ) : (
+                    <Box sx={{ 
+                      p: 2, 
+                      textAlign: 'center', 
+                      bgcolor: '#f5f5f5', 
+                      borderRadius: 1,
+                      border: '1px dashed #ccc'
+                    }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
+                        Chưa có sản phẩm nào trong phiếu này
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
               </Box>
 
               {/* Thông tin bổ sung */}
               <Box sx={{ mt: 3 }}>
-                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
+                <Typography variant="subtitle1" sx={{ 
+                  mb: 2, 
+                  fontWeight: 'bold', 
+                  color: 'primary.main',
+                  fontSize: { xs: '1rem', sm: '1.25rem' }
+                }}>
                   Thông tin bổ sung
                 </Typography>
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 3 }}>
+                <Box sx={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, 
+                  gap: { xs: 1.5, sm: 3 } 
+                }}>
                   <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ 
+                      mb: 0.5,
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    }}>
                       Ngày tạo
                     </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                    <Typography variant="body1" sx={{ 
+                      fontWeight: 500,
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }}>
                       {formatDate(viewingShipment.created_at)}
                     </Typography>
                   </Box>
                   <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ 
+                      mb: 0.5,
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    }}>
                       Ghi chú
                     </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                    <Typography variant="body1" sx={{ 
+                      fontWeight: 500,
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }}>
                       {viewingShipment.notes || 'Chưa cập nhật'}
                     </Typography>
                   </Box>

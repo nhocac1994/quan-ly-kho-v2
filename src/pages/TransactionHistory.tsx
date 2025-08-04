@@ -246,17 +246,42 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
   }
 
   return (
-    <Box sx={{ p: 3, width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
+    <Box sx={{ 
+      p: { xs: 1, sm: 2, md: 3 }, 
+      width: '100%', 
+      maxWidth: '100%', 
+      overflow: 'hidden', 
+      mx: 'auto',
+      height: '100vh-80px',
+      mt: {xs:2,sm:0}
+    }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <HistoryIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, fontSize: '1.5rem', color: 'primary.main' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'center' }, 
+        gap: { xs: 2, sm: 0 },
+        mb: 2 
+      }}>
+        <Box sx={{ display: {xs:'none',sm:'flex'}, alignItems: 'center', gap: 2 }}>
+          <HistoryIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: 'primary.main' }} />
+          <Typography variant="h4" component="h1" sx={{ 
+            fontWeight: 600, 
+            fontSize: { xs: '1.25rem', sm: '1.5rem' }, 
+            color: 'primary.main' 
+          }}>
             Lịch Sử Giao Dịch
           </Typography>
         </Box>
         
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 2 }, 
+          alignItems: { xs: 'stretch', sm: 'center' },
+          width: { xs: '100%', sm: 'auto' }
+        }}>
           <TextField
             placeholder="Tìm kiếm..."
             variant="outlined"
@@ -264,10 +289,12 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             sx={{ 
-              minWidth: 200,
+              minWidth: { xs: '100%', sm: 200 },
+              flexGrow: { xs: 1, sm: 0 },
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,
-                height: '35px',
+                height: { xs: '35px', sm: '35px' },
+                fontSize: { xs: '0.875rem', sm: '1rem' },
                 '&:hover fieldset': {
                   borderColor: 'primary.main',
                 },
@@ -281,64 +308,106 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
             }}
           />
           
-          <Button
-            variant="outlined"
-            startIcon={<FilterIcon />}
-            endIcon={filterDialogOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            onClick={() => setFilterDialogOpen(!filterDialogOpen)}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              height: '35px',
-              px: 2,
-              py: 1,
-              borderColor: 'primary.main',
-              color: 'primary.main',
-              '&:hover': {
-                backgroundColor: 'primary.light',
-                color: 'white',
-                borderColor: 'primary.light',
-              }
-            }}
-          >
-            Bộ Lọc
-          </Button>
-          
-          <Button
-            variant="outlined"
-            onClick={clearFilters}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              height: '35px',
-              px: 2,
-              py: 1,
-              borderColor: 'error.main',
-              color: 'error.main',
-              '&:hover': {
-                backgroundColor: 'error.light',
-                color: 'white',
-                borderColor: 'error.light',
-              }
-            }}
-          >
-            Xóa Bộ Lọc
-          </Button>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1,
+            flexDirection: { xs: 'row', sm: 'row' },
+            justifyContent: { xs: 'flex-end', sm: 'flex-start' }
+
+          }}>
+            <Button
+              variant="outlined"
+              startIcon={<FilterIcon />}
+              endIcon={filterDialogOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              onClick={() => setFilterDialogOpen(!filterDialogOpen)}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 500,
+                height: { xs: '35px', sm: '35px' },
+                px: { xs: 1, sm: 2 },
+                py: 1,
+                borderColor: 'primary.main',
+                color: 'primary.main',
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                width: "auto",
+                minWidth: "auto",
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                '&:hover': {
+                  backgroundColor: 'primary.light',
+                  color: 'white',
+                  borderColor: 'primary.light',
+                },
+                '& .MuiButton-startIcon': {
+                  margin: 0,
+                  marginRight: { xs: 0, md: '8px' }
+                }
+              }}
+            >
+              Bộ Lọc
+            </Button>
+            
+            <Button
+              variant="outlined"
+              onClick={clearFilters}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 500,
+                height: { xs: '35px', sm: '35px' },
+                px: { xs: 1, sm: 2 },
+                py: 1,
+                borderColor: 'error.main',
+                color: 'error.main',
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                width: "auto",
+                minWidth: "auto",
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                '&:hover': {
+                  backgroundColor: 'error.light',
+                  color: 'white',
+                  borderColor: 'error.light',
+                },
+                '& .MuiButton-startIcon': {
+                  margin: 0,
+                  marginRight: { xs: 0, md: '8px' }
+                }
+              }}
+            >
+              Xóa Bộ Lọc
+            </Button>
+          </Box>
         </Box>
       </Box>
 
       {/* Statistics */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Box sx={{ display: 'flex', gap: 3, color: 'text.secondary', fontSize: '0.875rem' }}>
-          <Typography variant="body2">
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: { xs: 'flex-end', sm: 'flex-end' }, 
+        mb: 2 
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: { xs: 2, sm: 3 }, 
+          color: 'text.secondary', 
+          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+          flexWrap: 'wrap',
+          justifyContent: { xs: 'flex-end', sm: 'flex-end' }
+        }}>
+          <Typography variant="body2" sx={{ fontSize: 'inherit' }}>
             Tổng giao dịch: {totalTransactions}
           </Typography>
-          <Typography variant="body2">
+          <Typography variant="body2" sx={{ fontSize: 'inherit' }}>
             Nhập kho: {totalInbound}
           </Typography>
-          <Typography variant="body2" sx={{ color: 'warning.main' }}>
+          <Typography variant="body2" sx={{ 
+            color: 'warning.main',
+            fontSize: 'inherit'
+          }}>
             Xuất kho: {totalOutbound}
           </Typography>
         </Box>
@@ -346,101 +415,183 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
 
       {/* Filter Dialog - Slide down from header */}
       <Slide direction="down" in={filterDialogOpen} mountOnEnter unmountOnExit>
-        <Paper sx={{ p: 2, mb: 2, boxShadow: 3, borderRadius: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 , fontSize: '1.2rem' }}>
+        <Paper sx={{ 
+          p: { xs: 1, sm: 2 }, 
+          mb: 2, 
+          boxShadow: 3, 
+          borderRadius: 2 
+        }}>
+          <Typography variant="h6" sx={{ 
+            mb: 2, 
+            color: 'primary.main', 
+            fontWeight: 600, 
+            fontSize: { xs: '1rem', sm: '1.2rem' } 
+          }}>
             Bộ Lọc Nâng Cao
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ flex: '1 1 200px', minWidth: 200,height: '35px' }}>
-              <TextField
-                type="date"
-                label="Từ ngày"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                size="small"
-                fullWidth
-                sx={{
-                  height: '35px',
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, 
+            gap: { xs: 1.5, sm: 2 } 
+          }}>
+            <TextField
+              type="date"
+              label="Từ ngày"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              size="small"
+              fullWidth
+              sx={{
+                height: { xs: '40px', sm: '35px' },
+                borderRadius: 2,
+                '& .MuiOutlinedInput-root': {
+                  fontSize: { xs: '0.875rem', sm: '1rem' },
                   borderRadius: 2,
-                }}
-              />
-            </Box>
-            <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
-              <TextField
-                type="date"
-                label="Đến ngày"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                size="small"
-                fullWidth
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
+              }}
+            />
+            <TextField
+              type="date"
+              label="Đến ngày"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              size="small"
+              fullWidth
+              sx={{
+                height: { xs: '40px', sm: '35px' },
+                '& .MuiOutlinedInput-root': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                  borderRadius: 2,
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
+              }}
+            />
+            <FormControl size="small" fullWidth>
+              <InputLabel>Loại giao dịch</InputLabel>
+              <Select
+                value={filterType}
+                label="Loại giao dịch"
+                onChange={(e) => setFilterType(e.target.value)}
                 sx={{
-                  height: '35px',
+                  height: { xs: '40px', sm: '35px' },
+                  '& .MuiSelect-select': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
                 }}
-              />
-            </Box>
-            <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
-              <FormControl size="small" fullWidth>
-                <InputLabel>Loại giao dịch</InputLabel>
-                <Select
-                  value={filterType}
-                  label="Loại giao dịch"
-                  onChange={(e) => setFilterType(e.target.value)}
-                >
-                  <MenuItem value="all">Tất cả</MenuItem>
-                  <MenuItem value="inbound">Nhập kho</MenuItem>
-                  <MenuItem value="outbound">Xuất kho</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
-              <FormControl size="small" fullWidth>
-                <InputLabel>Nhà cung cấp</InputLabel>
-                <Select
-                  value={filterSupplier}
-                  label="Nhà cung cấp"
-                  onChange={(e) => setFilterSupplier(e.target.value)}
-                >
-                  <MenuItem value="all">Tất cả</MenuItem>
-                  {allSuppliers.map((supplier) => (
-                    <MenuItem key={supplier} value={supplier}>
-                      {supplier}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-            <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
-              <FormControl size="small" fullWidth>
-                <InputLabel>Khách hàng</InputLabel>
-                <Select
-                  value={filterCustomer}
-                  label="Khách hàng"
-                  onChange={(e) => setFilterCustomer(e.target.value)}
-                >
-                  <MenuItem value="all">Tất cả</MenuItem>
-                  {allCustomers.map((customer) => (
-                    <MenuItem key={customer} value={customer}>
-                      {customer}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
+              >
+                <MenuItem value="all">Tất cả</MenuItem>
+                <MenuItem value="inbound">Nhập kho</MenuItem>
+                <MenuItem value="outbound">Xuất kho</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl size="small" fullWidth>
+              <InputLabel>Nhà cung cấp</InputLabel>
+              <Select
+                value={filterSupplier}
+                label="Nhà cung cấp"
+                onChange={(e) => setFilterSupplier(e.target.value)}
+                sx={{
+                  height: { xs: '40px', sm: '35px' },
+                  '& .MuiSelect-select': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
+              >
+                <MenuItem value="all">Tất cả</MenuItem>
+                {allSuppliers.map((supplier) => (
+                  <MenuItem key={supplier} value={supplier}>
+                    {supplier}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl size="small" fullWidth>
+              <InputLabel>Khách hàng</InputLabel>
+              <Select
+                value={filterCustomer}
+                label="Khách hàng"
+                onChange={(e) => setFilterCustomer(e.target.value)}
+                sx={{
+                  height: { xs: '40px', sm: '35px' },
+                  '& .MuiSelect-select': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
+              >
+                <MenuItem value="all">Tất cả</MenuItem>
+                {allCustomers.map((customer) => (
+                  <MenuItem key={customer} value={customer}>
+                    {customer}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
         </Paper>
       </Slide>
 
       {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2, }}>
-        <Tabs value={tabValue} onChange={handleTabChange} aria-label="transaction tabs">
+      <Box sx={{ 
+        borderBottom: 1, 
+        borderColor: 'divider', 
+        mb: 2,
+        overflow: 'auto'
+      }}>
+        <Tabs 
+          value={tabValue} 
+          onChange={handleTabChange} 
+          aria-label="transaction tabs"
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            '& .MuiTab-root': {
+              minWidth: { xs: 'auto', sm: 'auto' },
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              height: { xs: '40px', sm: '35px' },
+              padding: { xs: '6px 8px', sm: '6px 16px' }
+            }
+          }}
+        >
           <Tab 
             label={`TẤT CẢ (${totalTransactions})`} 
             icon={<CalendarIcon />} 
             iconPosition="start"
             sx={{
-              height: '35px',
+              height: { xs: '40px', sm: '35px' },
             }}
           />
           <Tab 
@@ -448,19 +599,22 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
             icon={<InputIcon />} 
             iconPosition="start"
             sx={{
-              height: '35px',
+              height: { xs: '40px', sm: '35px' },
             }}
           />
           <Tab 
             label={`XUẤT KHO (${totalOutbound})`} 
             icon={<OutputIcon />} 
             iconPosition="start"
+            sx={{
+              height: { xs: '40px', sm: '35px' },
+            }}
           />
         </Tabs>
       </Box>
 
-      {/* TransactionHistory Table - Optimized for space */}
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+      {/* Desktop Table View */}
+      <Paper sx={{ width: '100%', overflow: 'hidden', display: { xs: 'none', md: 'block' } }}>
         <TableContainer sx={{ maxHeight: 'calc(100vh - 300px)' }}>
           <Table stickyHeader size="small">
             <TableHead>
@@ -570,6 +724,138 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} of ${count}`}
         />
       </Paper>
+
+      {/* Mobile Card View */}
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {filteredTransactions
+            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .map((transaction, index) => (
+              <Card key={`${transaction.type}-${transaction.id}`} sx={{ 
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                '&:hover': {
+                  boxShadow: 4,
+                  borderColor: 'primary.main'
+                }
+              }}>
+                <CardContent sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ minWidth: 30, fontSize: '0.75rem' }}>
+                        {page * rowsPerPage + index + 1}.
+                      </Typography>
+                      <Chip
+                        label={transaction.shipment_id}
+                        color="primary"
+                        size="small"
+                        sx={{ fontSize: '0.7rem' }}
+                      />
+                    </Box>
+                    <Chip
+                      label={transaction.type === 'inbound' ? 'Nhập' : 'Xuất'}
+                      color={transaction.type === 'inbound' ? 'success' : 'error'}
+                      size="small"
+                      icon={transaction.type === 'inbound' ? <InputIcon /> : <OutputIcon />}
+                      sx={{ fontSize: '0.7rem' }}
+                    />
+                  </Box>
+                  
+                  <Typography 
+                    variant="body1" 
+                    fontWeight="medium"
+                    sx={{ 
+                      color: 'primary.main',
+                      mb: 1,
+                      fontSize: '1rem'
+                    }}
+                  >
+                    {transaction.ten_san_pham}
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>Ngày:</Typography>
+                      <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>{formatDate(transaction.date)}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>Đối tác:</Typography>
+                      <Typography variant="body2" sx={{ 
+                        fontSize: '0.75rem',
+                        maxWidth: '60%',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {transaction.partner}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>Số lượng:</Typography>
+                      <Chip label={transaction.quantity?.toLocaleString()} color="info" size="small" sx={{ fontSize: '0.7rem' }} />
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>Đơn vị:</Typography>
+                      <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>{transaction.unit}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>Nội dung:</Typography>
+                      <Typography variant="body2" sx={{ 
+                        fontSize: '0.75rem',
+                        maxWidth: '60%',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {transaction.content}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <IconButton
+                      size="small"
+                      color="primary"
+                      onClick={() => handleViewDetails(transaction.id, transaction.type)}
+                    >
+                      <ViewIcon />
+                    </IconButton>
+                  </Box>
+                </CardContent>
+              </Card>
+            ))}
+        </Box>
+        
+        {/* Mobile Pagination */}
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          gap: 1, 
+          mt: 2,
+          flexWrap: 'wrap'
+        }}>
+          <Button
+            size="small"
+            disabled={page === 0}
+            onClick={() => setPage(page - 1)}
+            sx={{ fontSize: '0.75rem' }}
+          >
+            Trước
+          </Button>
+          <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
+            Trang {page + 1} / {Math.ceil(filteredTransactions.length / rowsPerPage)}
+          </Typography>
+          <Button
+            size="small"
+            disabled={page >= Math.ceil(filteredTransactions.length / rowsPerPage) - 1}
+            onClick={() => setPage(page + 1)}
+            sx={{ fontSize: '0.75rem' }}
+          >
+            Sau
+          </Button>
+        </Box>
+      </Box>
     </Box>
   );
 };

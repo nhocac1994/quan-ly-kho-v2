@@ -148,10 +148,10 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
         product_code: product.san_pham_id,
         product_name: `${product.ten_san_pham} (${product.dvt})`,
         unit: product.dvt,
-        beginning_stock: Math.max(0, beginningStock), // Không âm
+        beginning_stock: beginningStock, // Cho phép số âm
         inbound_quantity: inboundQuantity,
         outbound_quantity: outboundQuantity,
-        ending_stock: Math.max(0, endingStock), // Không âm
+        ending_stock: endingStock, // Cho phép số âm
       });
     });
 
@@ -183,7 +183,9 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
   };
 
   const formatValue = (value: number) => {
-    return value > 0 ? formatNumber(value) : '---';
+    if (value === 0) return '0';
+    if (value < 0) return `-${formatNumber(Math.abs(value))}`;
+    return formatNumber(value);
   };
 
   // Xuất Excel
@@ -355,17 +357,41 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
   }
 
   return (
-    <Box sx={{ p: 3 , width: '100%', maxWidth: 1280, overflow: 'hidden', mx: 'auto' }}>
+    <Box sx={{ 
+      p: { xs: 1, sm: 2, md: 3 }, 
+      width: '100%', 
+      maxWidth: '100%', 
+      overflow: 'hidden', 
+      mx: 'auto',
+      mt: { xs: 2, sm: 0 }
+    }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <ReportIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, fontSize: '1.5rem', color: 'primary.main' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'center' }, 
+        gap: { xs: 2, sm: 0 },
+        mb: 3 
+      }}>
+        <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 2 }}>
+          <ReportIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: 'primary.main' }} />
+          <Typography variant="h4" component="h1" sx={{ 
+            fontWeight: 600, 
+            fontSize: { xs: '1.25rem', sm: '1.5rem' }, 
+            color: 'primary.main' 
+          }}>
             Báo Cáo Xuất Nhập Tồn
           </Typography>
         </Box>
         
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 2 }, 
+          alignItems: { xs: 'stretch', sm: 'center' },
+          width: { xs: '100%', sm: 'auto' }
+        }}>
           <Button
             variant="outlined"
             startIcon={<FilterIcon />}
@@ -375,11 +401,13 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
-              height: '35px',
-              px: 2,
+              height: { xs: '35px', sm: '35px' },
+              px: { xs: 1, sm: 2 },
               py: 1,
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
               borderColor: 'primary.main',
               color: 'primary.main',
+              flex: { xs: 1, sm: 'none' },
               '&:hover': {
                 backgroundColor: 'primary.light',
                 color: 'white',
@@ -390,120 +418,183 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
             Bộ Lọc
           </Button>
           
-          <Button
-            variant="outlined"
-            startIcon={<ExcelIcon />}
-            onClick={exportToExcel}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              height: '35px',
-              px: 2,
-              py: 1,
-              borderColor: 'success.main',
-              color: 'success.main',
-              '&:hover': {
-                backgroundColor: 'success.light',
-                color: 'white',
-                borderColor: 'success.light',
-              }
-            }}
-          >
-            Xuất Excel
-          </Button>
-          
-          <Button
-            variant="outlined"
-            startIcon={<PdfIcon />}
-            onClick={exportToPDF}
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 500,
-              height: '35px',
-              px: 2,
-              py: 1,
-              borderColor: 'error.main',
-              color: 'error.main',
-              '&:hover': {
-                backgroundColor: 'error.light',
-                color: 'white',
-                borderColor: 'error.light',
-              }
-            }}
-          >
-            Xuất PDF
-          </Button>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1,
+            flexDirection: { xs: 'row', sm: 'row' }
+          }}>
+            <Button
+              variant="outlined"
+              startIcon={<ExcelIcon />}
+              onClick={exportToExcel}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 500,
+                height: { xs: '35px', sm: '35px' },
+                px: { xs: 1, sm: 2 },
+                py: 1,
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                borderColor: 'success.main',
+                color: 'success.main',
+                flex: { xs: 1, sm: 'none' },
+                '&:hover': {
+                  backgroundColor: 'success.light',
+                  color: 'white',
+                  borderColor: 'success.light',
+                }
+              }}
+            >
+              Xuất Excel
+            </Button>
+            
+            <Button
+              variant="outlined"
+              startIcon={<PdfIcon />}
+              onClick={exportToPDF}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 500,
+                height: { xs: '35px', sm: '35px' },
+                px: { xs: 1, sm: 2 },
+                py: 1,
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                borderColor: 'error.main',
+                color: 'error.main',
+                flex: { xs: 1, sm: 'none' },
+                '&:hover': {
+                  backgroundColor: 'error.light',
+                  color: 'white',
+                  borderColor: 'error.light',
+                }
+              }}
+            >
+              Xuất PDF
+            </Button>
+          </Box>
         </Box>
       </Box>
 
       {/* Filter Dialog - Slide down from header */}
       <Slide direction="down" in={filterDialogOpen} mountOnEnter unmountOnExit>
-        <Paper sx={{ p: 2, mb: 3, boxShadow: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2, color: 'primary.main', fontWeight: 600 }}>
+        <Paper sx={{ 
+          p: { xs: 1.5, sm: 2 }, 
+          mb: 3, 
+          boxShadow: 3,
+          borderRadius: 2
+        }}>
+          <Typography variant="h6" sx={{ 
+            mb: 2, 
+            color: 'primary.main', 
+            fontWeight: 600,
+            fontSize: { xs: '1rem', sm: '1.25rem' }
+          }}>
             Bộ Lọc Báo Cáo
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
-              <TextField
-                type="date"
-                label="Từ ngày"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                size="small"
-                fullWidth
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, 
+            gap: { xs: 1.5, sm: 2 } 
+          }}>
+            <TextField
+              type="date"
+              label="Từ ngày"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              size="small"
+              fullWidth
+              sx={{
+                height: { xs: '40px', sm: '35px' },
+                '& .MuiOutlinedInput-root': {
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }
+              }}
+            />
+            <TextField
+              type="date"
+              label="Đến ngày"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              size="small"
+              fullWidth
+              sx={{
+                height: { xs: '40px', sm: '35px' },
+                '& .MuiOutlinedInput-root': {
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }
+              }}
+            />
+            <TextField
+              label="Chi nhánh"
+              value={branch}
+              onChange={(e) => setBranch(e.target.value)}
+              size="small"
+              fullWidth
+              sx={{
+                height: { xs: '40px', sm: '35px' },
+                '& .MuiOutlinedInput-root': {
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }
+              }}
+            />
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: 1,
+              alignItems: { xs: 'stretch', sm: 'center' }
+            }}>
+              <Chip 
+                label={`SL mặt hàng: ${inventoryReport.length}`} 
+                color="primary" 
+                variant="outlined"
+                sx={{ 
+                  fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                  height: { xs: '40px', sm: '32px' }
+                }}
               />
-            </Box>
-            <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
-              <TextField
-                type="date"
-                label="Đến ngày"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                size="small"
-                fullWidth
+              <Chip 
+                label={`Tổng shipments: ${shipmentHeaders.length}`} 
+                color="secondary" 
+                variant="outlined"
+                sx={{ 
+                  fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                  height: { xs: '40px', sm: '32px' }
+                }}
               />
-            </Box>
-            <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
-              <TextField
-                label="Chi nhánh"
-                value={branch}
-                onChange={(e) => setBranch(e.target.value)}
-                size="small"
-                fullWidth
-              />
-            </Box>
-            <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Chip 
-                  label={`SL mặt hàng: ${inventoryReport.length}`} 
-                  color="primary" 
-                  variant="outlined"
-                />
-                <Chip 
-                  label={`Tổng shipments: ${shipmentHeaders.length}`} 
-                  color="secondary" 
-                  variant="outlined"
-                />
-              </Box>
             </Box>
           </Box>
           
           {/* Debug Info */}
-          <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+          <Box sx={{ 
+            mt: 2, 
+            p: { xs: 1.5, sm: 2 }, 
+            bgcolor: 'grey.50', 
+            borderRadius: 1 
+          }}>
+            <Typography variant="subtitle2" sx={{ 
+              mb: 1, 
+              fontWeight: 'bold',
+              fontSize: { xs: '0.875rem', sm: '1rem' }
+            }}>
               Thông Tin Debug:
             </Typography>
-            <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+            <Typography variant="body2" sx={{ 
+              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+              lineHeight: { xs: 1.4, sm: 1.5 }
+            }}>
               • Số sản phẩm: {products.length} | 
               • Số phiếu: {shipmentHeaders.length} | 
               • Số items: {shipmentItems.length} |
               • Khoảng thời gian: {formatDate(dateFrom)} - {formatDate(dateTo)}
             </Typography>
-            <Typography variant="body2" sx={{ fontSize: '0.8rem', mt: 0.5 }}>
+            <Typography variant="body2" sx={{ 
+              fontSize: { xs: '0.7rem', sm: '0.8rem' }, 
+              mt: 0.5,
+              lineHeight: { xs: 1.4, sm: 1.5 }
+            }}>
               • Phiếu nhập: {shipmentHeaders.filter(h => h.shipment_type === 'inbound').length} |
               • Phiếu xuất: {shipmentHeaders.filter(h => h.shipment_type === 'outbound').length}
             </Typography>
@@ -511,8 +602,8 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
         </Paper>
       </Slide>
 
-      {/* Report Table */}
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+      {/* Desktop Table View */}
+      <Paper sx={{ width: '100%', overflow: 'hidden', display: { xs: 'none', md: 'block' } }}>
         <TableContainer sx={{ maxHeight: 'calc(100vh - 180px)' }}>
           <Table stickyHeader size="small">
             <TableHead sx={{ 
@@ -552,16 +643,16 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
                   SL mặt hàng: {inventoryReport.length}
                 </TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>
-                  {formatNumber(totals.beginning_stock)}
+                  {formatValue(totals.beginning_stock)}
                 </TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>
-                  {formatNumber(totals.inbound_quantity)}
+                  {formatValue(totals.inbound_quantity)}
                 </TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>
-                  {formatNumber(totals.outbound_quantity)}
+                  {formatValue(totals.outbound_quantity)}
                 </TableCell>
                 <TableCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>
-                  {formatNumber(totals.ending_stock)}
+                  {formatValue(totals.ending_stock)}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -581,16 +672,16 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
                     {item.product_name}
                   </TableCell>
                   <TableCell sx={{ textAlign: 'right' }}>
-                    {formatNumber(item.beginning_stock)}
+                    {formatValue(item.beginning_stock)}
                   </TableCell>
                   <TableCell sx={{ textAlign: 'right' }}>
-                    {formatNumber(item.inbound_quantity)}
+                    {formatValue(item.inbound_quantity)}
                   </TableCell>
                   <TableCell sx={{ textAlign: 'right' }}>
-                    {formatNumber(item.outbound_quantity)}
+                    {formatValue(item.outbound_quantity)}
                   </TableCell>
                   <TableCell sx={{ textAlign: 'right' }}>
-                    {formatNumber(item.ending_stock)}
+                    {formatValue(item.ending_stock)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -598,6 +689,163 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
           </Table>
         </TableContainer>
       </Paper>
+
+      {/* Mobile Card View */}
+      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+        {/* Summary Card */}
+        <Card sx={{ 
+          mb: 2, 
+          bgcolor: '#FFF8E1',
+          border: '2px solid #FFB74D'
+        }}>
+          <CardContent sx={{ p: 2 }}>
+            <Typography variant="h6" sx={{ 
+              mb: 1, 
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              color: 'primary.main'
+            }}>
+              Tổng Kết
+            </Typography>
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(2, 1fr)', 
+              gap: 1 
+            }}>
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                  SL mặt hàng
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>
+                  {inventoryReport.length}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                  Tồn đầu kỳ
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 'bold', fontSize: '0.875rem' }}>
+                  {formatValue(totals.beginning_stock)}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                  SL Nhập
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 'bold', fontSize: '0.875rem', color: 'success.main' }}>
+                  {formatValue(totals.inbound_quantity)}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                  SL Xuất
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 'bold', fontSize: '0.875rem', color: 'error.main' }}>
+                  {formatValue(totals.outbound_quantity)}
+                </Typography>
+              </Box>
+              <Box sx={{ gridColumn: 'span 2' }}>
+                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                  Tồn cuối kỳ
+                </Typography>
+                <Typography variant="body1" sx={{ 
+                  fontWeight: 'bold', 
+                  fontSize: '0.875rem', 
+                  color: totals.ending_stock < 0 ? 'error.main' : 'primary.main'
+                }}>
+                  {formatValue(totals.ending_stock)}
+                </Typography>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+
+        {/* Product Cards */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {inventoryReport.map((item, index) => (
+            <Card key={item.product_id} sx={{ 
+              borderRadius: 2,
+              border: '1px solid #e0e0e0',
+              '&:hover': {
+                boxShadow: 4,
+                borderColor: 'primary.main'
+              }
+            }}>
+              <CardContent sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ minWidth: 30, fontSize: '0.75rem' }}>
+                      {index + 1}.
+                    </Typography>
+                    <Chip
+                      label={item.product_code}
+                      color="primary"
+                      size="small"
+                      sx={{ fontSize: '0.7rem' }}
+                    />
+                  </Box>
+                  <Chip
+                    label={item.unit}
+                    color="secondary"
+                    size="small"
+                    sx={{ fontSize: '0.7rem' }}
+                  />
+                </Box>
+                
+                <Typography 
+                  variant="body1" 
+                  fontWeight="medium"
+                  sx={{ 
+                    color: 'primary.main',
+                    mb: 1,
+                    fontSize: '1rem'
+                  }}
+                >
+                  {item.product_name}
+                </Typography>
+                
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1, mb: 1 }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Tồn đầu kỳ:</Typography>
+                    <Typography variant="body2" sx={{ 
+                      fontWeight: 500, 
+                      fontSize: '0.8rem',
+                      color: item.beginning_stock < 0 ? 'error.main' : 'inherit'
+                    }}>
+                      {formatValue(item.beginning_stock)}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>SL Nhập:</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem', color: 'success.main' }}>
+                      {formatValue(item.inbound_quantity)}
+                    </Typography>
+                  </Box>
+                </Box>
+                
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 1 }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>SL Xuất:</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem', color: 'error.main' }}>
+                      {formatValue(item.outbound_quantity)}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Tồn cuối kỳ:</Typography>
+                    <Typography variant="body2" sx={{ 
+                      fontWeight: 500, 
+                      fontSize: '0.8rem', 
+                      color: item.ending_stock < 0 ? 'error.main' : 'primary.main'
+                    }}>
+                      {formatValue(item.ending_stock)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+      </Box>
     </Box>
   );
 };

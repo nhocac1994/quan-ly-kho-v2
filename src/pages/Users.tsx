@@ -189,7 +189,7 @@ const Users: React.FC = () => {
     <Box sx={{ 
       p: { xs: 1, sm: 2, md: 3 }, 
       width: '100%', 
-      maxWidth: 1280, 
+      maxWidth: '100%', 
       overflow: 'hidden', 
       mx: 'auto',
       height: '100vh-80px' 
@@ -297,7 +297,7 @@ const Users: React.FC = () => {
       {/* Statistics */}
       <Box sx={{ 
         display: 'flex', 
-        justifyContent: { xs: 'center', sm: 'flex-end' }, 
+        justifyContent: { xs: 'flex-end', sm: 'flex-end' }, 
         mb: { xs: 2, sm: 2 }
       }}>
         <Box sx={{ 
@@ -306,7 +306,7 @@ const Users: React.FC = () => {
           color: 'text.secondary', 
           fontSize: { xs: '0.75rem', sm: '0.875rem' },
           flexWrap: 'wrap',
-          justifyContent: 'center'
+          justifyContent: { xs: 'flex-end', sm: 'flex-end' }
         }}>
           <Typography variant="body2">
             Tổng: {users.length}

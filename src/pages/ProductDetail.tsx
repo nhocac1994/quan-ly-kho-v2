@@ -208,7 +208,7 @@ const ProductDetail: React.FC = () => {
     <Box sx={{ 
       p: { xs: 1, sm: 2, md: 3 }, 
       width: '100%', 
-      maxWidth: { xs: '100%', sm: 1280 }, 
+      maxWidth: { xs: '100%', sm: '100%' }, 
       overflow: 'hidden', 
       mx: { xs: 0, sm: 'auto' },
       display: 'flex',

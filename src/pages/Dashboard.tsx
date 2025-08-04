@@ -79,7 +79,7 @@ const Dashboard: React.FC = () => {
       p: 3, 
       height: '100%', 
       overflow: 'auto',
-      maxWidth: 1280,
+      maxWidth:'100%',
       mx: 'auto',
       '&::-webkit-scrollbar': {
         display: 'none'

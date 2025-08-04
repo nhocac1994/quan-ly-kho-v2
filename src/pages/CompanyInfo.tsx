@@ -162,7 +162,7 @@ const CompanyInfoPage: React.FC = () => {
     <Box sx={{ 
       p: { xs: 1, sm: 2, md: 3 }, 
       width: '100%', 
-      maxWidth: 1280, 
+      maxWidth: '100%', 
       overflow: 'hidden', 
       mx: 'auto' 
     }}>
@@ -199,6 +199,7 @@ const CompanyInfoPage: React.FC = () => {
           display: 'flex', 
           gap: { xs: 1, sm: 2 }, 
           alignItems: 'center',
+          justifyContent: { xs: 'flex-end', sm: 'flex-end' },
           flexWrap: 'wrap'
         }}>
           <TextField
@@ -269,7 +270,7 @@ const CompanyInfoPage: React.FC = () => {
       {/* Statistics */}
       <Box sx={{ 
         display: 'flex', 
-        justifyContent: { xs: 'center', sm: 'flex-end' }, 
+        justifyContent: { xs: 'flex-end', sm: 'flex-end' }, 
         mb: { xs: 2, sm: 2 }
       }}>
         <Box sx={{ 
@@ -278,7 +279,7 @@ const CompanyInfoPage: React.FC = () => {
           color: 'text.secondary', 
           fontSize: { xs: '0.75rem', sm: '0.875rem' },
           flexWrap: 'wrap',
-          justifyContent: 'center'
+          justifyContent: { xs: 'flex-end', sm: 'flex-end' }
         }}>
           <Typography variant="body2">
             Tổng: {companyInfo.length}
@@ -571,14 +572,14 @@ const CompanyInfoPage: React.FC = () => {
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           {/* Header */}
           <Box sx={{ 
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+           background: '#667eea',
             color: 'white',
             p: 2,
             display: 'flex',
             alignItems: 'center',
             gap: 2
           }}>
-            <BusinessIcon sx={{ fontSize: 20 }} />
+            <BusinessIcon sx={{ fontSize: {xs:'1.5rem',sm:'2rem'}}} />
             <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
               {editingCompany ? 'Sửa Thông Tin Công Ty' : 'Thêm Công Ty Mới'}
             </Typography>
@@ -792,6 +793,7 @@ const CompanyInfoPage: React.FC = () => {
                   textTransform: 'none',
                   fontWeight: 500,
                   height: '35px',
+                  mb:{xs:2,sm:0},
                   py: 1,
                   color: 'text.secondary',
                   border: '1px solid',
@@ -812,10 +814,11 @@ const CompanyInfoPage: React.FC = () => {
                   textTransform: 'none',
                   fontWeight: 500,
                   height: '35px',
+                  mb:{xs:2,sm:0},
                   py: 1,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: '#667eea',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                    background: '#667eea',
                     transform: 'translateY(-1px)',
                     boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                   }

@@ -10,6 +10,7 @@ import { InventoryProvider } from './context/InventoryContext';
 
 import { SupabaseProvider } from './contexts/SupabaseContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { SidebarProvider } from './contexts/SidebarContext';
 
 // Components
 import Layout from './components/Layout';
@@ -63,6 +64,7 @@ function App() {
         <CssBaseline />
         <LanguageProvider>
           <SupabaseProvider>
+            <SidebarProvider>
               <InventoryProvider>
                 <Router>
                   <Box sx={{ display: 'flex', height: '100vh' }}>
@@ -88,6 +90,7 @@ function App() {
                   </Box>
                 </Router>
               </InventoryProvider>
+            </SidebarProvider>
           </SupabaseProvider>
         </LanguageProvider>
       </ThemeProvider>

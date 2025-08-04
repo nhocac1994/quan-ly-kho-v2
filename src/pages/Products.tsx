@@ -506,7 +506,7 @@ const Products: React.FC = () => {
     <Box sx={{ 
       p: { xs: 1, sm: 2, md: 3 }, 
       width: '100%', 
-      maxWidth: { xs: '100%', sm: 1280 }, 
+      maxWidth: { xs: '100%', sm: '100%' }, 
       mx: 'auto',
       minHeight: '100vh'
     }}>
@@ -541,7 +541,7 @@ const Products: React.FC = () => {
           gap: { xs: 1, sm: 2 },
           alignItems: { xs: 'stretch', sm: 'center' },
           width: { xs: '100%', sm: 'auto' },
-          justifyContent: { xs: 'flex-start', sm: 'flex-start' }
+          justifyContent: { xs: 'flex-end', sm: 'flex-end' }
         }}>
           {/* Search Bar */}
           <TextField
@@ -573,7 +573,7 @@ const Products: React.FC = () => {
           <Box sx={{ 
             display: 'flex', 
             gap: 1,
-            justifyContent: { xs: 'flex-start', sm: 'flex-start' },
+            justifyContent: { xs: 'flex-end', sm: 'flex-end' },
             flexWrap: 'wrap'
           }}>
           
@@ -770,7 +770,7 @@ const Products: React.FC = () => {
           gap: { xs: 2, sm: 3 }, 
           color: 'text.secondary', 
           fontSize: { xs: '0.75rem', sm: '0.875rem' },
-          justifyContent: { xs: 'flex-start', sm: 'flex-start' }
+          justifyContent: { xs: 'flex-end', sm: 'flex-end' }
         }}>
           <Typography variant="body2">
             Tổng: {products.length}

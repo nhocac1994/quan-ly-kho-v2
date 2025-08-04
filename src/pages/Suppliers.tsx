@@ -433,7 +433,7 @@ const Suppliers: React.FC = () => {
     <Box sx={{ 
       p: { xs: 1, sm: 2, md: 3 }, 
       width: '100%', 
-      maxWidth: 1280, 
+      maxWidth: '100%', 
       overflow: 'hidden', 
       mx: 'auto',
       height: '100vh-80px' 
@@ -471,6 +471,7 @@ const Suppliers: React.FC = () => {
           display: 'flex', 
           gap: { xs: 1, sm: 2 }, 
           alignItems: 'center',
+          justifyContent: { xs: 'flex-end', sm: 'flex-end' },
           flexWrap: 'wrap'
         }}>
           <TextField
@@ -518,7 +519,7 @@ const Suppliers: React.FC = () => {
                 minWidth: { xs: '35px', sm: '35px', md: 'auto' },
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
+                justifyContent: { xs: 'flex-end', sm: 'flex-end' },
                 '&:hover': {
                   backgroundColor: 'primary.light',
                   color: 'white',
@@ -613,7 +614,7 @@ const Suppliers: React.FC = () => {
       {/* Statistics */}
       <Box sx={{ 
         display: 'flex', 
-        justifyContent: { xs: 'center', sm: 'flex-end' }, 
+        justifyContent: { xs: 'flex-end', sm: 'flex-end' }, 
         mb: { xs: 2, sm: 2 }
       }}>
         <Box sx={{ 
@@ -954,28 +955,48 @@ const Suppliers: React.FC = () => {
         anchor="right"
         open={openDrawer}
         onClose={handleCloseDrawer}
-        PaperProps={{
-          sx: { width: { xs: '100%', sm: 400 } }
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: '30%',
+            minWidth: 400,
+            maxWidth: 500,
+          },
         }}
-      >
-        <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-            <Typography variant="h6" fontWeight="bold">
+       >
+        {/* Header Drawer */}
+          <Box sx={{ 
+            background: '#667eea',
+            color: 'white',
+            p: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            mb:{xs:2,sm:0}
+          }}>
+            <BusinessIcon sx={{fontSize:{xs:'1.5rem',sm:'2rem'}}} />
+            <Typography variant="h6" fontWeight="600" sx={{fontSize:{xs:'1rem',sm:'1.2rem'}}}>
               {editingSupplier ? 'Sửa Nhà Cung Cấp' : 'Thêm Nhà Cung Cấp Mới'}
-            </Typography>
-            <IconButton onClick={handleCloseDrawer}>
-              <CloseIcon />
-            </IconButton>
+            </Typography> 
           </Box>
 
+          <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
               fullWidth
               label="Tên Nhà Cung Cấp"
               value={formData.ten_ncc}
               onChange={(e) => setFormData({ ...formData, ten_ncc: e.target.value })}
-              sx={{
-                height: '35px',
+               size="small"
+               sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
               }}
             />
             <TextField
@@ -983,17 +1004,35 @@ const Suppliers: React.FC = () => {
               label="Tên Đầy Đủ"
               value={formData.ten_day_du}
               onChange={(e) => setFormData({ ...formData, ten_day_du: e.target.value })}
-              sx={{
-                height: '35px',
-              }}
+               size="small"
+               sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
+                }}
             />
             <TextField
               fullWidth
               label="Loại Nhà Cung Cấp"
               value={formData.loai_ncc}
               onChange={(e) => setFormData({ ...formData, loai_ncc: e.target.value })}
-              sx={{
-                height: '35px',
+               size="small"
+               sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
               }}
             />
             <TextField
@@ -1001,8 +1040,17 @@ const Suppliers: React.FC = () => {
               label="Logo"
               value={formData.logo}
               onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
-              sx={{
-                height: '35px',
+               size="small"
+               sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
               }}
             />
             <TextField
@@ -1010,8 +1058,17 @@ const Suppliers: React.FC = () => {
               label="Người Đại Diện"
               value={formData.nguoi_dai_dien}
               onChange={(e) => setFormData({ ...formData, nguoi_dai_dien: e.target.value })}
-              sx={{
-                height: '35px',
+               size="small"
+               sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
               }}
             />
             <TextField
@@ -1019,8 +1076,17 @@ const Suppliers: React.FC = () => {
               label="Số Điện Thoại"
               value={formData.sdt}
               onChange={(e) => setFormData({ ...formData, sdt: e.target.value })}
-              sx={{
-                height: '35px',
+               size="small"
+               sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
               }}
             />
             <FormControl fullWidth>
@@ -1029,6 +1095,17 @@ const Suppliers: React.FC = () => {
                 value={formData.tinh_trang}
                 label="Trạng Thái"
                 onChange={(e) => setFormData({ ...formData, tinh_trang: e.target.value })}
+                 sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
               >
                 <MenuItem value="Hoạt động">Hoạt động</MenuItem>
                 <MenuItem value="Tạm ngưng">Tạm ngưng</MenuItem>
@@ -1039,6 +1116,18 @@ const Suppliers: React.FC = () => {
               label="NV Phụ Trách"
               value={formData.nv_phu_trach}
               onChange={(e) => setFormData({ ...formData, nv_phu_trach: e.target.value })}
+               size="small"
+               sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
+              }}
             />
             <FormControl fullWidth>
               <InputLabel>Hiển Thị</InputLabel>
@@ -1046,6 +1135,17 @@ const Suppliers: React.FC = () => {
                 value={formData.hien_thi}
                 label="Hiển Thị"
                 onChange={(e) => setFormData({ ...formData, hien_thi: e.target.value })}
+                 sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    '&:hover fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
               >
                 <MenuItem value="Có">Có</MenuItem>
                 <MenuItem value="Không">Không</MenuItem>
@@ -1058,15 +1158,27 @@ const Suppliers: React.FC = () => {
               label="Ghi Chú"
               value={formData.ghi_chu}
               onChange={(e) => setFormData({ ...formData, ghi_chu: e.target.value })}
+               size="small"
+               sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                }
+              }}
             />
           </Box>
 
           <Box sx={{ 
-            mt: 3, 
-            pt: 2, 
+            p: 2, 
             borderTop: '1px solid #e0e0e0',
             display: 'flex',
-            gap: 1
+            gap: 1,
+            mb:{xs:2,sm:0}
           }}>
             <Button 
               onClick={handleCloseDrawer}
