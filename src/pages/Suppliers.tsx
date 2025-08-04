@@ -469,6 +469,7 @@ const Suppliers: React.FC = () => {
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 500,
+              height: '35px',
               px: 2,
               py: 1,
               borderColor: 'primary.main',
@@ -522,7 +523,7 @@ const Suppliers: React.FC = () => {
               }
             }}
           >
-            Thêm Nhà Cung Cấp
+            Thêm NCC
           </Button>
         </Box>
       </Box>

@@ -89,7 +89,8 @@ const ProductDetail: React.FC = () => {
         return;
       }
       
-      setProduct(products[0]);
+      const foundProduct = products[0];
+      setProduct(foundProduct);
 
       // Lấy lịch sử nhập kho - sử dụng shipment_headers và shipment_items
       const { data: inboundHeaders, error: inboundError } = await supabase
@@ -107,7 +108,7 @@ const ProductDetail: React.FC = () => {
           )
         `)
         .eq('shipment_type', 'inbound')
-        .eq('shipment_items.product_id', productId);
+        .eq('shipment_items.product_id', foundProduct.id); // Sử dụng foundProduct.id (UUID)
       
       console.log('Inbound query result:', { inboundHeaders, inboundError });
       
@@ -141,7 +142,7 @@ const ProductDetail: React.FC = () => {
           )
         `)
         .eq('shipment_type', 'outbound')
-        .eq('shipment_items.product_id', productId);
+        .eq('shipment_items.product_id', foundProduct.id); // Sử dụng foundProduct.id (UUID)
       
       console.log('Outbound query result:', { outboundHeaders, outboundError });
       
