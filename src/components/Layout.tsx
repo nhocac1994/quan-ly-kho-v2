@@ -27,6 +27,7 @@ import {
   History as HistoryIcon,
   Assessment as AssessmentIcon,
   Wifi as WifiIcon,
+  Language as LanguageIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
@@ -86,7 +87,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Header của Sidebar */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: '#667eea',
           color: 'white',
           p: sidebarCollapsed ? 1 : 2,
           textAlign: 'center',
@@ -147,10 +148,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
                     minHeight: 48,
                     '&.Mui-selected': {
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: '#667eea',
                       color: 'white',
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                        background: '#667eea',
                       },
                       '& .MuiListItemIcon-root': {
                         color: 'white',
@@ -216,7 +217,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         sx={{
           width: { sm: `calc(100% - ${sidebarCollapsed ? collapsedDrawerWidth : drawerWidth}px)` },
           ml: { sm: `${sidebarCollapsed ? collapsedDrawerWidth : drawerWidth}px` },
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: '#667eea',
           borderBottom: '1px solid rgba(255,255,255,0.1)',
           transition: 'width 0.3s ease, margin-left 0.3s ease',
         }}
@@ -260,10 +261,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Database Connection Status */}
             <Tooltip title="Đang kết nối database" arrow placement="bottom">
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mr: 1 }}>
-                <WifiIcon sx={{ fontSize: 18, color: 'rgba(51, 237, 76, 0.9)' }} />
+                <WifiIcon sx={{ fontSize: 22, color: 'rgba(51, 237, 76, 0.9)' }} />
               </Box>
             </Tooltip>
-            <LanguageSwitcher />
+            {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mr: 1, ml: 1 }}>
+               <LanguageIcon sx={{ fontSize: 22, color: 'rgba(51, 237, 76, 0.9)' }} />
+            </Box> */}
           </Box>
         </Toolbar>
       </AppBar>

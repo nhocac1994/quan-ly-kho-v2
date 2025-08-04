@@ -33,7 +33,9 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
-import { useProducts, useShipmentHeaders, useShipmentItems } from '../hooks/useSupabaseQueries';
+import { useProducts, useShipmentHeaders } from '../hooks/useSupabaseQueries';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../services/supabaseService';
 import * as XLSX from 'xlsx';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
@@ -57,7 +59,25 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
   
   const { data: products = [], isLoading: loadingProducts } = useProducts();
   const { data: shipmentHeaders = [], isLoading: loadingShipments } = useShipmentHeaders();
-  const { data: shipmentItems = [], isLoading: loadingItems } = useShipmentItems('');
+  
+  // Lấy tất cả shipment items bằng cách query trực tiếp
+  const { data: shipmentItems = [], isLoading: loadingItems } = useQuery({
+    queryKey: ['allShipmentItems'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('shipment_items')
+        .select('*')
+        .order('created_at', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching all shipment items:', error);
+        throw error;
+      }
+      
+      return data || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const [dateFrom, setDateFrom] = useState(new Date().toISOString().split('T')[0]);
   const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0]);
@@ -81,50 +101,57 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
         return shipmentDate >= fromDate && shipmentDate <= toDate;
       });
 
-      // Tính tồn đầu kỳ (giả định = tồn hiện tại - nhập + xuất trong kỳ)
+      // Tính nhập xuất trong kỳ
       let inboundQuantity = 0;
       let outboundQuantity = 0;
-      let inboundValue = 0;
-      let outboundValue = 0;
 
-      periodShipments.forEach(header => {
+      periodShipments.forEach((header: any) => {
         if (header.shipment_type === 'inbound') {
           // Tìm items của shipment này
-          const items = shipmentItems.filter(item => 
+          const items = shipmentItems.filter((item: any) => 
             item.shipment_header_id === header.id && 
             item.product_id === product.id
           );
-          items.forEach(item => {
+          items.forEach((item: any) => {
             inboundQuantity += item.quantity || 0;
-            inboundValue += (item.quantity || 0) * (item.unit_price || 0);
           });
         } else if (header.shipment_type === 'outbound') {
           // Tìm items của shipment này
-          const items = shipmentItems.filter(item => 
+          const items = shipmentItems.filter((item: any) => 
             item.shipment_header_id === header.id && 
             item.product_id === product.id
           );
-          items.forEach(item => {
+          items.forEach((item: any) => {
             outboundQuantity += item.quantity || 0;
-            outboundValue += (item.quantity || 0) * (item.unit_price || 0);
           });
         }
       });
 
-      // Tính tồn đầu và tồn cuối (giả định tồn đầu = tồn hiện tại - nhập + xuất)
+      // Tính tồn đầu kỳ = tồn hiện tại - nhập + xuất
       const currentStock = product.sl_ton || 0;
       const beginningStock = currentStock - inboundQuantity + outboundQuantity;
       const endingStock = beginningStock + inboundQuantity - outboundQuantity;
+
+      // Debug log cho sản phẩm có dữ liệu
+      if (inboundQuantity > 0 || outboundQuantity > 0) {
+        console.log(`Product ${product.san_pham_id}:`, {
+          currentStock,
+          inboundQuantity,
+          outboundQuantity,
+          beginningStock,
+          endingStock
+        });
+      }
 
       report.push({
         product_id: product.id,
         product_code: product.san_pham_id,
         product_name: `${product.ten_san_pham} (${product.dvt})`,
         unit: product.dvt,
-        beginning_stock: beginningStock,
+        beginning_stock: Math.max(0, beginningStock), // Không âm
         inbound_quantity: inboundQuantity,
         outbound_quantity: outboundQuantity,
-        ending_stock: endingStock,
+        ending_stock: Math.max(0, endingStock), // Không âm
       });
     });
 
@@ -456,8 +483,30 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
                   color="primary" 
                   variant="outlined"
                 />
+                <Chip 
+                  label={`Tổng shipments: ${shipmentHeaders.length}`} 
+                  color="secondary" 
+                  variant="outlined"
+                />
               </Box>
             </Box>
+          </Box>
+          
+          {/* Debug Info */}
+          <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+              Thông Tin Debug:
+            </Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+              • Số sản phẩm: {products.length} | 
+              • Số phiếu: {shipmentHeaders.length} | 
+              • Số items: {shipmentItems.length} |
+              • Khoảng thời gian: {formatDate(dateFrom)} - {formatDate(dateTo)}
+            </Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.8rem', mt: 0.5 }}>
+              • Phiếu nhập: {shipmentHeaders.filter(h => h.shipment_type === 'inbound').length} |
+              • Phiếu xuất: {shipmentHeaders.filter(h => h.shipment_type === 'outbound').length}
+            </Typography>
           </Box>
         </Paper>
       </Slide>
