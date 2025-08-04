@@ -22,6 +22,8 @@ import {
 } from '@mui/icons-material';
 import { useProducts, useSuppliers, useCustomers } from '../hooks/useSupabaseQueries';
 import ScheduledHistory from '../components/ScheduledHistory';
+import SupabaseUsageMonitor from '../components/SupabaseUsageMonitor';
+import SupabaseUsageDetails from '../components/SupabaseUsageDetails';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const Dashboard: React.FC = () => {
@@ -98,6 +100,12 @@ const Dashboard: React.FC = () => {
           Tổng quan hệ thống quản lý kho
         </Typography>
       </Box>
+
+      {/* Supabase Usage Monitor */}
+      <SupabaseUsageMonitor />
+      
+      {/* Supabase Usage Details */}
+      <SupabaseUsageDetails />
 
 
 
