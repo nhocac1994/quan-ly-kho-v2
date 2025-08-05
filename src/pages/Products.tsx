@@ -787,7 +787,7 @@ const Products: React.FC = () => {
             {/* Products Display */}
       <Box sx={{ 
         width: '100%', 
-        maxWidth: { xs: '100%', sm: 1280 }
+        maxWidth: { xs: '100%', sm: '100%' }
       }}>
         {/* Desktop Table View */}
         <Box sx={{ display: { xs: 'none', md: 'block' } }}>
