@@ -1832,19 +1832,6 @@ const OutboundShipments: React.FC = () => {
                   color="primary"
                   onClick={() => {
                     if (currentProduct.san_pham_id && currentProduct.ten_san_pham) {
-                      // Kiểm tra tồn kho
-                      const selectedProduct = products?.find(p => p.san_pham_id === currentProduct.san_pham_id);
-                      const currentStock = selectedProduct?.sl_ton || 0;
-                      
-                      if (currentProduct.sl_xuat > currentStock) {
-                        setSnackbar({
-                          open: true,
-                          message: `Số lượng xuất (${currentProduct.sl_xuat}) vượt quá tồn kho (${currentStock})`,
-                          severity: 'warning'
-                        });
-                        return;
-                      }
-                      
                       setProductItems([...productItems, { ...currentProduct, id: Date.now().toString() }]);
                       setCurrentProduct({
                         id: '',
@@ -1913,7 +1900,7 @@ const OutboundShipments: React.FC = () => {
                             {option.ten_san_pham}
                           </Typography>
                           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                            Mã: {option.san_pham_id} | ĐVT: {option.dvt} | Tồn: {option.sl_ton || 0}
+                            Mã: {option.san_pham_id} | ĐVT: {option.dvt}
                           </Typography>
                         </Box>
                       </Box>
@@ -1958,40 +1945,7 @@ const OutboundShipments: React.FC = () => {
                   />
                 </Box>
                 
-                {/* Thông tin tồn kho */}
-                {currentProduct.san_pham_id && (
-                  <Box sx={{ 
-                    p: 1, 
-                    bgcolor: '#e8f5e8', 
-                    borderRadius: 1, 
-                    border: '1px solid #4caf50',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1
-                  }}>
-                    <Typography variant="caption" color="success.main" sx={{ fontWeight: 'bold' }}>
-                      📦 Tồn kho:
-                    </Typography>
-                    <Typography variant="caption" color="success.main">
-                      {(() => {
-                        const selectedProduct = products?.find(p => p.san_pham_id === currentProduct.san_pham_id);
-                        return selectedProduct?.sl_ton || 0;
-                      })()} {currentProduct.dvt}
-                    </Typography>
-                    {(() => {
-                      const selectedProduct = products?.find(p => p.san_pham_id === currentProduct.san_pham_id);
-                      const currentStock = selectedProduct?.sl_ton || 0;
-                      if (currentProduct.sl_xuat > currentStock) {
-                        return (
-                          <Typography variant="caption" color="error.main" sx={{ fontWeight: 'bold' }}>
-                            ⚠️ Vượt quá tồn kho!
-                          </Typography>
-                        );
-                      }
-                      return null;
-                    })()}
-                  </Box>
-                )}
+                
                 
                 <TextField
                   size="small"
@@ -2024,19 +1978,6 @@ const OutboundShipments: React.FC = () => {
                   startIcon={<AddIcon />}
                   onClick={() => {
                     if (currentProduct.san_pham_id && currentProduct.ten_san_pham) {
-                      // Kiểm tra tồn kho
-                      const selectedProduct = products?.find(p => p.san_pham_id === currentProduct.san_pham_id);
-                      const currentStock = selectedProduct?.sl_ton || 0;
-                      
-                      if (currentProduct.sl_xuat > currentStock) {
-                        setSnackbar({
-                          open: true,
-                          message: `Số lượng xuất (${currentProduct.sl_xuat}) vượt quá tồn kho (${currentStock})`,
-                          severity: 'warning'
-                        });
-                        return;
-                      }
-                      
                       setProductItems([...productItems, { ...currentProduct, id: Date.now().toString() }]);
                       setCurrentProduct({
                         id: '',
@@ -2892,7 +2833,7 @@ const OutboundShipments: React.FC = () => {
                 mb: 0.5, 
                 fontSize: { xs: '0.75rem', sm: '0.875rem' } 
               }}>
-                <strong>Số lượng</strong> phải là số dương và không vượt quá tồn kho
+                <strong>Số lượng</strong> phải là số dương
               </Typography>
               <Typography component="li" variant="body2" sx={{ 
                 mb: 0.5, 
