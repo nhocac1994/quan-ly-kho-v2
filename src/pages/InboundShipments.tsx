@@ -1426,18 +1426,21 @@ const InboundShipments: React.FC = () => {
                           placeholder="Gõ để tìm sản phẩm..."
                         />
                       )}
-                      renderOption={(props, option: any) => (
-                        <Box component="li" {...props}>
-                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                            <Typography variant="body2" fontWeight="medium">
-                              {option.ten_san_pham}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              Mã: {option.san_pham_id} | ĐVT: {option.dvt}
-                            </Typography>
+                      renderOption={(props, option: any) => {
+                        const { key, ...otherProps } = props;
+                        return (
+                          <Box component="li" key={key} {...otherProps}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                              <Typography variant="body2" fontWeight="medium">
+                                {option.ten_san_pham}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Mã: {option.san_pham_id} | ĐVT: {option.dvt}
+                              </Typography>
+                            </Box>
                           </Box>
-                        </Box>
-                      )}
+                        );
+                      }}
                       filterOptions={(options, { inputValue }) => {
                         const filterValue = inputValue.toLowerCase();
                         return options.filter((option: any) =>
@@ -1534,18 +1537,21 @@ const InboundShipments: React.FC = () => {
                           placeholder="Gõ để tìm sản phẩm..."
                         />
                       )}
-                      renderOption={(props, option: any) => (
-                        <Box component="li" {...props}>
-                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                            <Typography variant="body2" fontWeight="medium">
-                              {option.ten_san_pham}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              Mã: {option.san_pham_id} | ĐVT: {option.dvt}
-                            </Typography>
+                      renderOption={(props, option: any) => {
+                        const { key, ...otherProps } = props;
+                        return (
+                          <Box component="li" key={key} {...otherProps}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                              <Typography variant="body2" fontWeight="medium">
+                                {option.ten_san_pham}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Mã: {option.san_pham_id} | ĐVT: {option.dvt}
+                              </Typography>
+                            </Box>
                           </Box>
-                        </Box>
-                      )}
+                        );
+                      }}
                       filterOptions={(options, { inputValue }) => {
                         const filterValue = inputValue.toLowerCase();
                         return options.filter((option: any) =>

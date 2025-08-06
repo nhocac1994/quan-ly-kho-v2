@@ -1,5 +1,21 @@
 # Hướng dẫn thiết lập Supabase Database cho Quản Lý Kho V2
 
+## ⚠️ QUAN TRỌNG: Cập nhật Schema (nếu đã có database cũ)
+
+Nếu bạn đã có database Supabase cũ, hãy chạy lệnh SQL sau để cập nhật schema:
+
+```sql
+-- Cập nhật bảng shipment_headers để thêm các field mới
+ALTER TABLE shipment_headers 
+ADD COLUMN IF NOT EXISTS driver VARCHAR(255),
+ADD COLUMN IF NOT EXISTS import_type VARCHAR(100),
+ADD COLUMN IF NOT EXISTS total_quantity INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS total_amount DECIMAL(15,2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';
+```
+
+Hoặc sử dụng file `UPDATE_SHIPMENT_HEADERS.sql` đã được tạo sẵn.
+
 ## Bước 1: Tạo Supabase Project
 
 1. Vào [Supabase Dashboard](https://supabase.com/dashboard)
@@ -134,8 +150,13 @@ CREATE TABLE IF NOT EXISTS shipment_headers (
   supplier_name VARCHAR(255),
   customer_id VARCHAR(100),
   customer_name VARCHAR(255),
-  content TEXT,
-  notes TEXT,
+  driver VARCHAR(255),                    -- Tài xế
+  import_type VARCHAR(100),              -- Loại nhập/xuất
+  content TEXT,                          -- Nội dung
+  notes TEXT,                            -- Ghi chú
+  total_quantity INTEGER DEFAULT 0,      -- Tổng số lượng
+  total_amount DECIMAL(15,2) DEFAULT 0,  -- Tổng tiền
+  status VARCHAR(50) DEFAULT 'active',   -- Trạng thái
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   created_by VARCHAR(255) DEFAULT 'Admin',
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

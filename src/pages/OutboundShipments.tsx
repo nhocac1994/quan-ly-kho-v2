@@ -42,6 +42,7 @@ import {
   ArrowBack as ArrowBackIcon,
   Print as PrintIcon,
   ContentCopy as CopyIcon,
+  Group as GroupIcon,
 } from '@mui/icons-material';
 import { 
   useOutboundShipments, 
@@ -106,7 +107,6 @@ interface ProductItem {
   ma_hang: string;
   dvt: string;
   sl_xuat: number;
-  don_gia: number;
   ghi_chu: string;
 }
 
@@ -150,6 +150,11 @@ const OutboundShipments: React.FC = () => {
   const [selectedCustomers, setSelectedCustomers] = useState<SelectedCustomer[]>([]);
   const [showCustomerSelector, setShowCustomerSelector] = useState(false);
   const [bulkCreateMode, setBulkCreateMode] = useState(false);
+  
+  // State cho Import Excel với nhiều khách hàng
+  const [importBulkCreateMode, setImportBulkCreateMode] = useState(false);
+  const [importSelectedCustomers, setImportSelectedCustomers] = useState<SelectedCustomer[]>([]);
+  const [showImportCustomerSelector, setShowImportCustomerSelector] = useState(false);
 
   const [formData, setFormData] = useState<OutboundShipmentFormData>({
     xuat_kho_id: '',
@@ -171,7 +176,6 @@ const OutboundShipments: React.FC = () => {
     ma_hang: '',
     dvt: '',
     sl_xuat: 0,
-    don_gia: 0,
     ghi_chu: '',
   });
 
@@ -208,7 +212,7 @@ const OutboundShipments: React.FC = () => {
         const formattedItems = items.map((item: any) => ({
           id: item.id, product_id: item.product_id, san_pham_id: item.product_code,
           ten_san_pham: item.product_name, ma_hang: item.product_code, dvt: item.unit,
-          sl_xuat: item.quantity, don_gia: item.unit_price || 0, ghi_chu: item.notes || '',
+          sl_xuat: item.quantity, ghi_chu: item.notes || '',
         }));
         setProductItems(formattedItems);
       } catch (error) {
@@ -239,7 +243,6 @@ const OutboundShipments: React.FC = () => {
       ma_hang: '',
       dvt: '',
       sl_xuat: 0,
-      don_gia: 0,
       ghi_chu: '',
     });
     setOpenDialog(true);
@@ -289,7 +292,6 @@ const OutboundShipments: React.FC = () => {
       ma_hang: '',
       dvt: '',
       sl_xuat: 0,
-      don_gia: 0,
       ghi_chu: '',
     });
   };
@@ -374,6 +376,58 @@ const OutboundShipments: React.FC = () => {
     });
   };
 
+  // Hàm xử lý cho Import Excel với nhiều khách hàng
+  const handleImportBulkCustomerSelect = () => {
+    const customerList = (customers || []).map((customer: any) => ({
+      id: customer.id,
+      name: customer.ten_day_du || customer.ten_khach_hang || '',
+      selected: false
+    }));
+    setImportSelectedCustomers(customerList);
+    setShowImportCustomerSelector(true);
+  };
+
+  const handleImportCustomerToggle = (customerId: string) => {
+    setImportSelectedCustomers(prev => 
+      prev.map(customer => 
+        customer.id === customerId 
+          ? { ...customer, selected: !customer.selected }
+          : customer
+      )
+    );
+  };
+
+  const handleImportSelectAllCustomers = () => {
+    setImportSelectedCustomers(prev => 
+      prev.map(customer => ({ ...customer, selected: true }))
+    );
+  };
+
+  const handleImportDeselectAllCustomers = () => {
+    setImportSelectedCustomers(prev => 
+      prev.map(customer => ({ ...customer, selected: false }))
+    );
+  };
+
+  const handleImportConfirmCustomerSelection = () => {
+    const selectedCount = importSelectedCustomers.filter(c => c.selected).length;
+    if (selectedCount === 0) {
+      setSnackbar({
+        open: true,
+        message: 'Vui lòng chọn ít nhất một khách hàng',
+        severity: 'warning'
+      });
+      return;
+    }
+    setImportBulkCreateMode(true);
+    setShowImportCustomerSelector(false);
+    setSnackbar({
+      open: true,
+      message: `Đã chọn ${selectedCount} khách hàng cho Import Excel.`,
+      severity: 'success'
+    });
+  };
+
   const handleSubmit = async () => {
     if (productItems.length === 0) {
       setSnackbar({
@@ -447,8 +501,8 @@ const OutboundShipments: React.FC = () => {
           product_code: item.ma_hang,
           unit: item.dvt,
           quantity: item.sl_xuat,
-          unit_price: item.don_gia,
-          total_price: item.sl_xuat * item.don_gia,
+          unit_price: 0,
+          total_price: 0,
           notes: item.ghi_chu
         }));
 
@@ -529,11 +583,7 @@ const OutboundShipments: React.FC = () => {
     ));
   };
 
-  const handleUpdateItemPrice = (itemId: string, newPrice: number) => {
-    setProductItems(prev => prev.map(item => 
-      item.id === itemId ? { ...item, don_gia: newPrice } : item
-    ));
-  };
+
 
   const handleCopyShipment = () => {
     if (!viewingShipment || !shipmentItems) return;
@@ -562,7 +612,7 @@ const OutboundShipments: React.FC = () => {
       ma_hang: item.product_code,
       dvt: item.unit,
       sl_xuat: item.quantity,
-      don_gia: item.unit_price || 0,
+      
       ghi_chu: item.notes || '',
     }));
 
@@ -906,52 +956,95 @@ const OutboundShipments: React.FC = () => {
           item['Mã phiếu'] = shipmentIdFinal;
         });
         
-        // Tạo header cho phiếu
-        const headerData = {
-          shipment_id: shipmentIdFinal.toString().trim(),
-          shipment_type: 'outbound',
-          shipment_date: firstItem['Ngày xuất'] || new Date().toISOString().split('T')[0],
-          supplier_id: null,
-          supplier_name: null,
-          customer_id: importSupplierData.customer_id || firstItem['Mã KH'] || '',
-          customer_name: importSupplierData.customer_name || firstItem['Tên KH'] || '',
-          driver: importSupplierData.driver || firstItem['Tài xế'] || '',
-          import_type: '',
-          content: importSupplierData.content || firstItem['Nội dung xuất'] || '',
-          notes: importSupplierData.notes || '',
-          total_quantity: itemsArray.reduce((sum: number, item: any) => sum + (parseInt(item['Số lượng']) || 0), 0),
-          total_amount: 0,
-          status: 'active',
-          created_by: 'admin'
-        };
+        // Xác định danh sách khách hàng để tạo phiếu
+        let customersToProcess = [];
         
-        console.log('Creating header with data:', headerData);
+        if (importBulkCreateMode && importSelectedCustomers.filter(c => c.selected).length > 0) {
+          // Chế độ tạo hàng loạt: tạo phiếu cho tất cả khách hàng đã chọn
+          customersToProcess = importSelectedCustomers.filter(c => c.selected);
+        } else {
+          // Chế độ thường: tạo phiếu cho khách hàng từ Excel hoặc form
+          const customerName = firstItem['Tên KH'] || importSupplierData.customer_name || '';
+          const customerId = firstItem['Mã KH'] || importSupplierData.customer_id || '';
+          
+          // Tìm customer_id từ tên khách hàng nếu có
+          let finalCustomerId = customerId;
+          if (customerName && !customerId) {
+            const foundCustomer = (customers || []).find((c: any) => 
+              c.ten_khach_hang === customerName || c.ten_day_du === customerName
+            );
+            if (foundCustomer) {
+              finalCustomerId = foundCustomer.id;
+            }
+          }
+          
+          customersToProcess = [{
+            id: finalCustomerId,
+            name: customerName
+          }];
+        }
+        
+        // Tạo phiếu cho từng khách hàng
+        for (const customer of customersToProcess) {
+          // Tạo mã phiếu duy nhất cho từng khách hàng
+          const customerShipmentId = `${shipmentIdFinal}_${customer.id}`;
+          
+          // Tạo header cho phiếu
+          const headerData = {
+            shipment_id: customerShipmentId.toString().trim(),
+            shipment_type: 'outbound',
+            shipment_date: firstItem['Ngày xuất'] || new Date().toISOString().split('T')[0],
+            supplier_id: null,
+            supplier_name: null,
+            customer_id: customer.id,
+            customer_name: customer.name,
+            driver: (importSupplierData.driver || firstItem['Tài xế'] || '').substring(0, 255),
+            import_type: (firstItem['Loại xuất'] || '').substring(0, 100),
+            content: importSupplierData.content || firstItem['Nội dung xuất'] || '',
+            notes: importSupplierData.notes || firstItem['Ghi chú'] || '',
+            total_quantity: itemsArray.reduce((sum: number, item: any) => sum + (parseInt(item['Số lượng']) || 0), 0),
+            total_amount: 0,
+            status: 'active',
+            created_by: 'admin'
+          };
+          
+          console.log(`Creating header for customer ${customer.name} with data:`, headerData);
 
-        try {
-          // Tạo header
-          const header = await dataService.shipmentHeaders.create(headerData);
-          console.log('Header created successfully:', header);
-          totalShipments++;
+          try {
+            // Tạo header
+            const header = await dataService.shipmentHeaders.create(headerData);
+            console.log(`Header created successfully for customer ${customer.name}:`, header);
+            totalShipments++;
 
-          // Tạo items cho phiếu
-          const itemsData = itemsArray.map((item: any) => ({
-            shipment_header_id: header.id,
-            product_code: item['Mã sản phẩm'],
-            product_name: item['Tên sản phẩm'],
-            unit: item['Đơn vị tính'],
-            quantity: parseInt(item['Số lượng']) || 0,
-            notes: item['Ghi chú'] || ''
-          }));
+            // Tạo items cho phiếu
+            const itemsData = itemsArray.map((item: any) => {
+              // Tìm product_id từ mã sản phẩm
+              const product = (products || []).find((p: any) => p.san_pham_id === item['Mã sản phẩm']);
+              if (!product) {
+                throw new Error(`Không tìm thấy sản phẩm với mã: ${item['Mã sản phẩm']}`);
+              }
+              
+              return {
+                shipment_header_id: header.id,
+                product_id: product.id, // UUID của product
+                product_code: item['Mã sản phẩm'],
+                product_name: item['Tên sản phẩm'],
+                unit: item['Đơn vị tính'],
+                quantity: parseInt(item['Số lượng']) || 0,
+                notes: item['Ghi chú'] || ''
+              };
+            });
 
-          console.log('Creating items for shipment:', itemsData);
+            console.log(`Creating items for customer ${customer.name}:`, itemsData);
 
-          // Tạo items
-          await dataService.shipmentItems.createMany(itemsData);
-          totalItems += itemsArray.length;
-          console.log(`Successfully processed shipment ${shipmentIdFinal} with ${itemsArray.length} items`);
-        } catch (error) {
-          console.error(`Error processing shipment ${shipmentIdFinal}:`, error);
-          throw error; // Re-throw để dừng toàn bộ quá trình
+            // Tạo items
+            await dataService.shipmentItems.createMany(itemsData);
+            totalItems += itemsArray.length;
+            console.log(`Successfully processed shipment ${customerShipmentId} for customer ${customer.name} with ${itemsArray.length} items`);
+          } catch (error) {
+            console.error(`Error processing shipment ${customerShipmentId} for customer ${customer.name}:`, error);
+            throw error; // Re-throw để dừng toàn bộ quá trình
+          }
         }
       }
 
@@ -1479,44 +1572,84 @@ const OutboundShipments: React.FC = () => {
                   <Button
                     variant="outlined"
                     size="small"
+                    startIcon={<GroupIcon />}
                     onClick={handleBulkCustomerSelect}
                     sx={{ 
                       mt: 1,
                       fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                      height: { xs: '35px', sm: '40px' }
+                      height: { xs: '35px', sm: '40px' },
+                      borderColor: 'primary.main',
+                      color: 'primary.main',
+                      '&:hover': {
+                        backgroundColor: 'primary.light',
+                        color: 'white',
+                        borderColor: 'primary.light',
+                      }
                     }}
                   >
-                    Chọn nhiều khách hàng
+                    Tạo cho nhiều khách hàng
                   </Button>
                 )}
                 {bulkCreateMode && (
                   <Box sx={{ 
                     mt: 1, 
-                    p: 1, 
-                    bgcolor: '#e3f2fd', 
+                    p: 1.5, 
+                    bgcolor: '#e8f5e8', 
                     borderRadius: 1,
+                    border: '1px solid #4caf50',
                     gridColumn: { xs: '1 / -1', sm: '1 / -1' }
                   }}>
-                    <Typography variant="body2" color="primary" sx={{ 
-                      fontWeight: 500,
-                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <Typography variant="body2" color="success.main" sx={{ 
+                        fontWeight: 'bold',
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                      }}>
+                        🚀 Chế độ tạo hàng loạt
+                      </Typography>
+                      <Chip 
+                        label={`${selectedCustomers.filter(c => c.selected).length} khách hàng`}
+                        size="small"
+                        color="success"
+                        variant="outlined"
+                      />
+                    </Box>
+                    
+                    <Typography variant="caption" color="text.secondary" sx={{ 
+                      display: 'block',
+                      mb: 1,
+                      fontSize: { xs: '0.7rem', sm: '0.75rem' }
                     }}>
-                      Chế độ tạo hàng loạt: {selectedCustomers.filter(c => c.selected).length} khách hàng đã chọn
+                      Sẽ tạo {selectedCustomers.filter(c => c.selected).length} phiếu xuất với cùng sản phẩm và thông tin
                     </Typography>
-                    <Button
-                      variant="text"
-                      size="small"
-                      onClick={() => {
-                        setBulkCreateMode(false);
-                        setSelectedCustomers([]);
-                      }}
-                      sx={{ 
-                        mt: 0.5,
-                        fontSize: { xs: '0.7rem', sm: '0.875rem' }
-                      }}
-                    >
-                      Hủy chế độ hàng loạt
-                    </Button>
+                    
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setShowCustomerSelector(true)}
+                        sx={{ 
+                          fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                          borderColor: 'success.main',
+                          color: 'success.main'
+                        }}
+                      >
+                        Thay đổi khách hàng
+                      </Button>
+                      <Button
+                        variant="text"
+                        size="small"
+                        onClick={() => {
+                          setBulkCreateMode(false);
+                          setSelectedCustomers([]);
+                        }}
+                        sx={{ 
+                          fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                          color: 'error.main'
+                        }}
+                      >
+                        Hủy chế độ hàng loạt
+                      </Button>
+                    </Box>
                   </Box>
                 )}
                 <FormControl size="small" fullWidth>
@@ -1605,7 +1738,7 @@ const OutboundShipments: React.FC = () => {
               {/* Desktop Product Entry Row */}
               <Box sx={{ 
                 display: { xs: 'none', lg: 'grid' },
-                gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr auto', 
+                gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr auto', 
                 gap: 1, 
                 alignItems: 'center',
                 p: 1,
@@ -1614,32 +1747,62 @@ const OutboundShipments: React.FC = () => {
                 mb: 1,
                 bgcolor: '#fafafa'
               }}>
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Sản phẩm</InputLabel>
-                  <Select
-                    value={currentProduct.san_pham_id}
-                    label="Sản phẩm"
-                    onChange={(e) => {
-                      const product = (products || []).find(p => p.san_pham_id === e.target.value);
-                      if (product) {
-                        setCurrentProduct({
-                          ...currentProduct,
-                          product_id: product.id, // UUID
-                          san_pham_id: product.san_pham_id, // Mã sản phẩm
-                          ten_san_pham: product.ten_san_pham,
-                          ma_hang: product.san_pham_id,
-                          dvt: product.dvt,
-                        });
-                      }
-                    }}
-                  >
-                    {(products || []).map((product: any) => (
-                      <MenuItem key={product.id} value={product.san_pham_id}>
-                        {product.ten_san_pham}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <Autocomplete
+                  size="small"
+                  options={products || []}
+                  getOptionLabel={(option: any) => `${option.san_pham_id} - ${option.ten_san_pham}`}
+                  value={products?.find(p => p.san_pham_id === currentProduct.san_pham_id) || null}
+                  onChange={(event, newValue) => {
+                    if (newValue) {
+                      setCurrentProduct({
+                        ...currentProduct,
+                        product_id: newValue.id,
+                        san_pham_id: newValue.san_pham_id,
+                        ten_san_pham: newValue.ten_san_pham,
+                        ma_hang: newValue.san_pham_id,
+                        dvt: newValue.dvt,
+                      });
+                    }
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Sản phẩm"
+                      placeholder="Gõ để tìm sản phẩm..."
+                      size="small"
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          fontSize: '0.875rem'
+                        }
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option: any) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box component="li" key={key} {...otherProps}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          <Typography variant="body2" fontWeight="medium" sx={{ fontSize: '0.875rem' }}>
+                            {option.ten_san_pham}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                            Mã: {option.san_pham_id} | ĐVT: {option.dvt} | Tồn: {option.sl_ton || 0}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  }}
+                  filterOptions={(options, { inputValue }) => {
+                    const filterValue = inputValue.toLowerCase();
+                    return options.filter((option: any) =>
+                      option.ten_san_pham.toLowerCase().includes(filterValue) ||
+                      option.san_pham_id.toLowerCase().includes(filterValue)
+                    );
+                  }}
+                  noOptionsText="Không tìm thấy sản phẩm"
+                  loading={!products}
+                  loadingText="Đang tải sản phẩm..."
+                />
                 <TextField
                   size="small"
                   label="Mã hàng"
@@ -1661,13 +1824,7 @@ const OutboundShipments: React.FC = () => {
                   value={currentProduct.sl_xuat}
                   onChange={(e) => setCurrentProduct({ ...currentProduct, sl_xuat: parseInt(e.target.value) || 0 })}
                 />
-                <TextField
-                  size="small"
-                  label="Đơn giá"
-                  type="number"
-                  value={currentProduct.don_gia}
-                  onChange={(e) => setCurrentProduct({ ...currentProduct, don_gia: Number(e.target.value) })}
-                />
+
                 <TextField
                   size="small"
                   label="Ghi chú"
@@ -1679,6 +1836,19 @@ const OutboundShipments: React.FC = () => {
                   color="primary"
                   onClick={() => {
                     if (currentProduct.san_pham_id && currentProduct.ten_san_pham) {
+                      // Kiểm tra tồn kho
+                      const selectedProduct = products?.find(p => p.san_pham_id === currentProduct.san_pham_id);
+                      const currentStock = selectedProduct?.sl_ton || 0;
+                      
+                      if (currentProduct.sl_xuat > currentStock) {
+                        setSnackbar({
+                          open: true,
+                          message: `Số lượng xuất (${currentProduct.sl_xuat}) vượt quá tồn kho (${currentStock})`,
+                          severity: 'warning'
+                        });
+                        return;
+                      }
+                      
                       setProductItems([...productItems, { ...currentProduct, id: Date.now().toString() }]);
                       setCurrentProduct({
                         id: '',
@@ -1688,11 +1858,11 @@ const OutboundShipments: React.FC = () => {
                         ma_hang: '',
                         dvt: '',
                         sl_xuat: 1,
-                        don_gia: 0,
                         ghi_chu: '',
                       });
                     }
                   }}
+                  disabled={!currentProduct.san_pham_id || !currentProduct.ten_san_pham}
                 >
                   <AddIcon />
                 </IconButton>
@@ -1738,18 +1908,21 @@ const OutboundShipments: React.FC = () => {
                       }}
                     />
                   )}
-                  renderOption={(props, option: any) => (
-                    <Box component="li" {...props}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                        <Typography variant="body2" fontWeight="medium" sx={{ fontSize: '0.875rem' }}>
-                          {option.ten_san_pham}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                          Mã: {option.san_pham_id} | ĐVT: {option.dvt}
-                        </Typography>
+                  renderOption={(props, option: any) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box component="li" key={key} {...otherProps}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          <Typography variant="body2" fontWeight="medium" sx={{ fontSize: '0.875rem' }}>
+                            {option.ten_san_pham}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                            Mã: {option.san_pham_id} | ĐVT: {option.dvt} | Tồn: {option.sl_ton || 0}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
-                  )}
+                    );
+                  }}
                   filterOptions={(options, { inputValue }) => {
                     const filterValue = inputValue.toLowerCase();
                     return options.filter((option: any) =>
@@ -1789,32 +1962,53 @@ const OutboundShipments: React.FC = () => {
                   />
                 </Box>
                 
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-                  <TextField
-                    size="small"
-                    label="SL"
-                    type="number"
-                    value={currentProduct.sl_xuat}
-                    onChange={(e) => setCurrentProduct({ ...currentProduct, sl_xuat: parseInt(e.target.value) || 0 })}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        fontSize: '0.875rem'
+                {/* Thông tin tồn kho */}
+                {currentProduct.san_pham_id && (
+                  <Box sx={{ 
+                    p: 1, 
+                    bgcolor: '#e8f5e8', 
+                    borderRadius: 1, 
+                    border: '1px solid #4caf50',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    <Typography variant="caption" color="success.main" sx={{ fontWeight: 'bold' }}>
+                      📦 Tồn kho:
+                    </Typography>
+                    <Typography variant="caption" color="success.main">
+                      {(() => {
+                        const selectedProduct = products?.find(p => p.san_pham_id === currentProduct.san_pham_id);
+                        return selectedProduct?.sl_ton || 0;
+                      })()} {currentProduct.dvt}
+                    </Typography>
+                    {(() => {
+                      const selectedProduct = products?.find(p => p.san_pham_id === currentProduct.san_pham_id);
+                      const currentStock = selectedProduct?.sl_ton || 0;
+                      if (currentProduct.sl_xuat > currentStock) {
+                        return (
+                          <Typography variant="caption" color="error.main" sx={{ fontWeight: 'bold' }}>
+                            ⚠️ Vượt quá tồn kho!
+                          </Typography>
+                        );
                       }
-                    }}
-                  />
-                  <TextField
-                    size="small"
-                    label="Đơn giá"
-                    type="number"
-                    value={currentProduct.don_gia}
-                    onChange={(e) => setCurrentProduct({ ...currentProduct, don_gia: Number(e.target.value) })}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        fontSize: '0.875rem'
-                      }
-                    }}
-                  />
-                </Box>
+                      return null;
+                    })()}
+                  </Box>
+                )}
+                
+                <TextField
+                  size="small"
+                  label="SL"
+                  type="number"
+                  value={currentProduct.sl_xuat}
+                  onChange={(e) => setCurrentProduct({ ...currentProduct, sl_xuat: parseInt(e.target.value) || 0 })}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: '0.875rem'
+                    }
+                  }}
+                />
                 
                 <TextField
                   size="small"
@@ -1834,6 +2028,19 @@ const OutboundShipments: React.FC = () => {
                   startIcon={<AddIcon />}
                   onClick={() => {
                     if (currentProduct.san_pham_id && currentProduct.ten_san_pham) {
+                      // Kiểm tra tồn kho
+                      const selectedProduct = products?.find(p => p.san_pham_id === currentProduct.san_pham_id);
+                      const currentStock = selectedProduct?.sl_ton || 0;
+                      
+                      if (currentProduct.sl_xuat > currentStock) {
+                        setSnackbar({
+                          open: true,
+                          message: `Số lượng xuất (${currentProduct.sl_xuat}) vượt quá tồn kho (${currentStock})`,
+                          severity: 'warning'
+                        });
+                        return;
+                      }
+                      
                       setProductItems([...productItems, { ...currentProduct, id: Date.now().toString() }]);
                       setCurrentProduct({
                         id: '',
@@ -1843,11 +2050,11 @@ const OutboundShipments: React.FC = () => {
                         ma_hang: '',
                         dvt: '',
                         sl_xuat: 1,
-                        don_gia: 0,
-                        ghi_chu: '',
+                        ghi_chu: '',  
                       });
                     }
                   }}
+                  disabled={!currentProduct.san_pham_id || !currentProduct.ten_san_pham}
                   sx={{
                     fontSize: '0.875rem',
                     height: '40px'
@@ -1878,7 +2085,7 @@ const OutboundShipments: React.FC = () => {
                             <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Mã hàng</TableCell>
                             <TableCell sx={{ fontWeight: 'bold', width: 80 }}>ĐVT</TableCell>
                             <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Số lượng</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Đơn giá</TableCell>
+
                             <TableCell sx={{ fontWeight: 'bold' }}>Ghi chú</TableCell>
                             <TableCell sx={{ fontWeight: 'bold', width: 80 }} align="center">Thao tác</TableCell>
                           </TableRow>
@@ -1909,25 +2116,7 @@ const OutboundShipments: React.FC = () => {
                                   }}
                                 />
                               </TableCell>
-                              <TableCell>
-                                <TextField
-                                  type="number"
-                                  size="small"
-                                  value={item.don_gia}
-                                  onChange={(e) => handleUpdateItemPrice(item.id, parseFloat(e.target.value) || 0)}
-                                  sx={{ 
-                                    width: 80,
-                                    '& .MuiOutlinedInput-root': {
-                                      fontSize: '0.75rem',
-                                      height: 32,
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    min: 0,
-                                    style: { textAlign: 'center' }
-                                  }}
-                                />
-                              </TableCell>
+
                               <TableCell>
                                 <TextField
                                   size="small"
@@ -2044,49 +2233,75 @@ const OutboundShipments: React.FC = () => {
                               </Box>
                             </Box>
                             
-                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-                              <Box>
-                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Đơn giá:</Typography>
-                                <TextField
-                                  type="number"
-                                  size="small"
-                                  value={item.don_gia}
-                                  onChange={(e) => handleUpdateItemPrice(item.id, parseFloat(e.target.value) || 0)}
-                                  sx={{ 
-                                    width: '100%',
-                                    '& .MuiOutlinedInput-root': {
-                                      fontSize: '0.7rem',
-                                      height: 28,
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    min: 0,
-                                    style: { textAlign: 'center' }
-                                  }}
-                                />
-                              </Box>
-                              <Box>
-                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Ghi chú:</Typography>
-                                <TextField
-                                  size="small"
-                                  value={item.ghi_chu}
-                                  onChange={(e) => handleUpdateItemNotes(item.id, e.target.value)}
-                                  placeholder="Ghi chú..."
-                                  sx={{ 
-                                    width: '100%',
-                                    '& .MuiOutlinedInput-root': {
-                                      fontSize: '0.7rem',
-                                      height: 28,
-                                    }
-                                  }}
-                                />
-                              </Box>
+                            <Box>
+                              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Ghi chú:</Typography>
+                              <TextField
+                                size="small"
+                                value={item.ghi_chu}
+                                onChange={(e) => handleUpdateItemNotes(item.id, e.target.value)}
+                                placeholder="Ghi chú..."
+                                sx={{ 
+                                  width: '100%',
+                                  '& .MuiOutlinedInput-root': {
+                                    fontSize: '0.7rem',
+                                    height: 28,
+                                  }
+                                }}
+                              />
                             </Box>
                           </CardContent>
                         </Card>
                       ))}
                     </Box>
                   </Box>
+                </Box>
+              )}
+              
+              {/* Preview khách hàng khi tạo hàng loạt */}
+              {bulkCreateMode && selectedCustomers.filter(c => c.selected).length > 0 && (
+                <Box sx={{ 
+                  mt: 2, 
+                  p: 1.5, 
+                  bgcolor: '#fff3e0', 
+                  borderRadius: 1,
+                  border: '1px solid #ff9800'
+                }}>
+                  <Typography variant="subtitle2" sx={{ 
+                    mb: 1, 
+                    fontWeight: 'bold', 
+                    color: 'warning.main',
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}>
+                    📋 Preview: Danh sách khách hàng sẽ tạo phiếu
+                  </Typography>
+                  
+                  <Box sx={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, 
+                    gap: 1 
+                  }}>
+                    {selectedCustomers.filter(c => c.selected).map((customer, index) => (
+                      <Chip
+                        key={customer.id}
+                        label={`${index + 1}. ${customer.name}`}
+                        size="small"
+                        color="warning"
+                        variant="outlined"
+                        sx={{ 
+                          fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                          maxWidth: '100%'
+                        }}
+                      />
+                    ))}
+                  </Box>
+                  
+                  <Typography variant="caption" color="text.secondary" sx={{ 
+                    display: 'block', 
+                    mt: 1,
+                    fontSize: { xs: '0.7rem', sm: '0.75rem' }
+                  }}>
+                    Tổng cộng sẽ tạo {selectedCustomers.filter(c => c.selected).length} phiếu xuất kho
+                  </Typography>
                 </Box>
               )}
               
@@ -2159,13 +2374,21 @@ const OutboundShipments: React.FC = () => {
                 boxShadow: 1,
                 flex: { xs: 1, sm: 'none' },
                 minWidth: { xs: 'auto', sm: 'auto' },
+                bgcolor: bulkCreateMode ? 'success.main' : 'primary.main',
                 '&:hover': {
                   boxShadow: 2,
                   transform: 'translateY(-1px)',
+                  bgcolor: bulkCreateMode ? 'success.dark' : 'primary.dark',
                 }
               }}
             >
-              {loading ? <CircularProgress size={16} /> : 'LƯU PHIẾU XUẤT'}
+              {loading ? (
+                <CircularProgress size={16} />
+              ) : bulkCreateMode ? (
+                `TẠO ${selectedCustomers.filter(c => c.selected).length} PHIẾU XUẤT`
+              ) : (
+                'LƯU PHIẾU XUẤT'
+              )}
             </Button>
           </Box>
         </Box>
@@ -2674,74 +2897,455 @@ const OutboundShipments: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Import Excel Dialog */}
+      {/* Import Customer Selector Dialog */}
       <Dialog
-        open={openImportDialog}
-        onClose={() => setOpenImportDialog(false)}
+        open={showImportCustomerSelector}
+        onClose={() => setShowImportCustomerSelector(false)}
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle sx={{ bgcolor: 'primary.main', color: 'white' }}>
-          Import Excel - Phiếu Xuất Kho
+        <DialogTitle sx={{ bgcolor: 'success.main', color: 'white' }}>
+          Chọn nhiều khách hàng cho Import Excel
         </DialogTitle>
         <DialogContent sx={{ p: 3 }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Vui lòng chọn file Excel chứa dữ liệu phiếu xuất kho. File phải có các cột: Mã phiếu, Ngày xuất, Mã sản phẩm, Tên sản phẩm, Đơn vị tính, Số lượng, Ghi chú, Mã KH, Tên KH, Tài xế, Nội dung xuất
+            Chọn các khách hàng mà bạn muốn tạo phiếu xuất từ Excel. Mỗi dòng dữ liệu Excel sẽ tạo phiếu cho tất cả khách hàng đã chọn.
           </Typography>
           
-          <input
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={handleImportExcel}
-            style={{ marginBottom: '16px' }}
-          />
+          <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleImportSelectAllCustomers}
+            >
+              Chọn tất cả
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleImportDeselectAllCustomers}
+            >
+              Bỏ chọn tất cả
+            </Button>
+          </Box>
+
+          <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+            {importSelectedCustomers.map((customer) => (
+              <Box
+                key={customer.id}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  p: 1,
+                  border: '1px solid #e0e0e0',
+                  borderRadius: 1,
+                  mb: 1,
+                  cursor: 'pointer',
+                  bgcolor: customer.selected ? '#e8f5e8' : 'white',
+                  '&:hover': {
+                    bgcolor: customer.selected ? '#c8e6c9' : '#f5f5f5'
+                  }
+                }}
+                onClick={() => handleImportCustomerToggle(customer.id)}
+              >
+                <input
+                  type="checkbox"
+                  checked={customer.selected}
+                  onChange={() => handleImportCustomerToggle(customer.id)}
+                  style={{ marginRight: '8px' }}
+                />
+                <Typography variant="body2">
+                  {customer.name}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setShowImportCustomerSelector(false)}>
+            Hủy
+          </Button>
+          <Button
+            onClick={handleImportConfirmCustomerSelection}
+            variant="contained"
+            sx={{ bgcolor: 'success.main' }}
+          >
+            Xác nhận ({importSelectedCustomers.filter(c => c.selected).length} khách hàng)
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog Import Excel */}
+      <Dialog 
+        open={openImportDialog} 
+        onClose={() => setOpenImportDialog(false)}
+        maxWidth="md"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            margin: { xs: 1, sm: 2 },
+            width: { xs: 'calc(100% - 16px)', sm: 'auto' },
+            maxWidth: { xs: '100%', sm: 'md' }
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          bgcolor: 'primary.main', 
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          p: { xs: 2, sm: 3 }
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+            <UploadIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
+            <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1.25rem' } }}>
+              Import Phiếu Xuất Kho từ Excel
+            </Typography>
+          </Box>
+          <IconButton 
+            onClick={() => setOpenImportDialog(false)}
+            sx={{ color: 'white' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: { xs: 2, sm: 3 }, mt: { xs: 2, sm: 4 } }}>
+          {/* Hướng dẫn */}
+          <Box sx={{ 
+            bgcolor: '#e3f2fd', 
+            p: { xs: 1.5, sm: 2 }, 
+            borderRadius: 1, 
+            mb: 3,
+            border: '1px solid #bbdefb'
+          }}>
+            <Typography variant="h6" sx={{ 
+              mb: 1, 
+              color: 'primary.main', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1,
+              fontSize: { xs: '1rem', sm: '1.25rem' }
+            }}>
+              <span style={{ fontSize: '1.2rem' }}>ℹ️</span>
+              Hướng dẫn:
+            </Typography>
+            <Box component="ul" sx={{ m: 0, pl: { xs: 1.5, sm: 2 } }}>
+              <Typography component="li" variant="body2" sx={{ 
+                mb: 0.5, 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' } 
+              }}>
+                File Excel phải có các cột: <strong>Mã phiếu, Ngày xuất, Loại xuất, Mã sản phẩm, Tên sản phẩm (bắt buộc)</strong>
+              </Typography>
+              <Typography component="li" variant="body2" sx={{ 
+                mb: 0.5, 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' } 
+              }}>
+                Các cột khác: <strong>Đơn vị tính, Số lượng, Ghi chú, Mã KH, Tên KH, Tài xế, Nội dung xuất</strong>
+              </Typography>
+              <Typography component="li" variant="body2" sx={{ 
+                mb: 0.5, 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' } 
+              }}>
+                <strong>Số lượng</strong> phải là số dương và không vượt quá tồn kho
+              </Typography>
+              <Typography component="li" variant="body2" sx={{ 
+                mb: 0.5, 
+                fontSize: { xs: '0.75rem', sm: '0.875rem' } 
+              }}>
+                <strong>Loại xuất</strong> phải là "Xuất hàng", "Xuất trả", hoặc "Xuất khác"
+              </Typography>
+              <Typography component="li" variant="body2" sx={{ 
+                color: 'error.main', 
+                fontWeight: 'bold',
+                fontSize: { xs: '0.75rem', sm: '0.875rem' } 
+              }}>
+                Phiếu xuất có mã trùng sẽ được cập nhật thông tin mới
+              </Typography>
+              <Typography component="li" variant="body2" sx={{
+                mb: 0.5,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                color: 'success.main',
+                fontWeight: 'bold'
+              }}>
+                🚀 Có thể tạo phiếu cho nhiều khách hàng khác nhau trong cùng file Excel
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Tải mẫu Excel */}
+          <Box sx={{ 
+            mb: 3, 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'stretch', sm: 'center' }, 
+            gap: { xs: 1, sm: 2 } 
+          }}>
+            <Button
+              variant="outlined"
+              startIcon={<UploadIcon />}
+              onClick={() => {
+                // Tạo file mẫu Excel với nhiều khách hàng
+                const sampleData = [
+                  ['Mã phiếu', 'Ngày xuất', 'Loại xuất', 'Mã sản phẩm', 'Tên sản phẩm', 'Đơn vị tính', 'Số lượng', 'Ghi chú', 'Mã KH', 'Tên KH', 'Tài xế', 'Nội dung xuất'],
+                  ['PXK250802_001', '2025-08-02', 'Xuất hàng', 'SP001', 'Laptop Dell', 'cái', '5', 'Xuất hàng bán', 'KH001', 'Công ty ABC', 'Tài xế 1', 'Xuất hàng cho khách hàng ABC'],
+                  ['PXK250802_001', '2025-08-02', 'Xuất hàng', 'SP002', 'Chuột Logitech', 'cái', '10', 'Xuất hàng bán', 'KH001', 'Công ty ABC', 'Tài xế 1', 'Xuất hàng cho khách hàng ABC'],
+                  ['PXK250802_002', '2025-08-02', 'Xuất trả', 'SP003', 'Bàn phím cơ', 'cái', '3', 'Xuất trả hàng', 'KH002', 'Công ty XYZ', 'Tài xế 2', 'Xuất trả cho nhà cung cấp'],
+                  ['PXK250802_003', '2025-08-02', 'Xuất khác', 'SP004', 'Màn hình 24 inch', 'cái', '2', 'Xuất khác', 'KH003', 'Công ty DEF', 'Tài xế 3', 'Xuất cho dự án đặc biệt']
+                ];
+                
+                const ws = XLSX.utils.aoa_to_sheet(sampleData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Mẫu Phiếu Xuất');
+                
+                XLSX.writeFile(wb, 'mau_phieu_xuat_kho.xlsx');
+              }}
+              sx={{
+                borderRadius: 1,
+                textTransform: 'none',
+                fontWeight: 500,
+                px: { xs: 1, sm: 2 },
+                py: { xs: 1, sm: 0.5 },
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                borderColor: 'primary.main',
+                color: 'primary.main',
+                '&:hover': {
+                  backgroundColor: 'primary.light',
+                  color: 'white',
+                  borderColor: 'primary.light',
+                }
+              }}
+            >
+              TẢI MẪU EXCEL
+            </Button>
+            <Typography variant="body2" color="text.secondary" sx={{ 
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              textAlign: { xs: 'center', sm: 'left' }
+            }}>
+              Tải file mẫu để xem định dạng chuẩn
+            </Typography>
+          </Box>
+
+          {/* Khu vực upload file */}
+          <Box sx={{ 
+            border: '2px dashed #1976d2', 
+            borderRadius: 2, 
+            p: { xs: 2, sm: 3 }, 
+            textAlign: 'center',
+            mb: 3,
+            bgcolor: '#f8f9fa',
+            '&:hover': {
+              borderColor: '#1565c0',
+              bgcolor: '#e3f2fd'
+            }
+          }}>
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleImportExcel}
+              style={{ 
+                display: 'none' 
+              }}
+              id="excel-upload-outbound"
+            />
+            <label htmlFor="excel-upload-outbound">
+              <Box sx={{ cursor: 'pointer' }}>
+                <UploadIcon sx={{ 
+                  fontSize: { xs: '2rem', sm: '3rem' }, 
+                  color: 'primary.main',
+                  mb: 1
+                }} />
+                <Typography variant="h6" sx={{ 
+                  mb: 1, 
+                  color: 'primary.main',
+                  fontSize: { xs: '1rem', sm: '1.25rem' }
+                }}>
+                  Chọn File Excel
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' } 
+                }}>
+                  Hoặc kéo thả file vào đây
+                </Typography>
+              </Box>
+            </label>
+          </Box>
 
           {/* Form bổ sung thông tin */}
-          <Box sx={{ mb: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+          <Box sx={{ 
+            mb: 3, 
+            p: { xs: 1.5, sm: 2 }, 
+            bgcolor: '#f5f5f5', 
+            borderRadius: 1,
+            border: '1px solid #e0e0e0'
+          }}>
+            <Typography variant="subtitle2" sx={{ 
+              mb: 2, 
+              fontWeight: 'bold',
+              fontSize: { xs: '0.875rem', sm: '1rem' }
+            }}>
               Thông tin bổ sung (nếu không có trong Excel)
             </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, 
+              gap: { xs: 1.5, sm: 2 } 
+            }}>
               <TextField
                 size="small"
                 label="Khách hàng"
                 value={importSupplierData.customer_name}
                 onChange={(e) => setImportSupplierData({ ...importSupplierData, customer_name: e.target.value })}
+                disabled={importBulkCreateMode}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }
+                }}
               />
+              {!importBulkCreateMode && (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<GroupIcon />}
+                  onClick={handleImportBulkCustomerSelect}
+                  sx={{ 
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    height: { xs: '35px', sm: '40px' },
+                    borderColor: 'primary.main',
+                    color: 'primary.main',
+                    '&:hover': {
+                      backgroundColor: 'primary.light',
+                      color: 'white',
+                      borderColor: 'primary.light',
+                    }
+                  }}
+                >
+                  Tạo cho nhiều khách hàng
+                </Button>
+              )}
               <TextField
                 size="small"
                 label="Tài xế"
                 value={importSupplierData.driver}
                 onChange={(e) => setImportSupplierData({ ...importSupplierData, driver: e.target.value })}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }
+                }}
               />
               <TextField
                 size="small"
                 label="Nội dung xuất"
                 value={importSupplierData.content}
                 onChange={(e) => setImportSupplierData({ ...importSupplierData, content: e.target.value })}
-                sx={{ gridColumn: 'span 2' }}
+                sx={{ 
+                  gridColumn: { xs: 'span 1', sm: 'span 2' },
+                  '& .MuiOutlinedInput-root': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }
+                }}
               />
               <TextField
                 size="small"
                 label="Ghi chú"
                 value={importSupplierData.notes}
                 onChange={(e) => setImportSupplierData({ ...importSupplierData, notes: e.target.value })}
-                sx={{ gridColumn: 'span 2' }}
+                sx={{ 
+                  gridColumn: { xs: 'span 1', sm: 'span 2' },
+                  '& .MuiOutlinedInput-root': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }
+                }}
               />
             </Box>
+            
+            {/* Hiển thị chế độ tạo hàng loạt cho Import Excel */}
+            {importBulkCreateMode && (
+              <Box sx={{ 
+                mt: 2, 
+                p: 1.5, 
+                bgcolor: '#e8f5e8', 
+                borderRadius: 1,
+                border: '1px solid #4caf50',
+                gridColumn: { xs: '1 / -1', sm: '1 / -1' }
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <Typography variant="body2" color="success.main" sx={{ 
+                    fontWeight: 'bold',
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                  }}>
+                    🚀 Chế độ Import hàng loạt
+                  </Typography>
+                  <Chip 
+                    label={`${importSelectedCustomers.filter(c => c.selected).length} khách hàng`}
+                    size="small"
+                    color="success"
+                    variant="outlined"
+                  />
+                </Box>
+                
+                <Typography variant="caption" color="text.secondary" sx={{ 
+                  display: 'block',
+                  mb: 1,
+                  fontSize: { xs: '0.7rem', sm: '0.75rem' }
+                }}>
+                  Sẽ tạo {importSelectedCustomers.filter(c => c.selected).length} phiếu xuất cho mỗi dòng dữ liệu Excel
+                </Typography>
+                
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setShowImportCustomerSelector(true)}
+                    sx={{ 
+                      fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                      borderColor: 'success.main',
+                      color: 'success.main'
+                    }}
+                  >
+                    Thay đổi khách hàng
+                  </Button>
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => {
+                      setImportBulkCreateMode(false);
+                      setImportSelectedCustomers([]);
+                    }}
+                    sx={{ 
+                      fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                      color: 'error.main'
+                    }}
+                  >
+                    Hủy chế độ hàng loạt
+                  </Button>
+                </Box>
+              </Box>
+            )}
           </Box>
 
           {/* Preview table */}
           {importData.length > 0 && (
             <Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ 
+                mb: 2,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+              }}>
                 Kiểm tra dữ liệu trước khi import. Các phiếu có cùng mã sẽ được nhóm lại.
                 {(() => {
                   const uniqueShipments = new Set(importData.map(item => item['Mã phiếu']));
                   return ` (${uniqueShipments.size} phiếu duy nhất từ ${importData.length} dòng dữ liệu)`;
                 })()}
               </Typography>
-              <TableContainer component={Paper} sx={{ maxHeight: 300 }}>
+              <TableContainer component={Paper} sx={{ 
+                maxHeight: 300,
+                '& .MuiTableCell-root': {
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  padding: { xs: '4px 8px', sm: '8px 16px' }
+                }
+              }}>
                 <Table size="small">
                   <TableHead>
                     <TableRow sx={{ bgcolor: 'primary.main' }}>
@@ -2770,23 +3374,41 @@ const OutboundShipments: React.FC = () => {
                 </Table>
               </TableContainer>
               {importData.length > 10 && (
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary" sx={{ 
+                  mt: 1, 
+                  textAlign: 'center',
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                }}>
                   ... và {importData.length - 10} dòng khác
                 </Typography>
               )}
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenImportDialog(false)}>
-            Hủy
+        <DialogActions sx={{ 
+          p: { xs: 1.5, sm: 2 },
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 0 }
+        }}>
+          <Button 
+            onClick={() => setOpenImportDialog(false)}
+            sx={{
+              width: { xs: '100%', sm: 'auto' },
+              fontSize: { xs: '0.875rem', sm: '1rem' }
+            }}
+          >
+            HỦY
           </Button>
           <Button
             onClick={handleImportSubmit}
             variant="contained"
             disabled={importData.length === 0 || importLoading}
+            sx={{
+              width: { xs: '100%', sm: 'auto' },
+              fontSize: { xs: '0.875rem', sm: '1rem' }
+            }}
           >
-            {importLoading ? <CircularProgress size={20} /> : 'Import'}
+            {importLoading ? <CircularProgress size={20} /> : 'IMPORT'}
           </Button>
         </DialogActions>
       </Dialog>
