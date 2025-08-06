@@ -555,6 +555,8 @@ export const shipmentHeadersAPI = {
   },
 
   create: async (header: any): Promise<any> => {
+    console.log('Attempting to create shipment header with data:', header);
+    
     const { data, error } = await supabase
       .from('shipment_headers')
       .insert(header)
@@ -563,9 +565,16 @@ export const shipmentHeadersAPI = {
 
     if (error) {
       console.error('Error creating shipment header:', error);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       throw error;
     }
 
+    console.log('Successfully created shipment header:', data);
     return data;
   },
 

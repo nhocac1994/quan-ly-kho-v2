@@ -144,17 +144,16 @@ const OutboundShipments: React.FC = () => {
     customer_id: '',
     customer_name: '',
     driver: '',
+    import_type: '',
     content: '',
     notes: ''
   });
   const [selectedCustomers, setSelectedCustomers] = useState<SelectedCustomer[]>([]);
-  const [showCustomerSelector, setShowCustomerSelector] = useState(false);
   const [bulkCreateMode, setBulkCreateMode] = useState(false);
   
   // State cho Import Excel với nhiều khách hàng
   const [importBulkCreateMode, setImportBulkCreateMode] = useState(false);
   const [importSelectedCustomers, setImportSelectedCustomers] = useState<SelectedCustomer[]>([]);
-  const [showImportCustomerSelector, setShowImportCustomerSelector] = useState(false);
 
   const [formData, setFormData] = useState<OutboundShipmentFormData>({
     xuat_kho_id: '',
@@ -326,107 +325,43 @@ const OutboundShipments: React.FC = () => {
   };
 
   const handleBulkCustomerSelect = () => {
-    const customerList = (customers || []).map((customer: any) => ({
-      id: customer.id,
-      name: customer.ten_day_du || customer.ten_khach_hang || '',
-      selected: false
-    }));
-    setSelectedCustomers(customerList);
-    setShowCustomerSelector(true);
-  };
-
-  const handleCustomerToggle = (customerId: string) => {
-    setSelectedCustomers(prev => 
-      prev.map(customer => 
-        customer.id === customerId 
-          ? { ...customer, selected: !customer.selected }
-          : customer
-      )
-    );
-  };
-
-  const handleSelectAllCustomers = () => {
-    setSelectedCustomers(prev => 
-      prev.map(customer => ({ ...customer, selected: true }))
-    );
-  };
-
-  const handleDeselectAllCustomers = () => {
-    setSelectedCustomers(prev => 
-      prev.map(customer => ({ ...customer, selected: false }))
-    );
-  };
-
-  const handleConfirmCustomerSelection = () => {
-    const selectedCount = selectedCustomers.filter(c => c.selected).length;
-    if (selectedCount === 0) {
-      setSnackbar({
-        open: true,
-        message: 'Vui lòng chọn ít nhất một khách hàng',
-        severity: 'warning'
-      });
-      return;
+    if (!bulkCreateMode) {
+      // Chuyển sang chế độ nhiều khách hàng
+      const customerList = (customers || []).map((customer: any) => ({
+        id: customer.id,
+        name: customer.ten_day_du || customer.ten_khach_hang || '',
+        selected: false
+      }));
+      setSelectedCustomers(customerList);
+      setBulkCreateMode(true);
+    } else {
+      // Chuyển về chế độ đơn lẻ
+      setBulkCreateMode(false);
+      setSelectedCustomers([]);
     }
-    setBulkCreateMode(true);
-    setShowCustomerSelector(false);
-    setSnackbar({
-      open: true,
-      message: `Đã chọn ${selectedCount} khách hàng. Bạn có thể thêm sản phẩm và tạo phiếu hàng loạt.`,
-      severity: 'success'
-    });
   };
+
+
 
   // Hàm xử lý cho Import Excel với nhiều khách hàng
   const handleImportBulkCustomerSelect = () => {
-    const customerList = (customers || []).map((customer: any) => ({
-      id: customer.id,
-      name: customer.ten_day_du || customer.ten_khach_hang || '',
-      selected: false
-    }));
-    setImportSelectedCustomers(customerList);
-    setShowImportCustomerSelector(true);
-  };
-
-  const handleImportCustomerToggle = (customerId: string) => {
-    setImportSelectedCustomers(prev => 
-      prev.map(customer => 
-        customer.id === customerId 
-          ? { ...customer, selected: !customer.selected }
-          : customer
-      )
-    );
-  };
-
-  const handleImportSelectAllCustomers = () => {
-    setImportSelectedCustomers(prev => 
-      prev.map(customer => ({ ...customer, selected: true }))
-    );
-  };
-
-  const handleImportDeselectAllCustomers = () => {
-    setImportSelectedCustomers(prev => 
-      prev.map(customer => ({ ...customer, selected: false }))
-    );
-  };
-
-  const handleImportConfirmCustomerSelection = () => {
-    const selectedCount = importSelectedCustomers.filter(c => c.selected).length;
-    if (selectedCount === 0) {
-      setSnackbar({
-        open: true,
-        message: 'Vui lòng chọn ít nhất một khách hàng',
-        severity: 'warning'
-      });
-      return;
+    if (!importBulkCreateMode) {
+      // Chuyển sang chế độ nhiều khách hàng
+      const customerList = (customers || []).map((customer: any) => ({
+        id: customer.id,
+        name: customer.ten_day_du || customer.ten_khach_hang || '',
+        selected: false
+      }));
+      setImportSelectedCustomers(customerList);
+      setImportBulkCreateMode(true);
+    } else {
+      // Chuyển về chế độ đơn lẻ
+      setImportBulkCreateMode(false);
+      setImportSelectedCustomers([]);
     }
-    setImportBulkCreateMode(true);
-    setShowImportCustomerSelector(false);
-    setSnackbar({
-      open: true,
-      message: `Đã chọn ${selectedCount} khách hàng cho Import Excel.`,
-      severity: 'success'
-    });
   };
+
+
 
   const handleSubmit = async () => {
     if (productItems.length === 0) {
@@ -940,7 +875,7 @@ const OutboundShipments: React.FC = () => {
         
         // Tạo mã phiếu mới nếu bị trùng bằng cách thêm timestamp
         const originalShipmentId = shipmentIdFinal;
-        const timestamp = Date.now().toString().slice(-6); // Lấy 6 số cuối của timestamp
+        const timestamp = Date.now().toString().slice(-4); // Lấy 4 số cuối của timestamp
         shipmentIdFinal = `${originalShipmentId}_${timestamp}`;
         console.log(`Using unique shipment ID: ${shipmentIdFinal}`);
         
@@ -986,18 +921,25 @@ const OutboundShipments: React.FC = () => {
         
         // Tạo phiếu cho từng khách hàng
         for (const customer of customersToProcess) {
-          // Tạo mã phiếu duy nhất cho từng khách hàng
-          const customerShipmentId = `${shipmentIdFinal}_${customer.id}`;
+          // Validate customer.id
+          if (!customer.id || customer.id.trim() === '') {
+            console.error(`Invalid customer ID for customer: ${customer.name}`);
+            continue;
+          }
           
-          // Tạo header cho phiếu
+          // Tạo mã phiếu duy nhất cho từng khách hàng - sử dụng 8 ký tự đầu của customer.id
+          const customerIdShort = customer.id.substring(0, 8);
+          const customerShipmentId = `${shipmentIdFinal}_${customerIdShort}`;
+          
+          // Tạo header cho phiếu - với fallback cho customer_id
           const headerData = {
-            shipment_id: customerShipmentId.toString().trim(),
+            shipment_id: customerShipmentId.toString().trim().substring(0, 50), // Giới hạn 50 ký tự
             shipment_type: 'outbound',
             shipment_date: firstItem['Ngày xuất'] || new Date().toISOString().split('T')[0],
             supplier_id: null,
             supplier_name: null,
-            customer_id: customer.id,
-            customer_name: customer.name,
+            customer_id: customer.id && customer.id.trim() !== '' ? customer.id : null,
+            customer_name: customer.name || '',
             driver: (importSupplierData.driver || firstItem['Tài xế'] || '').substring(0, 255),
             import_type: (firstItem['Loại xuất'] || '').substring(0, 100),
             content: importSupplierData.content || firstItem['Nội dung xuất'] || '',
@@ -1009,6 +951,17 @@ const OutboundShipments: React.FC = () => {
           };
           
           console.log(`Creating header for customer ${customer.name} with data:`, headerData);
+          console.log('Customer details:', {
+            id: customer.id,
+            name: customer.name,
+            idType: typeof customer.id,
+            idLength: customer.id ? customer.id.length : 0
+          });
+          console.log('Shipment ID details:', {
+            original: customerShipmentId,
+            truncated: headerData.shipment_id,
+            length: headerData.shipment_id.length
+          });
 
           try {
             // Tạo header
@@ -1060,6 +1013,7 @@ const OutboundShipments: React.FC = () => {
         customer_id: '',
         customer_name: '',
         driver: '',
+        import_type: '',
         content: '',
         notes: ''
       });
@@ -1548,48 +1502,101 @@ const OutboundShipments: React.FC = () => {
                     }
                   }}
                 />
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Khách hàng</InputLabel>
-                  <Select
-                    value={formData.khach_hang_id}
-                    label="Khách hàng"
-                    onChange={(e) => handleCustomerChange(e.target.value)}
-                    disabled={bulkCreateMode}
-                    sx={{
-                      '& .MuiSelect-select': {
-                        fontSize: { xs: '0.875rem', sm: '1rem' }
-                      }
-                    }}
-                  >
-                    {(customers || []).map((customer: any) => (
-                      <MenuItem key={customer.id} value={customer.id}>
-                        {customer.ten_day_du || customer.ten_khach_hang}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                {!bulkCreateMode && (
-                  <Button
-                    variant="outlined"
+                {/* Khách hàng đơn lẻ hoặc nhiều khách hàng */}
+                {!bulkCreateMode ? (
+                  <FormControl size="small" fullWidth>
+                    <InputLabel>Khách hàng</InputLabel>
+                    <Select
+                      value={formData.khach_hang_id}
+                      label="Khách hàng"
+                      onChange={(e) => handleCustomerChange(e.target.value)}
+                      sx={{
+                        '& .MuiSelect-select': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' }
+                        }
+                      }}
+                    >
+                      {(customers || []).map((customer: any) => (
+                        <MenuItem key={customer.id} value={customer.id}>
+                          {customer.ten_day_du || customer.ten_khach_hang}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                ) : (
+                  <Autocomplete
+                    multiple
                     size="small"
-                    startIcon={<GroupIcon />}
-                    onClick={handleBulkCustomerSelect}
-                    sx={{ 
-                      mt: 1,
-                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                      height: { xs: '35px', sm: '40px' },
-                      borderColor: 'primary.main',
-                      color: 'primary.main',
-                      '&:hover': {
-                        backgroundColor: 'primary.light',
-                        color: 'white',
-                        borderColor: 'primary.light',
-                      }
+                    options={customers || []}
+                    getOptionLabel={(option: any) => option.ten_day_du || option.ten_khach_hang}
+                    value={selectedCustomers.filter(c => c.selected).map(c => 
+                      (customers || []).find(cust => cust.id === c.id)
+                    ).filter(Boolean)}
+                    onChange={(event, newValue) => {
+                      const selectedIds = newValue.map((item: any) => item.id);
+                      setSelectedCustomers(prev => 
+                        prev.map(customer => ({
+                          ...customer,
+                          selected: selectedIds.includes(customer.id)
+                        }))
+                      );
                     }}
-                  >
-                    Tạo cho nhiều khách hàng
-                  </Button>
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Chọn nhiều khách hàng"
+                        placeholder="Chọn khách hàng..."
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                          }
+                        }}
+                      />
+                    )}
+                    renderOption={(props, option: any) => {
+                      const { key, ...otherProps } = props;
+                      return (
+                        <Box component="li" key={key} {...otherProps}>
+                          <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+                            {option.ten_day_du || option.ten_khach_hang}
+                          </Typography>
+                        </Box>
+                      );
+                    }}
+                    renderTags={(value, getTagProps) =>
+                      value.map((option: any, index: number) => (
+                        <Chip
+                          {...getTagProps({ index })}
+                          key={option.id}
+                          label={option.ten_day_du || option.ten_khach_hang}
+                          size="small"
+                          sx={{ fontSize: '0.7rem' }}
+                        />
+                      ))
+                    }
+                  />
                 )}
+                
+                {/* Nút chuyển đổi chế độ */}
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<GroupIcon />}
+                  onClick={handleBulkCustomerSelect}
+                  sx={{ 
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    height: { xs: '35px', sm: '40px' },
+                    borderColor: bulkCreateMode ? 'success.main' : 'primary.main',
+                    color: bulkCreateMode ? 'success.main' : 'primary.main',
+                    '&:hover': {
+                      backgroundColor: bulkCreateMode ? 'success.light' : 'primary.light',
+                      color: 'white',
+                      borderColor: bulkCreateMode ? 'success.light' : 'primary.light',
+                    }
+                  }}
+                >
+                  {bulkCreateMode ? 'Chế độ đơn lẻ' : 'Tạo cho nhiều KH'}
+                </Button>
                 {bulkCreateMode && (
                   <Box sx={{ 
                     mt: 1, 
@@ -1623,18 +1630,7 @@ const OutboundShipments: React.FC = () => {
                     </Typography>
                     
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => setShowCustomerSelector(true)}
-                        sx={{ 
-                          fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                          borderColor: 'success.main',
-                          color: 'success.main'
-                        }}
-                      >
-                        Thay đổi khách hàng
-                      </Button>
+
                       <Button
                         variant="text"
                         size="small"
@@ -2820,160 +2816,9 @@ const OutboundShipments: React.FC = () => {
         </Box>
       )}
 
-      {/* Customer Selector Dialog */}
-      <Dialog
-        open={showCustomerSelector}
-        onClose={() => setShowCustomerSelector(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle sx={{ bgcolor: 'primary.main', color: 'white' }}>
-          Chọn nhiều khách hàng
-        </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Chọn các khách hàng mà bạn muốn tạo phiếu xuất. Mỗi khách hàng sẽ có một phiếu riêng với cùng sản phẩm.
-          </Typography>
-          
-          <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={handleSelectAllCustomers}
-            >
-              Chọn tất cả
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={handleDeselectAllCustomers}
-            >
-              Bỏ chọn tất cả
-            </Button>
-          </Box>
 
-          <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-            {selectedCustomers.map((customer) => (
-              <Box
-                key={customer.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  p: 1,
-                  border: '1px solid #e0e0e0',
-                  borderRadius: 1,
-                  mb: 1,
-                  cursor: 'pointer',
-                  bgcolor: customer.selected ? '#e3f2fd' : 'white',
-                  '&:hover': {
-                    bgcolor: customer.selected ? '#bbdefb' : '#f5f5f5'
-                  }
-                }}
-                onClick={() => handleCustomerToggle(customer.id)}
-              >
-                <input
-                  type="checkbox"
-                  checked={customer.selected}
-                  onChange={() => handleCustomerToggle(customer.id)}
-                  style={{ marginRight: '8px' }}
-                />
-                <Typography variant="body2">
-                  {customer.name}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setShowCustomerSelector(false)}>
-            Hủy
-          </Button>
-          <Button
-            onClick={handleConfirmCustomerSelection}
-            variant="contained"
-          >
-            Xác nhận ({selectedCustomers.filter(c => c.selected).length} khách hàng)
-          </Button>
-        </DialogActions>
-      </Dialog>
 
-      {/* Import Customer Selector Dialog */}
-      <Dialog
-        open={showImportCustomerSelector}
-        onClose={() => setShowImportCustomerSelector(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle sx={{ bgcolor: 'success.main', color: 'white' }}>
-          Chọn nhiều khách hàng cho Import Excel
-        </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Chọn các khách hàng mà bạn muốn tạo phiếu xuất từ Excel. Mỗi dòng dữ liệu Excel sẽ tạo phiếu cho tất cả khách hàng đã chọn.
-          </Typography>
-          
-          <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={handleImportSelectAllCustomers}
-            >
-              Chọn tất cả
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={handleImportDeselectAllCustomers}
-            >
-              Bỏ chọn tất cả
-            </Button>
-          </Box>
 
-          <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-            {importSelectedCustomers.map((customer) => (
-              <Box
-                key={customer.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  p: 1,
-                  border: '1px solid #e0e0e0',
-                  borderRadius: 1,
-                  mb: 1,
-                  cursor: 'pointer',
-                  bgcolor: customer.selected ? '#e8f5e8' : 'white',
-                  '&:hover': {
-                    bgcolor: customer.selected ? '#c8e6c9' : '#f5f5f5'
-                  }
-                }}
-                onClick={() => handleImportCustomerToggle(customer.id)}
-              >
-                <input
-                  type="checkbox"
-                  checked={customer.selected}
-                  onChange={() => handleImportCustomerToggle(customer.id)}
-                  style={{ marginRight: '8px' }}
-                />
-                <Typography variant="body2">
-                  {customer.name}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setShowImportCustomerSelector(false)}>
-            Hủy
-          </Button>
-          <Button
-            onClick={handleImportConfirmCustomerSelection}
-            variant="contained"
-            sx={{ bgcolor: 'success.main' }}
-          >
-            Xác nhận ({importSelectedCustomers.filter(c => c.selected).length} khách hàng)
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       {/* Dialog Import Excel */}
       <Dialog 
@@ -2984,8 +2829,8 @@ const OutboundShipments: React.FC = () => {
         sx={{
           '& .MuiDialog-paper': {
             margin: { xs: 1, sm: 2 },
-            width: { xs: 'calc(100% - 16px)', sm: 'auto' },
-            maxWidth: { xs: '100%', sm: 'md' }
+            width: { xs: 'calc(100% - 16px)', sm: '100%' },
+            maxWidth: { xs: '100%', sm: '1400px' }
           }
         }}
       >
@@ -2995,7 +2840,7 @@ const OutboundShipments: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          p: { xs: 2, sm: 3 }
+          p: { xs: 1, sm: 1 }
         }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
             <UploadIcon sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
@@ -3179,56 +3024,153 @@ const OutboundShipments: React.FC = () => {
             borderRadius: 1,
             border: '1px solid #e0e0e0'
           }}>
-            <Typography variant="subtitle2" sx={{ 
-              mb: 2, 
-              fontWeight: 'bold',
-              fontSize: { xs: '0.875rem', sm: '1rem' }
+            <Typography variant="subtitle1" sx={{ 
+              mb: 1, 
+              fontWeight: 'bold', 
+              color: 'primary.main',
+              fontSize: { xs: '1rem', sm: '1.25rem' }
             }}>
               Thông tin bổ sung (nếu không có trong Excel)
             </Typography>
             <Box sx={{ 
               display: 'grid', 
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, 
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, 
               gap: { xs: 1.5, sm: 2 } 
             }}>
-              <TextField
+              {/* Khách hàng đơn lẻ hoặc nhiều khách hàng */}
+              {!importBulkCreateMode ? (
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Khách hàng"
+                  value={importSupplierData.customer_name}
+                  onChange={(e) => setImportSupplierData({ ...importSupplierData, customer_name: e.target.value })}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }
+                  }}
+                />
+              ) : (
+                <Autocomplete
+                  multiple
+                  size="small"
+                  options={customers || []}
+                  getOptionLabel={(option: any) => option.ten_day_du || option.ten_khach_hang}
+                  value={importSelectedCustomers.filter(c => c.selected).map(c => 
+                    (customers || []).find(cust => cust.id === c.id)
+                  ).filter(Boolean)}
+                  onChange={(event, newValue) => {
+                    const selectedIds = newValue.map((item: any) => item.id);
+                    setImportSelectedCustomers(prev => 
+                      prev.map(customer => ({
+                        ...customer,
+                        selected: selectedIds.includes(customer.id)
+                      }))
+                    );
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Chọn nhiều khách hàng"
+                      placeholder="Chọn khách hàng..."
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' }
+                        }
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option: any) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box component="li" key={key} {...otherProps}>
+                        <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+                          {option.ten_day_du || option.ten_khach_hang}
+                        </Typography>
+                      </Box>
+                    );
+                  }}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option: any, index: number) => (
+                      <Chip
+                        {...getTagProps({ index })}
+                        key={option.id}
+                        label={option.ten_day_du || option.ten_khach_hang}
+                        size="small"
+                        sx={{ fontSize: '0.7rem' }}
+                      />
+                    ))
+                  }
+                />
+              )}
+              
+              {/* Nút chuyển đổi chế độ */}
+              <Button
+                variant="outlined"
                 size="small"
-                label="Khách hàng"
-                value={importSupplierData.customer_name}
-                onChange={(e) => setImportSupplierData({ ...importSupplierData, customer_name: e.target.value })}
-                disabled={importBulkCreateMode}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                startIcon={<GroupIcon />}
+                onClick={handleImportBulkCustomerSelect}
+                sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  height: { xs: '35px', sm: '40px' },
+                  borderColor: importBulkCreateMode ? 'success.main' : 'primary.main',
+                  color: importBulkCreateMode ? 'success.main' : 'primary.main',
+                  '&:hover': {
+                    backgroundColor: importBulkCreateMode ? 'success.light' : 'primary.light',
+                    color: 'white',
+                    borderColor: importBulkCreateMode ? 'success.light' : 'primary.light',
                   }
                 }}
-              />
-              {!importBulkCreateMode && (
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<GroupIcon />}
-                  onClick={handleImportBulkCustomerSelect}
-                  sx={{ 
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                    height: { xs: '35px', sm: '40px' },
-                    borderColor: 'primary.main',
-                    color: 'primary.main',
-                    '&:hover': {
-                      backgroundColor: 'primary.light',
-                      color: 'white',
-                      borderColor: 'primary.light',
+              >
+                {importBulkCreateMode ? 'Chế độ đơn lẻ' : 'Tạo cho nhiều KH'}
+              </Button>
+              
+              <FormControl size="small" fullWidth>
+                <InputLabel>Loại xuất</InputLabel>
+                <Select
+                  value={importSupplierData.import_type || ''}
+                  label="Loại xuất"
+                  onChange={(e) => setImportSupplierData({ ...importSupplierData, import_type: e.target.value })}
+                  sx={{
+                    '& .MuiSelect-select': {
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
                     }
                   }}
                 >
-                  Tạo cho nhiều khách hàng
-                </Button>
-              )}
+                  <MenuItem value="Xuất hàng">Xuất hàng</MenuItem>
+                  <MenuItem value="Xuất bán">Xuất bán</MenuItem>
+                  <MenuItem value="Xuất chuyển kho">Xuất chuyển kho</MenuItem>
+                  <MenuItem value="Xuất trả hàng">Xuất trả hàng</MenuItem>
+                  <MenuItem value="Xuất hủy">Xuất hủy</MenuItem>
+                  <MenuItem value="Xuất khác">Xuất khác</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl size="small" fullWidth>
+                <InputLabel>Tài xế</InputLabel>
+                <Select
+                  value={importSupplierData.driver || ''}
+                  label="Tài xế"
+                  onChange={(e) => setImportSupplierData({ ...importSupplierData, driver: e.target.value })}
+                  sx={{
+                    '& .MuiSelect-select': {
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }
+                  }}
+                >
+                  <MenuItem value="Tài xế 1">Tài xế 1</MenuItem>
+                  <MenuItem value="Tài xế 2">Tài xế 2</MenuItem>
+                  <MenuItem value="Tài xế 3">Tài xế 3</MenuItem>
+                  <MenuItem value="Tài xế 4">Tài xế 4</MenuItem>
+                  <MenuItem value="Tài xế 5">Tài xế 5</MenuItem>
+                </Select>
+              </FormControl>
               <TextField
                 size="small"
-                label="Tài xế"
-                value={importSupplierData.driver}
-                onChange={(e) => setImportSupplierData({ ...importSupplierData, driver: e.target.value })}
+                fullWidth
+                label="Nội dung xuất"
+                value={importSupplierData.content}
+                onChange={(e) => setImportSupplierData({ ...importSupplierData, content: e.target.value })}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     fontSize: { xs: '0.875rem', sm: '1rem' }
@@ -3237,23 +3179,11 @@ const OutboundShipments: React.FC = () => {
               />
               <TextField
                 size="small"
-                label="Nội dung xuất"
-                value={importSupplierData.content}
-                onChange={(e) => setImportSupplierData({ ...importSupplierData, content: e.target.value })}
-                sx={{ 
-                  gridColumn: { xs: 'span 1', sm: 'span 2' },
-                  '& .MuiOutlinedInput-root': {
-                    fontSize: { xs: '0.875rem', sm: '1rem' }
-                  }
-                }}
-              />
-              <TextField
-                size="small"
+                fullWidth
                 label="Ghi chú"
                 value={importSupplierData.notes}
                 onChange={(e) => setImportSupplierData({ ...importSupplierData, notes: e.target.value })}
-                sx={{ 
-                  gridColumn: { xs: 'span 1', sm: 'span 2' },
+                sx={{
                   '& .MuiOutlinedInput-root': {
                     fontSize: { xs: '0.875rem', sm: '1rem' }
                   }
@@ -3295,18 +3225,7 @@ const OutboundShipments: React.FC = () => {
                 </Typography>
                 
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => setShowImportCustomerSelector(true)}
-                    sx={{ 
-                      fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                      borderColor: 'success.main',
-                      color: 'success.main'
-                    }}
-                  >
-                    Thay đổi khách hàng
-                  </Button>
+
                   <Button
                     variant="text"
                     size="small"
