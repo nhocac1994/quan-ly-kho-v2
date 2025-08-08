@@ -55,8 +55,8 @@ interface OutboundShipmentFormData {
 ### Tự Động Hóa
 - Khi chọn nhà cung cấp → Tự động load sản phẩm
 - Sản phẩm được load với số lượng đầy đủ từ đơn nhập
-- Không cần thêm sản phẩm thủ công
-- Form nhập sản phẩm bị ẩn khi đã có sản phẩm
+- Phần nhập sản phẩm luôn hiển thị để có thể thêm sản phẩm thủ công
+- Danh sách sản phẩm hiển thị khi có ít nhất 1 sản phẩm
 
 ## Validation
 - **Loại xuất**: Chỉ cho phép "Xuất hàng" hoặc "Xuất dự án"
@@ -69,6 +69,7 @@ interface OutboundShipmentFormData {
 2. **Giảm lỗi**: Không cần nhập lại thông tin sản phẩm
 3. **Quy trình chuẩn**: Phù hợp với thực tế (nhập → xuất toàn bộ)
 4. **Theo dõi dễ dàng**: Liên kết rõ ràng giữa nhập và xuất
+5. **Linh hoạt**: Có thể thêm sản phẩm thủ công bất cứ lúc nào
 
 ## Troubleshooting
 
@@ -120,11 +121,29 @@ interface OutboundShipmentFormData {
 
 ### Hiển Thị Tip
 - **Thông báo tip**: "💡 Tip: Nhấn Enter trong bất kỳ ô nào để thêm sản phẩm nhanh"
-- **Chỉ hiển thị khi**: Chưa có sản phẩm nào trong danh sách
+- **Luôn hiển thị**: Tip luôn hiển thị để nhắc nhở người dùng
 - **Màu sắc**: Nền vàng nhạt để dễ nhận biết
 
 ### Lợi Ích
 - **Tăng tốc độ nhập liệu**: Không cần di chuyển chuột để click nút "+"
 - **Thao tác thuận tiện**: Chỉ cần nhấn Enter sau khi nhập xong
 - **Giảm thời gian**: Đặc biệt hữu ích khi nhập nhiều sản phẩm
-- **Trải nghiệm nhất quán**: Giống hệt như form nhập hàng 
+- **Trải nghiệm nhất quán**: Giống hệt như form nhập hàng
+
+## Phần Nhập Sản Phẩm
+
+### Luôn Hiển Thị
+- **Phần nhập sản phẩm luôn hiển thị** để người dùng có thể thêm sản phẩm bất cứ lúc nào
+- **Không bị ẩn** khi đã có sản phẩm trong danh sách
+- **Có thể thêm sản phẩm thủ công** ngay cả khi đã load từ đơn nhập
+
+### Tính Năng
+- **Autocomplete sản phẩm**: Tìm kiếm và chọn sản phẩm nhanh chóng
+- **Tự động điền thông tin**: Mã hàng, ĐVT được điền tự động
+- **Nhấn Enter để thêm**: Thêm sản phẩm nhanh bằng phím Enter
+- **Validation**: Kiểm tra thông tin trước khi thêm
+
+### Giao Diện
+- **Desktop**: Hiển thị dạng grid với các cột rõ ràng
+- **Mobile**: Hiển thị dạng form dọc dễ sử dụng
+- **Responsive**: Tự động điều chỉnh theo kích thước màn hình 

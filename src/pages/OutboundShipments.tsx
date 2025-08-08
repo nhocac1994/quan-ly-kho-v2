@@ -1763,21 +1763,7 @@ const OutboundShipments: React.FC = () => {
                 Chi tiết sản phẩm *
               </Typography>
               
-              {/* Tip về chức năng Enter key */}
-              {productItems.length === 0 && (
-                <Box sx={{ 
-                  mb: 2, 
-                  p: 1, 
-                  bgcolor: 'warning.light', 
-                  borderRadius: 1,
-                  border: '1px solid',
-                  borderColor: 'warning.main'
-                }}>
-                  <Typography variant="body2" sx={{ color: 'warning.dark', fontSize: '0.875rem' }}>
-                    💡 Tip: Nhấn Enter trong bất kỳ ô nào để thêm sản phẩm nhanh
-                  </Typography>
-                </Box>
-              )}
+
               
               {/* Thông báo khi chọn xuất dự án */}
               {formData.loai_xuat === 'Xuất dự án' && formData.nha_cung_cap_id && (
@@ -1796,8 +1782,7 @@ const OutboundShipments: React.FC = () => {
                 </Box>
               )}
               
-              {/* Desktop Product Entry Row - Chỉ hiển thị khi không có sản phẩm từ đơn nhập */}
-              {productItems.length === 0 && (
+              {/* Desktop Product Entry Row - Luôn hiển thị để có thể thêm sản phẩm */}
                 <Box sx={{ 
                   display: { xs: 'none', lg: 'grid' },
                   gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr auto', 
@@ -1918,10 +1903,8 @@ const OutboundShipments: React.FC = () => {
                   <AddIcon />
                 </IconButton>
               </Box>
-              )}
 
-              {/* Mobile Product Entry Row - Chỉ hiển thị khi không có sản phẩm từ đơn nhập */}
-              {productItems.length === 0 && (
+              {/* Mobile Product Entry Row - Luôn hiển thị để có thể thêm sản phẩm */}
                 <Box sx={{ 
                   display: { xs: 'flex', lg: 'none' },
                   flexDirection: 'column',
@@ -2072,7 +2055,6 @@ const OutboundShipments: React.FC = () => {
                   Thêm sản phẩm
                 </Button>
               </Box>
-              )}
 
               {/* Danh sách sản phẩm */}
               {productItems.length > 0 && (
