@@ -47,6 +47,7 @@ import {
   useInboundShipments, 
   useSuppliers, 
   useProducts,
+  useCustomers,
   useAddShipmentHeader,
   useAddShipmentItems,
   useDeleteShipmentItems,
@@ -56,6 +57,7 @@ import {
 import { dataService } from '../services/dataService';
 import { useSidebar } from '../contexts/SidebarContext';
 import * as XLSX from 'xlsx';
+import { generateInboundShipmentId, formatDate as formatDateUtil } from '../utils/shipmentUtils';
 
 // Hàm chuyển đổi ngày Excel sang định dạng ISO
 const convertExcelDate = (excelDate: any): string => {
@@ -87,6 +89,8 @@ interface InboundShipmentFormData {
   loai_nhap: string;
   nha_cung_cap_id: string;
   ten_nha_cung_cap: string;
+  khach_hang_id: string;
+  ten_khach_hang: string;
   tai_xe: string;
   noi_dung_nhap: string;
   ghi_chu: string;
@@ -100,6 +104,7 @@ interface ProductItem {
   ma_hang: string;
   dvt: string;
   sl_nhap: number;
+  kien_hang: number; // Số kiện hàng
   ghi_chu: string;
 }
 
@@ -108,6 +113,10 @@ const InboundShipments: React.FC = () => {
   const { data: shipmentHeaders, refetch: refreshShipmentHeaders } = useShipmentHeaders('inbound');
   const { data: suppliers } = useSuppliers();
   const { data: products } = useProducts();
+  const { data: customers } = useCustomers();
+  
+  // State để lưu sản phẩm đã lọc theo nhà cung cấp
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const { currentDrawerWidth } = useSidebar();
   
   const [page, setPage] = useState(0);
@@ -132,6 +141,8 @@ const InboundShipments: React.FC = () => {
   const [importSupplierData, setImportSupplierData] = useState({
     supplier_id: '',
     supplier_name: '',
+    customer_id: '',
+    customer_name: '',
     driver: '',
     content: '',
     notes: ''
@@ -144,6 +155,8 @@ const InboundShipments: React.FC = () => {
     loai_nhap: '',
     nha_cung_cap_id: '',
     ten_nha_cung_cap: '',
+    khach_hang_id: '',
+    ten_khach_hang: '',
     tai_xe: '',
     noi_dung_nhap: '',
     ghi_chu: '',
@@ -158,6 +171,7 @@ const InboundShipments: React.FC = () => {
     ma_hang: '',
     dvt: '',
     sl_nhap: 1,
+    kien_hang: 1,
     ghi_chu: '',
   });
 
@@ -170,19 +184,9 @@ const InboundShipments: React.FC = () => {
     );
   }, [shipmentHeaders, searchTerm]);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
-  };
+  const formatDate = formatDateUtil;
 
-  const generateShipmentId = () => {
-    const date = new Date();
-    const year = date.getFullYear().toString().slice(-2);
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    return `PNK${year}${month}${day}_${random}`;
-  };
+  const generateShipmentId = generateInboundShipmentId;
 
   const handleOpenDialog = async (shipment?: any) => {
     if (shipment) {
@@ -193,6 +197,8 @@ const InboundShipments: React.FC = () => {
         loai_nhap: shipment.import_type || '',
         nha_cung_cap_id: shipment.supplier_id,
         ten_nha_cung_cap: shipment.supplier_name,
+        khach_hang_id: shipment.customer_id || '',
+        ten_khach_hang: shipment.customer_name || '',
         tai_xe: shipment.driver || '',
         noi_dung_nhap: shipment.content,
         ghi_chu: shipment.notes,
@@ -209,6 +215,7 @@ const InboundShipments: React.FC = () => {
           ma_hang: item.product_code,
           dvt: item.unit,
           sl_nhap: item.quantity,
+          kien_hang: item.kien_hang || 1,
           ghi_chu: item.notes || '',
         }));
         setProductItems(formattedItems);
@@ -226,6 +233,8 @@ const InboundShipments: React.FC = () => {
         loai_nhap: '',
         nha_cung_cap_id: '',
         ten_nha_cung_cap: '',
+        khach_hang_id: '',
+        ten_khach_hang: '',
         tai_xe: '',
         noi_dung_nhap: '',
         ghi_chu: '',
@@ -244,6 +253,8 @@ const InboundShipments: React.FC = () => {
     setImportSupplierData({
       supplier_id: '',
       supplier_name: '',
+      customer_id: '',
+      customer_name: '',
       driver: '',
       content: '',
       notes: ''
@@ -254,6 +265,8 @@ const InboundShipments: React.FC = () => {
       loai_nhap: '',
       nha_cung_cap_id: '',
       ten_nha_cung_cap: '',
+      khach_hang_id: '',
+      ten_khach_hang: '',
       tai_xe: '',
       noi_dung_nhap: '',
       ghi_chu: '',
@@ -267,6 +280,7 @@ const InboundShipments: React.FC = () => {
       ma_hang: '',
       dvt: '',
       sl_nhap: 1,
+      kien_hang: 1,
       ghi_chu: '',
     });
   };
@@ -278,6 +292,11 @@ const InboundShipments: React.FC = () => {
   const handleSubmit = async () => {
     if (productItems.length === 0) {
       setSnackbar({ open: true, message: 'Vui lòng thêm ít nhất một sản phẩm', severity: 'warning' });
+      return;
+    }
+
+    if (formData.loai_nhap === 'Nhập dự án' && !formData.khach_hang_id) {
+      setSnackbar({ open: true, message: 'Vui lòng chọn khách hàng cho loại nhập dự án', severity: 'warning' });
       return;
     }
 
@@ -293,8 +312,8 @@ const InboundShipments: React.FC = () => {
         shipment_date: formData.ngay_nhap,
         supplier_id: formData.nha_cung_cap_id,
         supplier_name: formData.ten_nha_cung_cap,
-        customer_id: null,
-        customer_name: null,
+        customer_id: formData.loai_nhap === 'Nhập dự án' ? formData.khach_hang_id : null,
+        customer_name: formData.loai_nhap === 'Nhập dự án' ? formData.ten_khach_hang : null,
         driver: formData.tai_xe,
         import_type: formData.loai_nhap,
         content: formData.noi_dung_nhap,
@@ -328,6 +347,7 @@ const InboundShipments: React.FC = () => {
         product_code: item.ma_hang,
         unit: item.dvt,
         quantity: item.sl_nhap,
+        kien_hang: item.kien_hang,
         unit_price: 0,
         total_price: 0,
         notes: item.ghi_chu
@@ -400,6 +420,38 @@ const InboundShipments: React.FC = () => {
     ));
   };
 
+  const handleUpdateItemKienHang = (itemId: string, newKienHang: number) => {
+    setProductItems(prev => prev.map(item => 
+      item.id === itemId ? { ...item, kien_hang: newKienHang } : item
+    ));
+  };
+
+  // Hàm thêm sản phẩm
+  const handleAddProduct = () => {
+    if (currentProduct.san_pham_id && currentProduct.ten_san_pham) {
+      setProductItems([...productItems, { ...currentProduct, id: Date.now().toString() }]);
+      setCurrentProduct({
+        id: '',
+        product_id: '',
+        san_pham_id: '',
+        ten_san_pham: '',
+        ma_hang: '',
+        dvt: '',
+        sl_nhap: 1,
+        kien_hang: 1,
+        ghi_chu: '',
+      });
+    }
+  };
+
+  // Hàm xử lý phím Enter
+  const handleKeyPress = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleAddProduct();
+    }
+  };
+
 
 
   const handleCopyShipment = () => {
@@ -415,22 +467,25 @@ const InboundShipments: React.FC = () => {
       loai_nhap: viewingShipment.import_type || '',
       nha_cung_cap_id: viewingShipment.supplier_id || '',
       ten_nha_cung_cap: viewingShipment.supplier_name || '',
+      khach_hang_id: viewingShipment.customer_id || '',
+      ten_khach_hang: viewingShipment.customer_name || '',
       tai_xe: viewingShipment.driver || '',
       noi_dung_nhap: viewingShipment.content || '',
       ghi_chu: viewingShipment.notes || '',
     };
 
     // Tạo product items mới từ shipment items hiện tại
-    const newProductItems = shipmentItems.map((item: any) => ({
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      product_id: item.product_id,
-      san_pham_id: item.product_code,
-      ten_san_pham: item.product_name,
-      ma_hang: item.product_code,
-      dvt: item.unit,
-      sl_nhap: item.quantity,
-      ghi_chu: item.notes || '',
-    }));
+            const newProductItems = shipmentItems.map((item: any) => ({
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          product_id: item.product_id,
+          san_pham_id: item.product_code,
+          ten_san_pham: item.product_name,
+          ma_hang: item.product_code,
+          dvt: item.unit,
+          sl_nhap: item.quantity,
+          kien_hang: item.kien_hang || 1,
+          ghi_chu: item.notes || '',
+        }));
 
     // Set form data và product items
     setFormData(newFormData);
@@ -763,10 +818,10 @@ const InboundShipments: React.FC = () => {
             shipment_date: firstItem['Ngày nhập'] || new Date().toISOString().split('T')[0],
             supplier_id: importSupplierData.supplier_id || firstItem['Mã NCC'] || '',
             supplier_name: importSupplierData.supplier_name || firstItem['Tên NCC'] || '',
-            customer_id: null,
-            customer_name: null,
+            customer_id: firstItem['Loại nhập'] === 'Nhập dự án' ? (importSupplierData.customer_id || firstItem['Mã KH'] || '') : null,
+            customer_name: firstItem['Loại nhập'] === 'Nhập dự án' ? (importSupplierData.customer_name || firstItem['Tên KH'] || '') : null,
             driver: importSupplierData.driver || firstItem['Tài xế'] || '',
-            import_type: firstItem['Loại nhập'] || 'Nhập hàng',
+            import_type: firstItem['Loại nhập'] === 'Nhập dự án' ? 'Nhập dự án' : 'Nhập hàng',
             content: importSupplierData.content || firstItem['Nội dung nhập'] || '',
             notes: importSupplierData.notes || '',
             total_quantity: itemsArray.reduce((sum: number, item: any) => sum + (parseInt(item['Số lượng']) || 0), 0),
@@ -817,6 +872,8 @@ const InboundShipments: React.FC = () => {
       setImportSupplierData({
         supplier_id: '',
         supplier_name: '',
+        customer_id: '',
+        customer_name: '',
         driver: '',
         content: '',
         notes: ''
@@ -839,6 +896,34 @@ const InboundShipments: React.FC = () => {
       ...formData,
       nha_cung_cap_id: supplierId,
       ten_nha_cung_cap: supplier ? supplier.ten_ncc : '',
+    });
+    
+    // Lọc sản phẩm theo nhà cung cấp
+    if (supplierId && products && shipmentHeaders) {
+      // Lấy danh sách sản phẩm đã từng nhập từ nhà cung cấp này
+      const supplierShipments = shipmentHeaders.filter((header: any) => 
+        header.supplier_id === supplierId && header.shipment_type === 'inbound'
+      );
+      
+      if (supplierShipments.length > 0) {
+        // Nếu có lịch sử nhập hàng, chỉ hiển thị sản phẩm đã từng nhập
+        // Tạm thời hiển thị tất cả sản phẩm, sau này có thể lọc chính xác hơn
+        setFilteredProducts(products);
+      } else {
+        // Nếu chưa có lịch sử, hiển thị tất cả sản phẩm
+        setFilteredProducts(products);
+      }
+    } else {
+      setFilteredProducts([]);
+    }
+  };
+
+  const handleCustomerChange = (customerId: string) => {
+    const customer = (customers || []).find((c: any) => c.id === customerId);
+    setFormData({
+      ...formData,
+      khach_hang_id: customerId,
+      ten_khach_hang: customer ? (customer.ten_day_du || customer.ten_khach_hang) : '',
     });
   };
 
@@ -1046,6 +1131,7 @@ const InboundShipments: React.FC = () => {
                 <TableCell>Loại Nhập</TableCell>
                 <TableCell>Tổng Số Lượng</TableCell>
                 <TableCell>Nhà Cung Cấp</TableCell>
+                <TableCell>Khách Hàng</TableCell>
                 <TableCell>Nội Dung</TableCell>
                 <TableCell align="center">Thao Tác</TableCell>
               </TableRow>
@@ -1068,13 +1154,14 @@ const InboundShipments: React.FC = () => {
                         size="small"
                         color={
                           shipment.import_type === 'Nhập hàng' ? 'success' :
-                          shipment.import_type === 'Nhập trả' ? 'warning' :
+                          shipment.import_type === 'Nhập dự án' ? 'info' :
                           'default'
                         }
                       />
                     </TableCell>
                     <TableCell>{shipment.total_quantity?.toLocaleString()}</TableCell>
                     <TableCell>{shipment.supplier_name}</TableCell>
+                    <TableCell>{shipment.customer_name || '-'}</TableCell>
                     <TableCell>{shipment.content}</TableCell>
                     <TableCell align="center">
                       <IconButton
@@ -1173,6 +1260,12 @@ const InboundShipments: React.FC = () => {
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" color="text.secondary">Nhà cung cấp:</Typography>
                         <Typography variant="body2">{shipment.supplier_name}</Typography>
+                      </Box>
+                    )}
+                    {shipment.customer_name && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography variant="body2" color="text.secondary">Khách hàng:</Typography>
+                        <Typography variant="body2">{shipment.customer_name}</Typography>
                       </Box>
                     )}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1323,8 +1416,7 @@ const InboundShipments: React.FC = () => {
                         onChange={(e) => setFormData({ ...formData, loai_nhap: e.target.value })}
                       >
                         <MenuItem value="Nhập hàng">Nhập hàng</MenuItem>
-                        <MenuItem value="Nhập trả">Nhập trả</MenuItem>
-                        <MenuItem value="Nhập khác">Nhập khác</MenuItem>
+                        <MenuItem value="Nhập dự án">Nhập dự án</MenuItem>
                       </Select>
                     </FormControl>
                     <TextField
@@ -1350,6 +1442,22 @@ const InboundShipments: React.FC = () => {
                         ))}
                       </Select>
                     </FormControl>
+                    {formData.loai_nhap === 'Nhập dự án' && (
+                      <FormControl size="small" fullWidth>
+                        <InputLabel>Khách hàng</InputLabel>
+                        <Select
+                          value={formData.khach_hang_id}
+                          label="Khách hàng"
+                          onChange={(e) => handleCustomerChange(e.target.value)}
+                        >
+                          {(customers || []).map((customer: any) => (
+                            <MenuItem key={customer.id} value={customer.id}>
+                              {customer.ten_day_du || customer.ten_khach_hang}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
                     <FormControl size="small" fullWidth>
                       <InputLabel>Tài xế</InputLabel>
                       <Select
@@ -1389,11 +1497,16 @@ const InboundShipments: React.FC = () => {
                   }}>
                     Chi tiết sản phẩm *
                   </Typography>
+                  {formData.nha_cung_cap_id && (
+                    <Typography variant="body2" color="info.main" sx={{ mb: 1, fontStyle: 'italic' }}>
+                      💡 Đã chọn nhà cung cấp: {formData.ten_nha_cung_cap} - Danh sách sản phẩm sẽ được lọc theo nhà cung cấp này
+                    </Typography>
+                  )}
                   
                   {/* Product Entry Row - Desktop */}
                   <Box sx={{ 
                     display: { xs: 'none', lg: 'grid' },
-                    gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr auto', 
+                    gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr auto', 
                     gap: 1, 
                     alignItems: 'center',
                     p: 1,
@@ -1402,9 +1515,12 @@ const InboundShipments: React.FC = () => {
                     mb: 1,
                     bgcolor: '#fafafa'
                   }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ gridColumn: '1 / -1', mb: 0.5, fontStyle: 'italic' }}>
+                      💡 Tip: Nhấn Enter trong bất kỳ ô nào để thêm sản phẩm nhanh
+                    </Typography>
                     <Autocomplete
                       size="small"
-                      options={products || []}
+                      options={formData.nha_cung_cap_id ? (filteredProducts || []) : (products || [])}
                       getOptionLabel={(option: any) => `${option.san_pham_id} - ${option.ten_san_pham}`}
                       value={products?.find(p => p.san_pham_id === currentProduct.san_pham_id) || null}
                       onChange={(event, newValue) => {
@@ -1423,7 +1539,7 @@ const InboundShipments: React.FC = () => {
                         <TextField
                           {...params}
                           label="Sản phẩm"
-                          placeholder="Gõ để tìm sản phẩm..."
+                          placeholder={formData.nha_cung_cap_id ? "Gõ để tìm sản phẩm của nhà cung cấp..." : "Gõ để tìm sản phẩm..."}
                         />
                       )}
                       renderOption={(props, option: any) => {
@@ -1448,7 +1564,7 @@ const InboundShipments: React.FC = () => {
                           option.san_pham_id.toLowerCase().includes(filterValue)
                         );
                       }}
-                      noOptionsText="Không tìm thấy sản phẩm"
+                      noOptionsText={formData.nha_cung_cap_id ? "Không tìm thấy sản phẩm của nhà cung cấp này" : "Không tìm thấy sản phẩm"}
                       loading={!products}
                       loadingText="Đang tải sản phẩm..."
                     />
@@ -1472,31 +1588,27 @@ const InboundShipments: React.FC = () => {
                       type="number"
                       value={currentProduct.sl_nhap}
                       onChange={(e) => setCurrentProduct({ ...currentProduct, sl_nhap: parseInt(e.target.value) || 0 })}
+                      onKeyPress={handleKeyPress}
+                    />
+                    <TextField
+                      size="small"
+                      label="Kiện hàng"
+                      type="number"
+                      value={currentProduct.kien_hang}
+                      onChange={(e) => setCurrentProduct({ ...currentProduct, kien_hang: parseInt(e.target.value) || 0 })}
+                      onKeyPress={handleKeyPress}
                     />
                     <TextField
                       size="small"
                       label="Ghi chú"
                       value={currentProduct.ghi_chu}
                       onChange={(e) => setCurrentProduct({ ...currentProduct, ghi_chu: e.target.value })}
+                      onKeyPress={handleKeyPress}
                     />
                     <IconButton
                       size="small"
                       color="primary"
-                      onClick={() => {
-                        if (currentProduct.san_pham_id && currentProduct.ten_san_pham) {
-                          setProductItems([...productItems, { ...currentProduct, id: Date.now().toString() }]);
-                          setCurrentProduct({
-                            id: '',
-                            product_id: '',
-                            san_pham_id: '',
-                            ten_san_pham: '',
-                            ma_hang: '',
-                            dvt: '',
-                            sl_nhap: 1,
-                            ghi_chu: '',
-                          });
-                        }
-                      }}
+                      onClick={handleAddProduct}
                     >
                       <AddIcon />
                     </IconButton>
@@ -1513,9 +1625,12 @@ const InboundShipments: React.FC = () => {
                     mb: 1,
                     bgcolor: '#fafafa'
                   }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                      💡 Tip: Nhấn Enter trong bất kỳ ô nào để thêm sản phẩm nhanh
+                    </Typography>
                     <Autocomplete
                       size="small"
-                      options={products || []}
+                      options={formData.nha_cung_cap_id ? (filteredProducts || []) : (products || [])}
                       getOptionLabel={(option: any) => `${option.san_pham_id} - ${option.ten_san_pham}`}
                       value={products?.find(p => p.san_pham_id === currentProduct.san_pham_id) || null}
                       onChange={(event, newValue) => {
@@ -1534,7 +1649,7 @@ const InboundShipments: React.FC = () => {
                         <TextField
                           {...params}
                           label="Sản phẩm"
-                          placeholder="Gõ để tìm sản phẩm..."
+                          placeholder={formData.nha_cung_cap_id ? "Gõ để tìm sản phẩm của nhà cung cấp..." : "Gõ để tìm sản phẩm..."}
                         />
                       )}
                       renderOption={(props, option: any) => {
@@ -1559,7 +1674,7 @@ const InboundShipments: React.FC = () => {
                           option.san_pham_id.toLowerCase().includes(filterValue)
                         );
                       }}
-                      noOptionsText="Không tìm thấy sản phẩm"
+                      noOptionsText={formData.nha_cung_cap_id ? "Không tìm thấy sản phẩm của nhà cung cấp này" : "Không tìm thấy sản phẩm"}
                       loading={!products}
                       loadingText="Đang tải sản phẩm..."
                     />
@@ -1588,33 +1703,29 @@ const InboundShipments: React.FC = () => {
                         type="number"
                         value={currentProduct.sl_nhap}
                         onChange={(e) => setCurrentProduct({ ...currentProduct, sl_nhap: parseInt(e.target.value) || 0 })}
+                        onKeyPress={handleKeyPress}
                       />
                       <TextField
                         size="small"
-                        label="Ghi chú"
-                        value={currentProduct.ghi_chu}
-                        onChange={(e) => setCurrentProduct({ ...currentProduct, ghi_chu: e.target.value })}
+                        label="Kiện hàng"
+                        type="number"
+                        value={currentProduct.kien_hang}
+                        onChange={(e) => setCurrentProduct({ ...currentProduct, kien_hang: parseInt(e.target.value) || 0 })}
+                        onKeyPress={handleKeyPress}
                       />
                     </Box>
+                    <TextField
+                      size="small"
+                      label="Ghi chú"
+                      value={currentProduct.ghi_chu}
+                      onChange={(e) => setCurrentProduct({ ...currentProduct, ghi_chu: e.target.value })}
+                      onKeyPress={handleKeyPress}
+                    />
                     
                     <Button
                       variant="contained"
                       startIcon={<AddIcon />}
-                      onClick={() => {
-                        if (currentProduct.san_pham_id && currentProduct.ten_san_pham) {
-                          setProductItems([...productItems, { ...currentProduct, id: Date.now().toString() }]);
-                          setCurrentProduct({
-                            id: '',
-                            product_id: '',
-                            san_pham_id: '',
-                            ten_san_pham: '',
-                            ma_hang: '',
-                            dvt: '',
-                            sl_nhap: 1,
-                            ghi_chu: '',
-                          });
-                        }
-                      }}
+                      onClick={handleAddProduct}
                       sx={{
                         borderRadius: 1,
                         textTransform: 'none',
@@ -1648,6 +1759,7 @@ const InboundShipments: React.FC = () => {
                               <TableCell size="small">Mã hàng</TableCell>
                               <TableCell size="small">ĐVT</TableCell>
                               <TableCell size="small">Số lượng</TableCell>
+                              <TableCell size="small">Kiện hàng</TableCell>
                               <TableCell size="small">Ghi chú</TableCell>
                               <TableCell size="small" align="center">Thao tác</TableCell>
                             </TableRow>
@@ -1665,6 +1777,25 @@ const InboundShipments: React.FC = () => {
                                     size="small"
                                     value={item.sl_nhap}
                                     onChange={(e) => handleUpdateItemQuantity(item.id, parseInt(e.target.value) || 0)}
+                                    sx={{ 
+                                      width: 80,
+                                      '& .MuiOutlinedInput-root': {
+                                        fontSize: '0.75rem',
+                                        height: 32,
+                                      }
+                                    }}
+                                    inputProps={{ 
+                                      min: 1,
+                                      style: { textAlign: 'center' }
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell size="small">
+                                  <TextField
+                                    type="number"
+                                    size="small"
+                                    value={item.kien_hang}
+                                    onChange={(e) => handleUpdateItemKienHang(item.id, parseInt(e.target.value) || 0)}
                                     sx={{ 
                                       width: 80,
                                       '& .MuiOutlinedInput-root': {
@@ -1773,6 +1904,26 @@ const InboundShipments: React.FC = () => {
                                     size="small"
                                     value={item.sl_nhap}
                                     onChange={(e) => handleUpdateItemQuantity(item.id, parseInt(e.target.value) || 0)}
+                                    sx={{ 
+                                      width: 80,
+                                      '& .MuiOutlinedInput-root': {
+                                        fontSize: '0.75rem',
+                                        height: 28,
+                                      }
+                                    }}
+                                    inputProps={{ 
+                                      min: 1,
+                                      style: { textAlign: 'center' }
+                                    }}
+                                  />
+                                </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  <Typography variant="body2" color="text.secondary">Kiện hàng:</Typography>
+                                  <TextField
+                                    type="number"
+                                    size="small"
+                                    value={item.kien_hang}
+                                    onChange={(e) => handleUpdateItemKienHang(item.id, parseInt(e.target.value) || 0)}
                                     sx={{ 
                                       width: 80,
                                       '& .MuiOutlinedInput-root': {
@@ -2090,6 +2241,16 @@ const InboundShipments: React.FC = () => {
                     {viewingShipment.supplier_name}
                   </Typography>
                 </Box>
+                {viewingShipment.customer_name && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Khách hàng
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      {viewingShipment.customer_name}
+                    </Typography>
+                  </Box>
+                )}
                 <Box>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                     Tài xế
@@ -2147,6 +2308,9 @@ const InboundShipments: React.FC = () => {
                               Số lượng nhập
                             </TableCell>
                             <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.main', color: 'white' }}>
+                              Kiện hàng
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 'bold', bgcolor: 'primary.main', color: 'white' }}>
                               Ghi chú
                             </TableCell>
                           </TableRow>
@@ -2166,6 +2330,9 @@ const InboundShipments: React.FC = () => {
                               </TableCell>
                               <TableCell sx={{ fontWeight: 500, color: 'primary.main' }}>
                                 {item.quantity?.toLocaleString()}
+                              </TableCell>
+                              <TableCell>
+                                {item.kien_hang || '-'}
                               </TableCell>
                               <TableCell>
                                 {item.notes || '-'}
@@ -2540,6 +2707,28 @@ const InboundShipments: React.FC = () => {
                     {(suppliers || []).map((supplier: any) => (
                       <MenuItem key={supplier.id} value={supplier.id}>
                         {supplier.ten_ncc}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Khách hàng (cho nhập dự án)</InputLabel>
+                  <Select
+                    value={importSupplierData.customer_id || ''}
+                    label="Khách hàng (cho nhập dự án)"
+                    onChange={(e) => {
+                      const customer = (customers || []).find((c: any) => c.id === e.target.value);
+                      setImportSupplierData({
+                        ...importSupplierData,
+                        customer_id: e.target.value,
+                        customer_name: customer ? (customer.ten_day_du || customer.ten_khach_hang) : ''
+                      });
+                    }}
+                  >
+                    <MenuItem value="">Không chọn</MenuItem>
+                    {(customers || []).map((customer: any) => (
+                      <MenuItem key={customer.id} value={customer.id}>
+                        {customer.ten_day_du || customer.ten_khach_hang}
                       </MenuItem>
                     ))}
                   </Select>

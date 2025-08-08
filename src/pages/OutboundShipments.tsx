@@ -57,6 +57,7 @@ import {
 import { dataService } from '../services/dataService';
 import { useSidebar } from '../contexts/SidebarContext';
 import * as XLSX from 'xlsx';
+import { generateOutboundShipmentId, formatDate as formatDateUtil } from '../utils/shipmentUtils';
 
 // Hàm chuyển đổi ngày Excel sang định dạng ISO
 const convertExcelDate = (excelDate: any): string => {
@@ -178,19 +179,9 @@ const OutboundShipments: React.FC = () => {
     ghi_chu: '',
   });
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
-  };
+  const formatDate = formatDateUtil;
 
-  const generateShipmentId = () => {
-    const today = new Date();
-    const day = today.getDate().toString().padStart(2, '0');
-    const month = (today.getMonth() + 1).toString().padStart(2, '0');
-    const year = today.getFullYear().toString().slice(-2);
-    const random = Math.floor(Math.random() * 999).toString().padStart(3, '0');
-    return `PXK${day}${month}${year}_${random}`;
-  };
+  const generateShipmentId = generateOutboundShipmentId;
 
   const handleOpenDialog = async (shipment?: any) => {
     if (shipment) {
