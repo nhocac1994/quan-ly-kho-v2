@@ -203,6 +203,7 @@ const InboundShipments: React.FC = () => {
         noi_dung_nhap: shipment.content,
         ghi_chu: shipment.notes,
       });
+      console.log('Opening edit dialog with shipment ID:', shipment.shipment_id);
       
       // Load items for editing
       try {
@@ -226,9 +227,11 @@ const InboundShipments: React.FC = () => {
       
       setIsEditing(true);
     } else {
+      const newShipmentId = generateShipmentId();
+      console.log('Generating new shipment ID:', newShipmentId);
       setEditingShipment(null);
       setFormData({
-        xuat_kho_id: generateShipmentId(),
+        xuat_kho_id: newShipmentId,
         ngay_nhap: new Date().toISOString().split('T')[0],
         loai_nhap: '',
         nha_cung_cap_id: '',
@@ -1356,7 +1359,7 @@ const InboundShipments: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             borderBottom: '1px solid #e0e0e0',
-            mt: { xs: 8, md: 0 }
+            mt: { xs: 8, md: 8 }
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <ShippingIcon sx={{ fontSize: 24, color: 'primary.main' }} />
@@ -1364,10 +1367,101 @@ const InboundShipments: React.FC = () => {
                 {editingShipment ? 'Chỉnh Sửa Phiếu Nhập Kho' : (isCopying ? 'Tạo Phiếu Nhập Mới (Sao chép)' : 'Tạo Phiếu Nhập Mới')}
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'text.secondary', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                {formData.xuat_kho_id}
-              </Typography>
+            {/* Debug info */}
+            <Typography variant="caption" sx={{ bgcolor: 'yellow', p: 0.5, fontSize: '0.6rem', position: 'absolute', top: 0, left: 0 }}>
+              Mã phiếu: {formData.xuat_kho_id || 'Chưa có'}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              {/* Desktop version */}
+              <Box sx={{ 
+                display: { xs: 'none', sm: 'flex' },
+                alignItems: 'center', 
+                gap: 0.5,
+                bgcolor: 'primary.main',
+                color: 'white',
+                px: 1.5,
+                py: 0.75,
+                borderRadius: 1,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                minWidth: 'fit-content'
+              }}>
+                <Typography variant="body2" sx={{ 
+                  fontWeight: 600, 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  color: 'white'
+                }}>
+                  {formData.xuat_kho_id || 'Đang tạo mã...'}
+                </Typography>
+                <Tooltip title="Sao chép mã phiếu">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      navigator.clipboard.writeText(formData.xuat_kho_id);
+                      setSnackbar({ 
+                        open: true, 
+                        message: 'Đã sao chép mã phiếu vào clipboard!', 
+                        severity: 'success' 
+                      });
+                    }}
+                    sx={{ 
+                      color: 'white',
+                      p: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(255,255,255,0.2)'
+                      }
+                    }}
+                  >
+                    <CopyIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              
+              {/* Mobile version */}
+              <Box sx={{ 
+                display: { xs: 'flex', sm: 'none' },
+                alignItems: 'center', 
+                gap: 0.5,
+                bgcolor: 'primary.main',
+                color: 'white',
+                px: 1,
+                py: 0.5,
+                borderRadius: 1,
+                fontSize: '0.75rem',
+                fontWeight: 600
+              }}>
+                <Typography variant="caption" sx={{ 
+                  fontWeight: 600, 
+                  color: 'white',
+                  fontSize: '0.75rem'
+                }}>
+                  {formData.xuat_kho_id ? formData.xuat_kho_id.substring(0, 8) + '...' : 'Đang tạo...'}
+                </Typography>
+                <Tooltip title="Sao chép mã phiếu">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      navigator.clipboard.writeText(formData.xuat_kho_id);
+                      setSnackbar({ 
+                        open: true, 
+                        message: 'Đã sao chép mã phiếu!', 
+                        severity: 'success' 
+                      });
+                    }}
+                    sx={{ 
+                      color: 'white',
+                      p: 0.25,
+                      '&:hover': {
+                        bgcolor: 'rgba(255,255,255,0.2)'
+                      }
+                    }}
+                  >
+                    <CopyIcon sx={{ fontSize: '0.875rem' }} />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              
               <IconButton 
                 onClick={handleCloseDialog}
                 size="small"
@@ -1525,18 +1619,14 @@ const InboundShipments: React.FC = () => {
                           loadingText="Đang tải khách hàng..."
                         />
                       )}
-                    <FormControl size="small" fullWidth>
-                      <InputLabel>Tài xế</InputLabel>
-                      <Select
-                        value={formData.tai_xe}
+                                          <TextField
+                        size="small"
+                        fullWidth
                         label="Tài xế"
+                        value={formData.tai_xe}
                         onChange={(e) => setFormData({ ...formData, tai_xe: e.target.value })}
-                      >
-                        <MenuItem value="Tài xế 1">Tài xế 1</MenuItem>
-                        <MenuItem value="Tài xế 2">Tài xế 2</MenuItem>
-                        <MenuItem value="Tài xế 3">Tài xế 3</MenuItem>
-                      </Select>
-                    </FormControl>
+                        placeholder="Nhập tên tài xế..."
+                      />
                     <TextField
                       size="small"
                       fullWidth

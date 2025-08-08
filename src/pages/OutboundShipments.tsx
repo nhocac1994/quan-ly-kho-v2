@@ -48,6 +48,7 @@ import {
   useOutboundShipments, 
   useCustomers, 
   useProducts,
+  useSuppliers,
   useAddShipmentHeader,
   useAddShipmentItems,
   useDeleteShipmentItems,
@@ -89,10 +90,13 @@ interface OutboundShipmentFormData {
   khach_hang_id: string;
   ten_khach_hang: string;
   loai_xuat: string;
+  nha_cung_cap_id: string; // Thêm cho xuất dự án
+  ten_nha_cung_cap: string; // Thêm cho xuất dự án
   tai_xe: string;
   noi_dung_xuat: string;
   ghi_chu: string;
 }
+
 
 interface SelectedCustomer {
   id: string;
@@ -116,6 +120,8 @@ const OutboundShipments: React.FC = () => {
   const { data: shipmentHeaders, refetch: refreshShipmentHeaders } = useShipmentHeaders('outbound');
   const { data: customers } = useCustomers();
   const { data: products } = useProducts();
+  const { data: suppliers } = useSuppliers();
+  const { data: inboundShipmentHeaders } = useShipmentHeaders('inbound');
   const { currentDrawerWidth } = useSidebar();
   
   const addShipmentHeader = useAddShipmentHeader();
@@ -149,8 +155,6 @@ const OutboundShipments: React.FC = () => {
     content: '',
     notes: ''
   });
-  const [selectedCustomers, setSelectedCustomers] = useState<SelectedCustomer[]>([]);
-  const [bulkCreateMode, setBulkCreateMode] = useState(false);
   
   // State cho Import Excel với nhiều khách hàng
   const [importBulkCreateMode, setImportBulkCreateMode] = useState(false);
@@ -162,6 +166,8 @@ const OutboundShipments: React.FC = () => {
     khach_hang_id: '',
     ten_khach_hang: '',
     loai_xuat: '',
+    nha_cung_cap_id: '',
+    ten_nha_cung_cap: '',
     tai_xe: '',
     noi_dung_xuat: '',
     ghi_chu: '',
@@ -192,6 +198,8 @@ const OutboundShipments: React.FC = () => {
           khach_hang_id: shipment.customer_id || '',
           ten_khach_hang: shipment.customer_name || '',
           loai_xuat: shipment.shipment_type || '',
+          nha_cung_cap_id: shipment.supplier_id || '',
+          ten_nha_cung_cap: shipment.supplier_name || '',
           tai_xe: shipment.driver || '',
           noi_dung_xuat: shipment.content || '',
           ghi_chu: shipment.notes || '',
@@ -218,6 +226,8 @@ const OutboundShipments: React.FC = () => {
         khach_hang_id: '',
         ten_khach_hang: '',
         loai_xuat: '',
+        nha_cung_cap_id: '',
+        ten_nha_cung_cap: '',
         tai_xe: '',
         noi_dung_xuat: '',
         ghi_chu: '',
@@ -247,6 +257,8 @@ const OutboundShipments: React.FC = () => {
       khach_hang_id: '',
       ten_khach_hang: '',
       loai_xuat: '',
+      nha_cung_cap_id: '',
+      ten_nha_cung_cap: '',
       tai_xe: '',
       noi_dung_xuat: '',
       ghi_chu: '',
@@ -254,8 +266,6 @@ const OutboundShipments: React.FC = () => {
     setProductItems([]);
     setIsCopying(false);
     setIsEditing(false);
-    setBulkCreateMode(false);
-    setSelectedCustomers([]);
   };
 
   const handleAddProduct = () => {
@@ -286,6 +296,14 @@ const OutboundShipments: React.FC = () => {
     });
   };
 
+  // Hàm xử lý phím Enter
+  const handleKeyPress = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleAddProduct();
+    }
+  };
+
   const handleRemoveProduct = (productId: string) => {
     setProductItems(prev => prev.filter(item => item.id !== productId));
   };
@@ -311,28 +329,96 @@ const OutboundShipments: React.FC = () => {
         ...prev,
         khach_hang_id: customer.id,
         ten_khach_hang: customer.ten_day_du || customer.ten_khach_hang || '',
+        // Reset nhà cung cấp khi thay đổi khách hàng
+        nha_cung_cap_id: '',
+        ten_nha_cung_cap: '',
       }));
+      // Reset sản phẩm khi thay đổi khách hàng
+      setProductItems([]);
     }
   };
 
-  const handleBulkCustomerSelect = () => {
-    if (!bulkCreateMode) {
-      // Chuyển sang chế độ nhiều khách hàng
-      const customerList = (customers || []).map((customer: any) => ({
-        id: customer.id,
-        name: customer.ten_day_du || customer.ten_khach_hang || '',
-        selected: false
-      }));
-      setSelectedCustomers(customerList);
-      setBulkCreateMode(true);
-    } else {
-      // Chuyển về chế độ đơn lẻ
-      setBulkCreateMode(false);
-      setSelectedCustomers([]);
+  // Hàm xử lý khi chọn nhà cung cấp trong xuất dự án
+  const handleSupplierChange = (supplierId: string) => {
+    const supplier = (suppliers || []).find((s: any) => s.id === supplierId);
+    setFormData(prev => ({
+      ...prev,
+      nha_cung_cap_id: supplierId,
+      ten_nha_cung_cap: supplier ? supplier.ten_ncc : '',
+    }));
+
+    // Tìm đơn nhập mới nhất của nhà cung cấp này
+    if (supplierId && inboundShipmentHeaders) {
+      const supplierInboundShipments = inboundShipmentHeaders.filter((header: any) => 
+        header.supplier_id === supplierId && 
+        header.shipment_type === 'inbound' &&
+        header.customer_id === formData.khach_hang_id // Chỉ lấy đơn nhập của khách hàng này
+      );
+
+      if (supplierInboundShipments.length > 0) {
+        // Sắp xếp theo ngày, lấy đơn mới nhất
+        const latestShipment = supplierInboundShipments.sort((a: any, b: any) => 
+          new Date(b.shipment_date).getTime() - new Date(a.shipment_date).getTime()
+        )[0];
+
+        // Load sản phẩm từ đơn nhập mới nhất
+        loadProductsFromInboundShipment(latestShipment.id);
+      } else {
+        // Nếu không có đơn nhập cho khách hàng này, tìm đơn nhập mới nhất của nhà cung cấp (bất kỳ khách hàng nào)
+        const allSupplierInboundShipments = inboundShipmentHeaders.filter((header: any) => 
+          header.supplier_id === supplierId && 
+          header.shipment_type === 'inbound'
+        );
+
+        if (allSupplierInboundShipments.length > 0) {
+          const latestShipment = allSupplierInboundShipments.sort((a: any, b: any) => 
+            new Date(b.shipment_date).getTime() - new Date(a.shipment_date).getTime()
+          )[0];
+
+          loadProductsFromInboundShipment(latestShipment.id);
+        } else {
+          // Nếu không có đơn nhập nào của nhà cung cấp này
+          setProductItems([]);
+          setSnackbar({
+            open: true,
+            message: 'Không tìm thấy đơn nhập nào của nhà cung cấp này',
+            severity: 'warning'
+          });
+        }
+      }
     }
   };
 
-
+  // Hàm load sản phẩm từ đơn nhập
+  const loadProductsFromInboundShipment = async (shipmentId: string) => {
+    try {
+      const items = await dataService.shipmentItems.getByHeaderId(shipmentId);
+      const formattedItems = items.map((item: any) => ({
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        product_id: item.product_id,
+        san_pham_id: item.product_code,
+        ten_san_pham: item.product_name,
+        ma_hang: item.product_code,
+        dvt: item.unit,
+        sl_xuat: item.quantity || 0, // Lấy số lượng từ đơn nhập
+        ghi_chu: item.notes || '',
+      }));
+      setProductItems(formattedItems);
+      
+      setSnackbar({
+        open: true,
+        message: `Đã load ${formattedItems.length} sản phẩm từ đơn nhập mới nhất của nhà cung cấp với số lượng đầy đủ`,
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error loading products from inbound shipment:', error);
+      setSnackbar({
+        open: true,
+        message: 'Có lỗi khi load sản phẩm từ đơn nhập',
+        severity: 'error'
+      });
+    }
+  };
 
   // Hàm xử lý cho Import Excel với nhiều khách hàng
   const handleImportBulkCustomerSelect = () => {
@@ -354,6 +440,12 @@ const OutboundShipments: React.FC = () => {
 
 
 
+
+
+
+
+
+
   const handleSubmit = async () => {
     if (productItems.length === 0) {
       setSnackbar({
@@ -364,83 +456,63 @@ const OutboundShipments: React.FC = () => {
       return;
     }
 
-    if (bulkCreateMode && selectedCustomers.filter(c => c.selected).length === 0) {
-      setSnackbar({
-        open: true,
-        message: 'Vui lòng chọn ít nhất một khách hàng',
-        severity: 'warning'
-      });
-      return;
-    }
-
     setLoading(true);
     try {
-      const selectedCustomerList = bulkCreateMode 
-        ? selectedCustomers.filter(c => c.selected)
-        : [{ id: formData.khach_hang_id, name: formData.ten_khach_hang }];
+      // Tính tổng số lượng
+      const totalQuantity = productItems.reduce((sum, item) => sum + item.sl_xuat, 0);
 
-      let createdCount = 0;
+      // Tạo header data
+      const headerData = {
+        shipment_id: formData.xuat_kho_id,
+        shipment_type: 'outbound',
+        shipment_date: formData.ngay_xuat,
+        supplier_id: formData.loai_xuat === 'Xuất dự án' ? formData.nha_cung_cap_id : null,
+        supplier_name: formData.loai_xuat === 'Xuất dự án' ? formData.ten_nha_cung_cap : null,
+        customer_id: formData.khach_hang_id,
+        customer_name: formData.ten_khach_hang,
+        driver: formData.tai_xe,
+        import_type: formData.loai_xuat,
+        content: formData.noi_dung_xuat,
+        notes: formData.ghi_chu,
+        total_quantity: totalQuantity,
+        total_amount: 0,
+        status: 'active',
+        created_by: 'admin'
+      };
 
-      for (const customer of selectedCustomerList) {
-        // Tính tổng số lượng
-        const totalQuantity = productItems.reduce((sum, item) => sum + item.sl_xuat, 0);
+      let headerId: string;
 
-        // Tạo header data cho từng khách hàng
-        const headerData = {
-          shipment_id: bulkCreateMode ? generateShipmentId() : formData.xuat_kho_id,
-          shipment_type: 'outbound',
-          shipment_date: formData.ngay_xuat,
-          supplier_id: null,
-          supplier_name: null,
-          customer_id: customer.id,
-          customer_name: customer.name,
-          driver: formData.tai_xe,
-          import_type: formData.loai_xuat,
-          content: formData.noi_dung_xuat,
-          notes: formData.ghi_chu,
-          total_quantity: totalQuantity,
-          total_amount: 0,
-          status: 'active',
-          created_by: 'admin'
-        };
-
-        let headerId: string;
-
-        if (editingShipment && !bulkCreateMode) {
-          // Cập nhật header hiện có
-          const updatedHeader = await dataService.shipmentHeaders.update(editingShipment.id, headerData);
-          headerId = updatedHeader.id;
-          
-          // Xóa items cũ
-          await deleteShipmentItems.mutateAsync(headerId);
-        } else {
-          // Tạo header mới
-          const newHeader = await addShipmentHeader.mutateAsync(headerData);
-          headerId = newHeader.id;
-        }
-
-        // Tạo items cho từng khách hàng
-        const itemsData = productItems.map(item => ({
-          shipment_header_id: headerId,
-          product_id: item.product_id,
-          product_name: item.ten_san_pham,
-          product_code: item.ma_hang,
-          unit: item.dvt,
-          quantity: item.sl_xuat,
-          unit_price: 0,
-          total_price: 0,
-          notes: item.ghi_chu
-        }));
-
-        await addShipmentItems.mutateAsync(itemsData);
-        createdCount++;
+      if (editingShipment) {
+        // Cập nhật header hiện có
+        const updatedHeader = await dataService.shipmentHeaders.update(editingShipment.id, headerData);
+        headerId = updatedHeader.id;
+        
+        // Xóa items cũ
+        await deleteShipmentItems.mutateAsync(headerId);
+      } else {
+        // Tạo header mới
+        const newHeader = await addShipmentHeader.mutateAsync(headerData);
+        headerId = newHeader.id;
       }
+
+      // Tạo items
+      const itemsData = productItems.map(item => ({
+        shipment_header_id: headerId,
+        product_id: item.product_id,
+        product_name: item.ten_san_pham,
+        product_code: item.ma_hang,
+        unit: item.dvt,
+        quantity: item.sl_xuat,
+        unit_price: 0,
+        total_price: 0,
+        notes: item.ghi_chu
+      }));
+
+      await addShipmentItems.mutateAsync(itemsData);
 
       await refreshShipmentHeaders();
       
-      const message = bulkCreateMode 
-        ? `Tạo thành công ${createdCount} phiếu xuất cho ${createdCount} khách hàng!`
-        : (editingShipment ? 'Cập nhật phiếu xuất thành công!' : (isCopying ? 'Tạo phiếu xuất mới từ bản sao thành công!' : 'Tạo phiếu xuất thành công!'));
+      const message = editingShipment ? 'Cập nhật phiếu xuất thành công!' : (isCopying ? 'Tạo phiếu xuất mới từ bản sao thành công!' : 'Tạo phiếu xuất thành công!');
       
       setSnackbar({ 
         open: true, 
@@ -450,8 +522,6 @@ const OutboundShipments: React.FC = () => {
       
       setIsCopying(false);
       setIsEditing(false);
-      setBulkCreateMode(false);
-      setSelectedCustomers([]);
       handleCloseDialog();
     } catch (error) {
       console.error('Error saving shipment:', error);
@@ -524,6 +594,8 @@ const OutboundShipments: React.FC = () => {
       khach_hang_id: viewingShipment.customer_id || '',
       ten_khach_hang: viewingShipment.customer_name || '',
       loai_xuat: viewingShipment.shipment_type || '',
+      nha_cung_cap_id: viewingShipment.supplier_id || '',
+      ten_nha_cung_cap: viewingShipment.supplier_name || '',
       tai_xe: viewingShipment.driver || '',
       noi_dung_xuat: viewingShipment.content || '',
       ghi_chu: viewingShipment.notes || '',
@@ -1414,7 +1486,7 @@ const OutboundShipments: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           borderLeft: { xs: 'none', md: '1px solid #e0e0e0' },
-          mt: { xs: 8, md: 0 }
+          mt: { xs: 8, md: 8 }
         }}>
           {/* Header */}
           <Box sx={{
@@ -1433,13 +1505,93 @@ const OutboundShipments: React.FC = () => {
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="body1" sx={{ 
-                py: 0.5, 
-                fontSize: { xs: '0.875rem', sm: '1rem' },
-                fontWeight: 500
+              {/* Desktop version */}
+              <Box sx={{ 
+                display: { xs: 'none', sm: 'flex' },
+                alignItems: 'center', 
+                gap: 0.5,
+                bgcolor: 'primary.main',
+                color: 'white',
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 1,
+                minWidth: 'fit-content'
               }}>
-                {formData.xuat_kho_id}
-              </Typography>
+                <Typography variant="body2" sx={{ 
+                  fontWeight: 600, 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  color: 'white'
+                }}>
+                  {formData.xuat_kho_id || 'Đang tạo mã...'}
+                </Typography>
+                <Tooltip title="Sao chép mã phiếu">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      navigator.clipboard.writeText(formData.xuat_kho_id);
+                      setSnackbar({ 
+                        open: true, 
+                        message: 'Đã sao chép mã phiếu vào clipboard!', 
+                        severity: 'success' 
+                      });
+                    }}
+                    sx={{ 
+                      color: 'white',
+                      p: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(255,255,255,0.2)'
+                      }
+                    }}
+                  >
+                    <CopyIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              
+              {/* Mobile version */}
+              <Box sx={{ 
+                display: { xs: 'flex', sm: 'none' },
+                alignItems: 'center', 
+                gap: 0.5,
+                bgcolor: 'primary.main',
+                color: 'white',
+                px: 1,
+                py: 0.5,
+                borderRadius: 1,
+                fontSize: '0.75rem',
+                fontWeight: 600
+              }}>
+                <Typography variant="caption" sx={{ 
+                  fontWeight: 600, 
+                  color: 'white',
+                  fontSize: '0.75rem'
+                }}>
+                  {formData.xuat_kho_id ? formData.xuat_kho_id.substring(0, 8) + '...' : 'Đang tạo...'}
+                </Typography>
+                <Tooltip title="Sao chép mã phiếu">
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      navigator.clipboard.writeText(formData.xuat_kho_id);
+                      setSnackbar({ 
+                        open: true, 
+                        message: 'Đã sao chép mã phiếu!', 
+                        severity: 'success' 
+                      });
+                    }}
+                    sx={{ 
+                      color: 'white',
+                      p: 0.25,
+                      '&:hover': {
+                        bgcolor: 'rgba(255,255,255,0.2)'
+                      }
+                    }}
+                  >
+                    <CopyIcon sx={{ fontSize: '0.875rem' }} />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              
               <IconButton
                 onClick={handleCloseDialog}
                 sx={{ color: 'primary.main' }}
@@ -1493,152 +1645,51 @@ const OutboundShipments: React.FC = () => {
                     }
                   }}
                 />
-                {/* Khách hàng đơn lẻ hoặc nhiều khách hàng */}
-                {!bulkCreateMode ? (
+                {/* Khách hàng */}
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Khách hàng</InputLabel>
+                  <Select
+                    value={formData.khach_hang_id}
+                    label="Khách hàng"
+                    onChange={(e) => handleCustomerChange(e.target.value)}
+                    sx={{
+                      '& .MuiSelect-select': {
+                        fontSize: { xs: '0.875rem', sm: '1rem' }
+                      }
+                    }}
+                  >
+                    {(customers || []).map((customer: any) => (
+                      <MenuItem key={customer.id} value={customer.id}>
+                        {customer.ten_day_du || customer.ten_khach_hang}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                
+                {/* Nhà cung cấp - chỉ hiển thị khi chọn "Xuất dự án" */}
+                {formData.loai_xuat === 'Xuất dự án' && (
                   <FormControl size="small" fullWidth>
-                    <InputLabel>Khách hàng</InputLabel>
+                    <InputLabel>Nhà cung cấp</InputLabel>
                     <Select
-                      value={formData.khach_hang_id}
-                      label="Khách hàng"
-                      onChange={(e) => handleCustomerChange(e.target.value)}
+                      value={formData.nha_cung_cap_id}
+                      label="Nhà cung cấp"
+                      onChange={(e) => handleSupplierChange(e.target.value)}
                       sx={{
                         '& .MuiSelect-select': {
                           fontSize: { xs: '0.875rem', sm: '1rem' }
                         }
                       }}
                     >
-                      {(customers || []).map((customer: any) => (
-                        <MenuItem key={customer.id} value={customer.id}>
-                          {customer.ten_day_du || customer.ten_khach_hang}
+                      {(suppliers || []).map((supplier: any) => (
+                        <MenuItem key={supplier.id} value={supplier.id}>
+                          {supplier.ten_ncc}
                         </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
-                ) : (
-                  <Autocomplete
-                    multiple
-                    size="small"
-                    options={customers || []}
-                    getOptionLabel={(option: any) => option.ten_day_du || option.ten_khach_hang}
-                    value={selectedCustomers.filter(c => c.selected).map(c => 
-                      (customers || []).find(cust => cust.id === c.id)
-                    ).filter(Boolean)}
-                    onChange={(event, newValue) => {
-                      const selectedIds = newValue.map((item: any) => item.id);
-                      setSelectedCustomers(prev => 
-                        prev.map(customer => ({
-                          ...customer,
-                          selected: selectedIds.includes(customer.id)
-                        }))
-                      );
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Chọn nhiều khách hàng"
-                        placeholder="Chọn khách hàng..."
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            fontSize: { xs: '0.875rem', sm: '1rem' }
-                          }
-                        }}
-                      />
-                    )}
-                    renderOption={(props, option: any) => {
-                      const { key, ...otherProps } = props;
-                      return (
-                        <Box component="li" key={key} {...otherProps}>
-                          <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-                            {option.ten_day_du || option.ten_khach_hang}
-                          </Typography>
-                        </Box>
-                      );
-                    }}
-                    renderTags={(value, getTagProps) =>
-                      value.map((option: any, index: number) => (
-                        <Chip
-                          {...getTagProps({ index })}
-                          key={option.id}
-                          label={option.ten_day_du || option.ten_khach_hang}
-                          size="small"
-                          sx={{ fontSize: '0.7rem' }}
-                        />
-                      ))
-                    }
-                  />
                 )}
                 
-                {/* Nút chuyển đổi chế độ */}
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<GroupIcon />}
-                  onClick={handleBulkCustomerSelect}
-                  sx={{ 
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                    height: { xs: '35px', sm: '40px' },
-                    borderColor: bulkCreateMode ? 'success.main' : 'primary.main',
-                    color: bulkCreateMode ? 'success.main' : 'primary.main',
-                    '&:hover': {
-                      backgroundColor: bulkCreateMode ? 'success.light' : 'primary.light',
-                      color: 'white',
-                      borderColor: bulkCreateMode ? 'success.light' : 'primary.light',
-                    }
-                  }}
-                >
-                  {bulkCreateMode ? 'Chế độ đơn lẻ' : 'Tạo cho nhiều KH'}
-                </Button>
-                {bulkCreateMode && (
-                  <Box sx={{ 
-                    mt: 1, 
-                    p: 1.5, 
-                    bgcolor: '#e8f5e8', 
-                    borderRadius: 1,
-                    border: '1px solid #4caf50',
-                    gridColumn: { xs: '1 / -1', sm: '1 / -1' }
-                  }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                      <Typography variant="body2" color="success.main" sx={{ 
-                        fontWeight: 'bold',
-                        fontSize: { xs: '0.75rem', sm: '0.875rem' }
-                      }}>
-                        🚀 Chế độ tạo hàng loạt
-                      </Typography>
-                      <Chip 
-                        label={`${selectedCustomers.filter(c => c.selected).length} khách hàng`}
-                        size="small"
-                        color="success"
-                        variant="outlined"
-                      />
-                    </Box>
-                    
-                    <Typography variant="caption" color="text.secondary" sx={{ 
-                      display: 'block',
-                      mb: 1,
-                      fontSize: { xs: '0.7rem', sm: '0.75rem' }
-                    }}>
-                      Sẽ tạo {selectedCustomers.filter(c => c.selected).length} phiếu xuất với cùng sản phẩm và thông tin
-                    </Typography>
-                    
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
 
-                      <Button
-                        variant="text"
-                        size="small"
-                        onClick={() => {
-                          setBulkCreateMode(false);
-                          setSelectedCustomers([]);
-                        }}
-                        sx={{ 
-                          fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                          color: 'error.main'
-                        }}
-                      >
-                        Hủy chế độ hàng loạt
-                      </Button>
-                    </Box>
-                  </Box>
-                )}
                 <FormControl size="small" fullWidth>
                   <InputLabel>Loại xuất</InputLabel>
                   <Select
@@ -1652,32 +1703,22 @@ const OutboundShipments: React.FC = () => {
                     }}
                   >
                     <MenuItem value="Xuất hàng">Xuất hàng</MenuItem>
-                    <MenuItem value="Xuất bán">Xuất bán</MenuItem>
-                    <MenuItem value="Xuất chuyển kho">Xuất chuyển kho</MenuItem>
-                    <MenuItem value="Xuất trả hàng">Xuất trả hàng</MenuItem>
-                    <MenuItem value="Xuất hủy">Xuất hủy</MenuItem>
-                    <MenuItem value="Xuất khác">Xuất khác</MenuItem>
+                    <MenuItem value="Xuất dự án">Xuất dự án</MenuItem>
                   </Select>
                 </FormControl>
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Tài xế</InputLabel>
-                  <Select
-                    value={formData.tai_xe}
-                    label="Tài xế"
-                    onChange={(e) => setFormData({ ...formData, tai_xe: e.target.value })}
-                    sx={{
-                      '& .MuiSelect-select': {
-                        fontSize: { xs: '0.875rem', sm: '1rem' }
-                      }
-                    }}
-                  >
-                    <MenuItem value="Tài xế 1">Tài xế 1</MenuItem>
-                    <MenuItem value="Tài xế 2">Tài xế 2</MenuItem>
-                    <MenuItem value="Tài xế 3">Tài xế 3</MenuItem>
-                    <MenuItem value="Tài xế 4">Tài xế 4</MenuItem>
-                    <MenuItem value="Tài xế 5">Tài xế 5</MenuItem>
-                  </Select>
-                </FormControl>
+                <TextField
+                  size="small"
+                  fullWidth
+                  label="Tài xế"
+                  value={formData.tai_xe}
+                  onChange={(e) => setFormData({ ...formData, tai_xe: e.target.value })}
+                  placeholder="Nhập tên tài xế"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }
+                  }}
+                />
                 <TextField
                   size="small"
                   fullWidth
@@ -1722,18 +1763,52 @@ const OutboundShipments: React.FC = () => {
                 Chi tiết sản phẩm *
               </Typography>
               
-              {/* Desktop Product Entry Row */}
-              <Box sx={{ 
-                display: { xs: 'none', lg: 'grid' },
-                gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr auto', 
-                gap: 1, 
-                alignItems: 'center',
-                p: 1,
-                border: '1px solid #e0e0e0',
-                borderRadius: 1,
-                mb: 1,
-                bgcolor: '#fafafa'
-              }}>
+              {/* Tip về chức năng Enter key */}
+              {productItems.length === 0 && (
+                <Box sx={{ 
+                  mb: 2, 
+                  p: 1, 
+                  bgcolor: 'warning.light', 
+                  borderRadius: 1,
+                  border: '1px solid',
+                  borderColor: 'warning.main'
+                }}>
+                  <Typography variant="body2" sx={{ color: 'warning.dark', fontSize: '0.875rem' }}>
+                    💡 Tip: Nhấn Enter trong bất kỳ ô nào để thêm sản phẩm nhanh
+                  </Typography>
+                </Box>
+              )}
+              
+              {/* Thông báo khi chọn xuất dự án */}
+              {formData.loai_xuat === 'Xuất dự án' && formData.nha_cung_cap_id && (
+                <Box sx={{ 
+                  mb: 2, 
+                  p: 1.5, 
+                  bgcolor: 'info.light', 
+                  borderRadius: 1,
+                  border: '1px solid',
+                  borderColor: 'info.main'
+                }}>
+                  <Typography variant="body2" sx={{ color: 'info.dark', fontSize: '0.875rem' }}>
+                    💡 Đã chọn nhà cung cấp: <strong>{formData.ten_nha_cung_cap}</strong> - 
+                    Sản phẩm sẽ được load từ đơn nhập mới nhất của nhà cung cấp này cho khách hàng <strong>{formData.ten_khach_hang}</strong> với số lượng đầy đủ
+                  </Typography>
+                </Box>
+              )}
+              
+              {/* Desktop Product Entry Row - Chỉ hiển thị khi không có sản phẩm từ đơn nhập */}
+              {productItems.length === 0 && (
+                <Box sx={{ 
+                  display: { xs: 'none', lg: 'grid' },
+                  gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr auto', 
+                  gap: 1, 
+                  alignItems: 'center',
+                  p: 1,
+                  border: '1px solid #e0e0e0',
+                  borderRadius: 1,
+                  mb: 1,
+                  bgcolor: '#fafafa'
+                }}>
                 <Autocomplete
                   size="small"
                   options={products || []}
@@ -1810,6 +1885,7 @@ const OutboundShipments: React.FC = () => {
                   type="number"
                   value={currentProduct.sl_xuat}
                   onChange={(e) => setCurrentProduct({ ...currentProduct, sl_xuat: parseInt(e.target.value) || 0 })}
+                  onKeyPress={handleKeyPress}
                 />
 
                 <TextField
@@ -1817,6 +1893,7 @@ const OutboundShipments: React.FC = () => {
                   label="Ghi chú"
                   value={currentProduct.ghi_chu}
                   onChange={(e) => setCurrentProduct({ ...currentProduct, ghi_chu: e.target.value })}
+                  onKeyPress={handleKeyPress}
                 />
                 <IconButton
                   size="small"
@@ -1841,18 +1918,20 @@ const OutboundShipments: React.FC = () => {
                   <AddIcon />
                 </IconButton>
               </Box>
+              )}
 
-              {/* Mobile Product Entry Row */}
-              <Box sx={{ 
-                display: { xs: 'flex', lg: 'none' },
-                flexDirection: 'column',
-                gap: 1.5,
-                p: 1.5,
-                border: '1px solid #e0e0e0',
-                borderRadius: 1,
-                mb: 1,
-                bgcolor: '#fafafa'
-              }}>
+              {/* Mobile Product Entry Row - Chỉ hiển thị khi không có sản phẩm từ đơn nhập */}
+              {productItems.length === 0 && (
+                <Box sx={{ 
+                  display: { xs: 'flex', lg: 'none' },
+                  flexDirection: 'column',
+                  gap: 1.5,
+                  p: 1.5,
+                  border: '1px solid #e0e0e0',
+                  borderRadius: 1,
+                  mb: 1,
+                  bgcolor: '#fafafa'
+                }}>
                 <Autocomplete
                   size="small"
                   options={products || []}
@@ -1944,6 +2023,7 @@ const OutboundShipments: React.FC = () => {
                   type="number"
                   value={currentProduct.sl_xuat}
                   onChange={(e) => setCurrentProduct({ ...currentProduct, sl_xuat: parseInt(e.target.value) || 0 })}
+                  onKeyPress={handleKeyPress}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       fontSize: '0.875rem'
@@ -1956,6 +2036,7 @@ const OutboundShipments: React.FC = () => {
                   label="Ghi chú"
                   value={currentProduct.ghi_chu}
                   onChange={(e) => setCurrentProduct({ ...currentProduct, ghi_chu: e.target.value })}
+                  onKeyPress={handleKeyPress}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       fontSize: '0.875rem'
@@ -1991,6 +2072,7 @@ const OutboundShipments: React.FC = () => {
                   Thêm sản phẩm
                 </Button>
               </Box>
+              )}
 
               {/* Danh sách sản phẩm */}
               {productItems.length > 0 && (
@@ -2185,53 +2267,7 @@ const OutboundShipments: React.FC = () => {
                 </Box>
               )}
               
-              {/* Preview khách hàng khi tạo hàng loạt */}
-              {bulkCreateMode && selectedCustomers.filter(c => c.selected).length > 0 && (
-                <Box sx={{ 
-                  mt: 2, 
-                  p: 1.5, 
-                  bgcolor: '#fff3e0', 
-                  borderRadius: 1,
-                  border: '1px solid #ff9800'
-                }}>
-                  <Typography variant="subtitle2" sx={{ 
-                    mb: 1, 
-                    fontWeight: 'bold', 
-                    color: 'warning.main',
-                    fontSize: { xs: '0.875rem', sm: '1rem' }
-                  }}>
-                    📋 Preview: Danh sách khách hàng sẽ tạo phiếu
-                  </Typography>
-                  
-                  <Box sx={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, 
-                    gap: 1 
-                  }}>
-                    {selectedCustomers.filter(c => c.selected).map((customer, index) => (
-                      <Chip
-                        key={customer.id}
-                        label={`${index + 1}. ${customer.name}`}
-                        size="small"
-                        color="warning"
-                        variant="outlined"
-                        sx={{ 
-                          fontSize: { xs: '0.7rem', sm: '0.75rem' },
-                          maxWidth: '100%'
-                        }}
-                      />
-                    ))}
-                  </Box>
-                  
-                  <Typography variant="caption" color="text.secondary" sx={{ 
-                    display: 'block', 
-                    mt: 1,
-                    fontSize: { xs: '0.7rem', sm: '0.75rem' }
-                  }}>
-                    Tổng cộng sẽ tạo {selectedCustomers.filter(c => c.selected).length} phiếu xuất kho
-                  </Typography>
-                </Box>
-              )}
+
               
               {/* Thông báo khi chưa có sản phẩm */}
               {productItems.length === 0 && (
@@ -2302,18 +2338,16 @@ const OutboundShipments: React.FC = () => {
                 boxShadow: 1,
                 flex: { xs: 1, sm: 'none' },
                 minWidth: { xs: 'auto', sm: 'auto' },
-                bgcolor: bulkCreateMode ? 'success.main' : 'primary.main',
+                bgcolor: 'primary.main',
                 '&:hover': {
                   boxShadow: 2,
                   transform: 'translateY(-1px)',
-                  bgcolor: bulkCreateMode ? 'success.dark' : 'primary.dark',
+                  bgcolor: 'primary.dark',
                 }
               }}
             >
               {loading ? (
                 <CircularProgress size={16} />
-              ) : bulkCreateMode ? (
-                `TẠO ${selectedCustomers.filter(c => c.selected).length} PHIẾU XUẤT`
               ) : (
                 'LƯU PHIẾU XUẤT'
               )}
@@ -2524,6 +2558,20 @@ const OutboundShipments: React.FC = () => {
                     {viewingShipment.import_type || 'Chưa cập nhật'}
                   </Typography>
                 </Box>
+                {/* Hiển thị nhà cung cấp cho xuất dự án */}
+                {viewingShipment.import_type === 'Xuất dự án' && viewingShipment.supplier_name && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                      Nhà cung cấp
+                    </Typography>
+                    <Typography variant="body1" sx={{ 
+                      fontWeight: 500,
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }}>
+                      {viewingShipment.supplier_name}
+                    </Typography>
+                  </Box>
+                )}
                 <Box>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                     Tài xế
@@ -2830,7 +2878,7 @@ const OutboundShipments: React.FC = () => {
                 mb: 0.5, 
                 fontSize: { xs: '0.75rem', sm: '0.875rem' } 
               }}>
-                <strong>Loại xuất</strong> phải là "Xuất hàng", "Xuất trả", hoặc "Xuất khác"
+                <strong>Loại xuất</strong> phải là "Xuất hàng" hoặc "Xuất dự án"
               </Typography>
               <Typography component="li" variant="body2" sx={{ 
                 color: 'error.main', 
@@ -2867,8 +2915,8 @@ const OutboundShipments: React.FC = () => {
                   ['Mã phiếu', 'Ngày xuất', 'Loại xuất', 'Mã sản phẩm', 'Tên sản phẩm', 'Đơn vị tính', 'Số lượng', 'Ghi chú', 'Mã KH', 'Tên KH', 'Tài xế', 'Nội dung xuất'],
                   ['PXK250802_001', '2025-08-02', 'Xuất hàng', 'SP001', 'Laptop Dell', 'cái', '5', 'Xuất hàng bán', 'KH001', 'Công ty ABC', 'Tài xế 1', 'Xuất hàng cho khách hàng ABC'],
                   ['PXK250802_001', '2025-08-02', 'Xuất hàng', 'SP002', 'Chuột Logitech', 'cái', '10', 'Xuất hàng bán', 'KH001', 'Công ty ABC', 'Tài xế 1', 'Xuất hàng cho khách hàng ABC'],
-                  ['PXK250802_002', '2025-08-02', 'Xuất trả', 'SP003', 'Bàn phím cơ', 'cái', '3', 'Xuất trả hàng', 'KH002', 'Công ty XYZ', 'Tài xế 2', 'Xuất trả cho nhà cung cấp'],
-                  ['PXK250802_003', '2025-08-02', 'Xuất khác', 'SP004', 'Màn hình 24 inch', 'cái', '2', 'Xuất khác', 'KH003', 'Công ty DEF', 'Tài xế 3', 'Xuất cho dự án đặc biệt']
+                  ['PXK250802_002', '2025-08-02', 'Xuất dự án', 'SP003', 'Bàn phím cơ', 'cái', '3', 'Xuất dự án', 'KH002', 'Công ty XYZ', 'Tài xế 2', 'Xuất cho dự án XYZ'],
+                  ['PXK250802_003', '2025-08-02', 'Xuất dự án', 'SP004', 'Màn hình 24 inch', 'cái', '2', 'Xuất dự án', 'KH003', 'Công ty DEF', 'Tài xế 3', 'Xuất cho dự án đặc biệt']
                 ];
                 
                 const ws = XLSX.utils.aoa_to_sheet(sampleData);
@@ -3123,6 +3171,9 @@ const OutboundShipments: React.FC = () => {
               />
             </Box>
             
+
+                      </Box>
+            
             {/* Hiển thị chế độ tạo hàng loạt cho Import Excel */}
             {importBulkCreateMode && (
               <Box sx={{ 
@@ -3175,9 +3226,8 @@ const OutboundShipments: React.FC = () => {
                 </Box>
               </Box>
             )}
-          </Box>
-
-          {/* Preview table */}
+            
+            {/* Preview table */}
           {importData.length > 0 && (
             <Box>
               <Typography variant="body2" color="text.secondary" sx={{ 

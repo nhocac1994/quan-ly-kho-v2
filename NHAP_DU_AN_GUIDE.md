@@ -130,6 +130,21 @@ Tính năng "Nhập dự án" cho phép bạn tạo phiếu nhập kho liên qua
 1. **Nhà cung cấp**: Gõ tên nhà cung cấp để tìm nhanh
 2. **Khách hàng**: Chỉ hiển thị khi chọn "Nhập dự án"
 3. **Tìm kiếm**: Hỗ trợ tìm theo tên viết tắt hoặc tên đầy đủ
+4. **Tài xế**: Nhập tên tài xế tự do (không giới hạn danh sách)
+
+## Hiển thị và sao chép mã phiếu
+
+### Tính năng mới:
+- **Hiển thị mã phiếu**: Mã phiếu được hiển thị ở góc phải trên form với nền màu xanh
+- **Icon sao chép**: Click vào icon copy để sao chép mã phiếu vào clipboard
+- **Thông báo**: Hiển thị thông báo "Đã sao chép mã phiếu vào clipboard!" khi copy thành công
+- **Tooltip**: Hover vào icon để xem hướng dẫn "Sao chép mã phiếu"
+
+### Cách sử dụng:
+1. Mã phiếu hiển thị tự động khi tạo phiếu mới
+2. Click vào icon copy (📋) bên cạnh mã phiếu
+3. Mã phiếu sẽ được sao chép vào clipboard
+4. Có thể paste vào bất kỳ đâu (chat, email, tài liệu...)
 
 Chạy lệnh SQL sau trong Supabase SQL Editor:
 
