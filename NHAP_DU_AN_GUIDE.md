@@ -118,6 +118,19 @@ Tính năng "Nhập dự án" cho phép bạn tạo phiếu nhập kho liên qua
 - **Dễ tìm kiếm**: Có thể tìm theo ngày tháng
 - **Không trùng lặp**: Số thứ tự ngẫu nhiên 3 chữ số
 
+## Tính năng tìm kiếm nâng cao
+
+### Autocomplete cho Nhà cung cấp và Khách hàng:
+- **Tìm kiếm thông minh**: Gõ tên để tìm nhanh nhà cung cấp/khách hàng
+- **Hiển thị thông tin chi tiết**: Tên đầy đủ, loại khách hàng
+- **Tìm kiếm đa tiêu chí**: Tìm theo tên, tên đầy đủ, loại khách hàng
+- **Giao diện thân thiện**: Dropdown với thông tin chi tiết
+
+### Cách sử dụng:
+1. **Nhà cung cấp**: Gõ tên nhà cung cấp để tìm nhanh
+2. **Khách hàng**: Chỉ hiển thị khi chọn "Nhập dự án"
+3. **Tìm kiếm**: Hỗ trợ tìm theo tên viết tắt hoặc tên đầy đủ
+
 Chạy lệnh SQL sau trong Supabase SQL Editor:
 
 -- Thêm cột kien_hang vào bảng shipment_items
