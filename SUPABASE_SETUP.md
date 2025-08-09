@@ -10,8 +10,13 @@ ALTER TABLE shipment_headers
 ADD COLUMN IF NOT EXISTS driver VARCHAR(255),
 ADD COLUMN IF NOT EXISTS import_type VARCHAR(100),
 ADD COLUMN IF NOT EXISTS total_quantity INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS total_kien_hang INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS total_amount DECIMAL(15,2) DEFAULT 0,
 ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'active';
+
+-- Cập nhật bảng shipment_items để thêm trường kien_hang
+ALTER TABLE shipment_items 
+ADD COLUMN IF NOT EXISTS kien_hang INTEGER DEFAULT 1;
 ```
 
 Hoặc sử dụng file `UPDATE_SHIPMENT_HEADERS.sql` đã được tạo sẵn.
@@ -155,6 +160,7 @@ CREATE TABLE IF NOT EXISTS shipment_headers (
   content TEXT,                          -- Nội dung
   notes TEXT,                            -- Ghi chú
   total_quantity INTEGER DEFAULT 0,      -- Tổng số lượng
+  total_kien_hang INTEGER DEFAULT 0,     -- Tổng kiện hàng
   total_amount DECIMAL(15,2) DEFAULT 0,  -- Tổng tiền
   status VARCHAR(50) DEFAULT 'active',   -- Trạng thái
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -171,6 +177,7 @@ CREATE TABLE IF NOT EXISTS shipment_items (
   product_name VARCHAR(255) NOT NULL,
   unit VARCHAR(50),
   quantity INTEGER NOT NULL,
+  kien_hang INTEGER DEFAULT 1,           -- Số kiện hàng
   unit_price DECIMAL(15,2) DEFAULT 0,
   notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

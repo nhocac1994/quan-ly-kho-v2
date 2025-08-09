@@ -305,8 +305,9 @@ const InboundShipments: React.FC = () => {
 
     setLoading(true);
     try {
-      // Tính tổng số lượng
+      // Tính tổng số lượng và kiện hàng
       const totalQuantity = productItems.reduce((sum, item) => sum + item.sl_nhap, 0);
+      const totalKienHang = productItems.reduce((sum, item) => sum + item.kien_hang, 0);
 
       // Tạo dữ liệu header
       const headerData = {
@@ -322,6 +323,7 @@ const InboundShipments: React.FC = () => {
         content: formData.noi_dung_nhap,
         notes: formData.ghi_chu,
         total_quantity: totalQuantity,
+        total_kien_hang: totalKienHang,
         total_amount: 0,
         status: 'active',
         created_by: 'admin'
@@ -521,11 +523,12 @@ const InboundShipments: React.FC = () => {
         <thead>
           <tr>
             <th>STT</th>
-            <th>Tên sản phẩm</th>
-            <th>Mã sản phẩm</th>
-            <th>Đơn vị tính</th>
-            <th>Số lượng nhập</th>
-            <th>Ghi chú</th>
+            <th style="width: 200px;">Tên sản phẩm</th>
+            <th style="width: 100px;">Mã sản phẩm</th>
+            <th style="width: 100px;">Đơn vị tính</th>
+            <th style="width: 100px;">Số lượng nhập</th>
+            <th style="width: 100px;">Kiện hàng</th>
+            <th style="width: 100px;">Ghi chú</th>
           </tr>
         </thead>
         <tbody>
@@ -536,6 +539,7 @@ const InboundShipments: React.FC = () => {
               <td>${item.product_code}</td>
               <td>${item.unit}</td>
               <td>${item.quantity?.toLocaleString()}</td>
+              <td>${item.kien_hang?.toLocaleString() || 0}</td>
               <td>${item.notes || '-'}</td>
             </tr>
           `).join('')}
@@ -553,7 +557,7 @@ const InboundShipments: React.FC = () => {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            font-size: 14px;
+            font-size: 10px;
           }
           .header {
             text-align: center;
@@ -659,6 +663,10 @@ const InboundShipments: React.FC = () => {
             <div class="info-label">Tổng số lượng:</div>
             <div class="info-value">${viewingShipment.total_quantity?.toLocaleString() || 0}</div>
           </div>
+          <div class="info-row">
+            <div class="info-label">Tổng kiện hàng:</div>
+            <div class="info-value">${viewingShipment.total_kien_hang?.toLocaleString() || 0}</div>
+          </div>
         </div>
 
         <div class="signatures">
@@ -723,11 +731,12 @@ const InboundShipments: React.FC = () => {
               'Tên sản phẩm': row[4] || '',
               'Đơn vị tính': row[5] || '',
               'Số lượng': parseInt(row[6]) || 1,
-              'Ghi chú': row[7] || '',
-              'Mã NCC': row[8] || '',
-              'Tên NCC': row[9] || '',
-              'Tài xế': row[10] || '',
-              'Nội dung nhập': row[11] || '',
+              'Kiện hàng': parseInt(row[7]) || 1,
+              'Ghi chú': row[8] || '',
+              'Mã NCC': row[9] || '',
+              'Tên NCC': row[10] || '',
+              'Tài xế': row[11] || '',
+              'Nội dung nhập': row[12] || '',
               nhom_san_pham: '',
               hang_sx: '',
               hinh_anh: '',
@@ -828,6 +837,7 @@ const InboundShipments: React.FC = () => {
             content: importSupplierData.content || firstItem['Nội dung nhập'] || '',
             notes: importSupplierData.notes || '',
             total_quantity: itemsArray.reduce((sum: number, item: any) => sum + (parseInt(item['Số lượng']) || 0), 0),
+            total_kien_hang: itemsArray.reduce((sum: number, item: any) => sum + (parseInt(item['Kiện hàng']) || 1), 0),
             total_amount: 0,
             status: 'active',
             created_by: 'admin'
@@ -848,6 +858,7 @@ const InboundShipments: React.FC = () => {
               product_name: item['Tên sản phẩm'],
               unit: item['Đơn vị tính'],
               quantity: parseInt(item['Số lượng']) || 0,
+              kien_hang: parseInt(item['Kiện hàng']) || 1,
               notes: item['Ghi chú'] || ''
             }));
 
@@ -932,6 +943,7 @@ const InboundShipments: React.FC = () => {
 
   const totalShipments = shipmentHeaders?.length || 0;
   const totalQuantity = (shipmentHeaders || []).reduce((sum: number, shipment: any) => sum + (shipment.total_quantity || 0), 0);
+  const totalKienHang = (shipmentHeaders || []).reduce((sum: number, shipment: any) => sum + (shipment.total_kien_hang || 0), 0);
   const todayShipments = (shipmentHeaders || []).filter((shipment: any) => 
     new Date(shipment.shipment_date).toDateString() === new Date().toDateString()
   ).length;
@@ -1106,6 +1118,9 @@ const InboundShipments: React.FC = () => {
           <Typography variant="body2" sx={{ fontSize: { xs: '0.65rem', sm: '0.875rem' } }}>
             Số lượng: {totalQuantity.toLocaleString()}
           </Typography>
+          <Typography variant="body2" sx={{ fontSize: { xs: '0.65rem', sm: '0.875rem' } }}>
+            Kiện hàng: {totalKienHang.toLocaleString()}
+          </Typography>
           <Typography variant="body2" sx={{ color: 'warning.main', fontSize: { xs: '0.65rem', sm: '0.875rem' } }}>
             Hôm nay: {todayShipments}
           </Typography>
@@ -1133,6 +1148,7 @@ const InboundShipments: React.FC = () => {
                 <TableCell>Ngày Nhập</TableCell>
                 <TableCell>Loại Nhập</TableCell>
                 <TableCell>Tổng Số Lượng</TableCell>
+                <TableCell>Tổng Kiện Hàng</TableCell>
                 <TableCell>Nhà Cung Cấp</TableCell>
                 <TableCell>Khách Hàng</TableCell>
                 <TableCell>Nội Dung</TableCell>
@@ -1163,6 +1179,7 @@ const InboundShipments: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell>{shipment.total_quantity?.toLocaleString()}</TableCell>
+                    <TableCell>{shipment.total_kien_hang?.toLocaleString() || '-'}</TableCell>
                     <TableCell>{shipment.supplier_name}</TableCell>
                     <TableCell>{shipment.customer_name || '-'}</TableCell>
                     <TableCell>{shipment.content}</TableCell>
@@ -1274,6 +1291,10 @@ const InboundShipments: React.FC = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Số lượng:</Typography>
                       <Typography variant="body2">{shipment.total_quantity?.toLocaleString() || 0}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Kiện hàng:</Typography>
+                      <Typography variant="body2">{shipment.total_kien_hang?.toLocaleString() || 0}</Typography>
                     </Box>
                     {shipment.content && (
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -2137,6 +2158,11 @@ const InboundShipments: React.FC = () => {
                     }}>
                       Tổng số lượng: {productItems.reduce((sum, item) => sum + item.sl_nhap, 0)}
                     </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ 
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    }}>
+                      Tổng kiện hàng: {productItems.reduce((sum, item) => sum + item.kien_hang, 0)}
+                    </Typography>
                   </Box>
                 </Box>
               </Box>
@@ -2564,6 +2590,10 @@ const InboundShipments: React.FC = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                               <Typography variant="body2" color="text.secondary">Số lượng:</Typography>
                               <Chip label={item.quantity?.toLocaleString()} color="info" size="small" />
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2" color="text.secondary">Kiện hàng:</Typography>
+                              <Chip label={item.kien_hang?.toLocaleString() || 0} color="warning" size="small" />
                             </Box>
                             {item.notes && (
                               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>

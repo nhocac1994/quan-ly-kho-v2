@@ -112,6 +112,7 @@ interface ProductItem {
   ma_hang: string;
   dvt: string;
   sl_xuat: number;
+  kien_hang: number; // Số kiện hàng
   ghi_chu: string;
 }
 
@@ -182,6 +183,7 @@ const OutboundShipments: React.FC = () => {
     ma_hang: '',
     dvt: '',
     sl_xuat: 0,
+    kien_hang: 1,
     ghi_chu: '',
   });
 
@@ -210,7 +212,7 @@ const OutboundShipments: React.FC = () => {
         const formattedItems = items.map((item: any) => ({
           id: item.id, product_id: item.product_id, san_pham_id: item.product_code,
           ten_san_pham: item.product_name, ma_hang: item.product_code, dvt: item.unit,
-          sl_xuat: item.quantity, ghi_chu: item.notes || '',
+          sl_xuat: item.quantity, kien_hang: item.kien_hang || 1, ghi_chu: item.notes || '',
         }));
         setProductItems(formattedItems);
       } catch (error) {
@@ -243,6 +245,7 @@ const OutboundShipments: React.FC = () => {
       ma_hang: '',
       dvt: '',
       sl_xuat: 0,
+      kien_hang: 1,
       ghi_chu: '',
     });
     setOpenDialog(true);
@@ -292,6 +295,7 @@ const OutboundShipments: React.FC = () => {
       ma_hang: '',
       dvt: '',
       sl_xuat: 0,
+      kien_hang: 1,
       ghi_chu: '',
     });
   };
@@ -401,6 +405,7 @@ const OutboundShipments: React.FC = () => {
         ma_hang: item.product_code,
         dvt: item.unit,
         sl_xuat: item.quantity || 0, // Lấy số lượng từ đơn nhập
+        kien_hang: item.kien_hang || 1,
         ghi_chu: item.notes || '',
       }));
       setProductItems(formattedItems);
@@ -458,8 +463,9 @@ const OutboundShipments: React.FC = () => {
 
     setLoading(true);
     try {
-      // Tính tổng số lượng
+      // Tính tổng số lượng và kiện hàng
       const totalQuantity = productItems.reduce((sum, item) => sum + item.sl_xuat, 0);
+      const totalKienHang = productItems.reduce((sum, item) => sum + item.kien_hang, 0);
 
       // Tạo header data
       const headerData = {
@@ -475,6 +481,7 @@ const OutboundShipments: React.FC = () => {
         content: formData.noi_dung_xuat,
         notes: formData.ghi_chu,
         total_quantity: totalQuantity,
+        total_kien_hang: totalKienHang,
         total_amount: 0,
         status: 'active',
         created_by: 'admin'
@@ -503,6 +510,7 @@ const OutboundShipments: React.FC = () => {
         product_code: item.ma_hang,
         unit: item.dvt,
         quantity: item.sl_xuat,
+        kien_hang: item.kien_hang,
         unit_price: 0,
         total_price: 0,
         notes: item.ghi_chu
@@ -579,6 +587,12 @@ const OutboundShipments: React.FC = () => {
     ));
   };
 
+  const handleUpdateItemKienHang = (itemId: string, newKienHang: number) => {
+    setProductItems(prev => prev.map(item => 
+      item.id === itemId ? { ...item, kien_hang: newKienHang } : item
+    ));
+  };
+
 
 
   const handleCopyShipment = () => {
@@ -610,7 +624,7 @@ const OutboundShipments: React.FC = () => {
       ma_hang: item.product_code,
       dvt: item.unit,
       sl_xuat: item.quantity,
-      
+      kien_hang: item.kien_hang || 1,
       ghi_chu: item.notes || '',
     }));
 
@@ -668,7 +682,7 @@ const OutboundShipments: React.FC = () => {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            font-size: 14px;
+            font-size: 10px;
           }
           .header {
             text-align: center;
@@ -770,6 +784,7 @@ const OutboundShipments: React.FC = () => {
               <th>Tên Hàng</th>
               <th>ĐVT</th>
               <th>Số Lượng</th>
+              <th>Kiện Hàng</th>
               <th>Ghi Chú</th>
             </tr>
           </thead>
@@ -782,6 +797,7 @@ const OutboundShipments: React.FC = () => {
                   <td>${item.product_name || ''}</td>
                   <td>${item.unit || ''}</td>
                   <td>${item.quantity || 0}</td>
+                  <td>${item.kien_hang || 0}</td>
                   <td>${item.notes || ''}</td>
                 </tr>
               `).join('') : 
@@ -790,6 +806,7 @@ const OutboundShipments: React.FC = () => {
             <tr class="total-row">
               <td colspan="4">Tổng Cộng:</td>
               <td>${shipmentItems ? shipmentItems.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) : 0}</td>
+              <td>${shipmentItems ? shipmentItems.reduce((sum: number, item: any) => sum + (item.kien_hang || 0), 0) : 0}</td>
               <td></td>
             </tr>
           </tbody>
@@ -864,11 +881,12 @@ const OutboundShipments: React.FC = () => {
               'Tên sản phẩm': row[4] || '',
               'Đơn vị tính': row[5] || '',
               'Số lượng': parseInt(row[6]) || 1,
-              'Ghi chú': row[7] || '',
-              'Mã KH': row[8] || '',
-              'Tên KH': row[9] || '',
-              'Tài xế': row[10] || '',
-              'Nội dung xuất': row[11] || '',
+              'Kiện hàng': parseInt(row[7]) || 1,
+              'Ghi chú': row[8] || '',
+              'Mã KH': row[9] || '',
+              'Tên KH': row[10] || '',
+              'Tài xế': row[11] || '',
+              'Nội dung xuất': row[12] || '',
               nhom_san_pham: '',
               hang_sx: '',
               hinh_anh: '',
@@ -1008,6 +1026,7 @@ const OutboundShipments: React.FC = () => {
             content: importSupplierData.content || firstItem['Nội dung xuất'] || '',
             notes: importSupplierData.notes || firstItem['Ghi chú'] || '',
             total_quantity: itemsArray.reduce((sum: number, item: any) => sum + (parseInt(item['Số lượng']) || 0), 0),
+            total_kien_hang: itemsArray.reduce((sum: number, item: any) => sum + (parseInt(item['Kiện hàng']) || 1), 0),
             total_amount: 0,
             status: 'active',
             created_by: 'admin'
@@ -1047,6 +1066,7 @@ const OutboundShipments: React.FC = () => {
                 product_name: item['Tên sản phẩm'],
                 unit: item['Đơn vị tính'],
                 quantity: parseInt(item['Số lượng']) || 0,
+                kien_hang: parseInt(item['Kiện hàng']) || 1,
                 notes: item['Ghi chú'] || ''
               };
             });
@@ -1254,6 +1274,9 @@ const OutboundShipments: React.FC = () => {
           <Typography variant="body2" sx={{ fontSize: 'inherit' }}>
             Số lượng: {filteredShipments.reduce((sum, shipment) => sum + (shipment.total_quantity || 0), 0).toLocaleString()}
           </Typography>
+          <Typography variant="body2" sx={{ fontSize: 'inherit' }}>
+            Kiện hàng: {filteredShipments.reduce((sum, shipment) => sum + (shipment.total_kien_hang || 0), 0).toLocaleString()}
+          </Typography>
           <Typography variant="body2" sx={{ 
             color: 'warning.main',
             fontSize: 'inherit'
@@ -1284,6 +1307,7 @@ const OutboundShipments: React.FC = () => {
                 <TableCell>Ngày Xuất</TableCell>
                 <TableCell>Khách Hàng</TableCell>
                 <TableCell>Số Lượng</TableCell>
+                <TableCell>Tổng Kiện Hàng</TableCell>
                 <TableCell>Nội Dung</TableCell>
                 <TableCell>Trạng Thái</TableCell>
                 <TableCell align="center">Thao Tác</TableCell>
@@ -1299,6 +1323,7 @@ const OutboundShipments: React.FC = () => {
                     <TableCell>{formatDate(shipment.shipment_date)}</TableCell>
                     <TableCell>{shipment.customer_name || '-'}</TableCell>
                     <TableCell sx={{ fontWeight: 500, color: 'primary.main' }}>{shipment.total_quantity || 0}</TableCell>
+                    <TableCell>{shipment.total_kien_hang?.toLocaleString() || '-'}</TableCell>
                     <TableCell>{shipment.content || '-'}</TableCell>
                     <TableCell>
                       <Chip
@@ -1400,6 +1425,10 @@ const OutboundShipments: React.FC = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Số lượng:</Typography>
                       <Chip label={shipment.total_quantity || 0} color="info" size="small" />
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Kiện hàng:</Typography>
+                      <Chip label={shipment.total_kien_hang || 0} color="warning" size="small" />
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Nội dung:</Typography>
@@ -1942,6 +1971,15 @@ const OutboundShipments: React.FC = () => {
 
                 <TextField
                   size="small"
+                  label="Kiện hàng"
+                  type="number"
+                  value={currentProduct.kien_hang}
+                  onChange={(e) => setCurrentProduct({ ...currentProduct, kien_hang: parseInt(e.target.value) || 1 })}
+                  onKeyPress={handleKeyPress}
+                />
+
+                <TextField
+                  size="small"
                   label="Ghi chú"
                   value={currentProduct.ghi_chu}
                   onChange={(e) => setCurrentProduct({ ...currentProduct, ghi_chu: e.target.value })}
@@ -1961,6 +1999,7 @@ const OutboundShipments: React.FC = () => {
                         ma_hang: '',
                         dvt: '',
                         sl_xuat: 1,
+                        kien_hang: 1,
                         ghi_chu: '',
                       });
                     }
@@ -2109,6 +2148,7 @@ const OutboundShipments: React.FC = () => {
                         ma_hang: '',
                         dvt: '',
                         sl_xuat: 1,
+                        kien_hang: 1,
                         ghi_chu: '',  
                       });
                     }
@@ -2144,7 +2184,7 @@ const OutboundShipments: React.FC = () => {
                             <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Mã hàng</TableCell>
                             <TableCell sx={{ fontWeight: 'bold', width: 80 }}>ĐVT</TableCell>
                             <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Số lượng</TableCell>
-
+                            <TableCell sx={{ fontWeight: 'bold', width: 100 }}>Kiện hàng</TableCell>
                             <TableCell sx={{ fontWeight: 'bold' }}>Ghi chú</TableCell>
                             <TableCell sx={{ fontWeight: 'bold', width: 80 }} align="center">Thao tác</TableCell>
                           </TableRow>
@@ -2162,6 +2202,25 @@ const OutboundShipments: React.FC = () => {
                                   size="small"
                                   value={item.sl_xuat}
                                   onChange={(e) => handleUpdateItemQuantity(item.id, parseInt(e.target.value) || 0)}
+                                  sx={{ 
+                                    width: 80,
+                                    '& .MuiOutlinedInput-root': {
+                                      fontSize: '0.75rem',
+                                      height: 32,
+                                    }
+                                  }}
+                                  inputProps={{ 
+                                    min: 1,
+                                    style: { textAlign: 'center' }
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <TextField
+                                  type="number"
+                                  size="small"
+                                  value={item.kien_hang}
+                                  onChange={(e) => handleUpdateItemKienHang(item.id, parseInt(e.target.value) || 1)}
                                   sx={{ 
                                     width: 80,
                                     '& .MuiOutlinedInput-root': {
@@ -2292,6 +2351,29 @@ const OutboundShipments: React.FC = () => {
                               </Box>
                             </Box>
                             
+                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, mb: 1 }}>
+                              <Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Kiện hàng:</Typography>
+                                <TextField
+                                  type="number"
+                                  size="small"
+                                  value={item.kien_hang}
+                                  onChange={(e) => handleUpdateItemKienHang(item.id, parseInt(e.target.value) || 1)}
+                                  sx={{ 
+                                    width: '100%',
+                                    '& .MuiOutlinedInput-root': {
+                                      fontSize: '0.7rem',
+                                      height: 28,
+                                    }
+                                  }}
+                                  inputProps={{ 
+                                    min: 1,
+                                    style: { textAlign: 'center' }
+                                  }}
+                                />
+                              </Box>
+                            </Box>
+                            
                             <Box>
                               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Ghi chú:</Typography>
                               <TextField
@@ -2318,6 +2400,36 @@ const OutboundShipments: React.FC = () => {
               
 
               
+              {/* Summary khi có sản phẩm */}
+              {productItems.length > 0 && (
+                <Box sx={{ 
+                  mt: 2, 
+                  p: 2, 
+                  bgcolor: '#e8f5e8', 
+                  borderRadius: 1,
+                  border: '1px solid #4caf50'
+                }}>
+                  <Typography variant="body2" color="primary" sx={{ 
+                    fontWeight: 500,
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                  }}>
+                    Tổng kết phiếu xuất kho:
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    }}>
+                      Tổng số lượng: {productItems.reduce((sum, item) => sum + item.sl_xuat, 0)}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    }}>
+                      Tổng kiện hàng: {productItems.reduce((sum, item) => sum + item.kien_hang, 0)}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+
               {/* Thông báo khi chưa có sản phẩm */}
               {productItems.length === 0 && (
                 <Box sx={{ 
@@ -2643,6 +2755,28 @@ const OutboundShipments: React.FC = () => {
                     {viewingShipment.content || 'Chưa cập nhật'}
                   </Typography>
                 </Box>
+                <Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Tổng số lượng
+                  </Typography>
+                  <Typography variant="body1" sx={{ 
+                    fontWeight: 500,
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}>
+                    {viewingShipment.total_quantity?.toLocaleString() || 0}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Tổng kiện hàng
+                  </Typography>
+                  <Typography variant="body1" sx={{ 
+                    fontWeight: 500,
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}>
+                    {viewingShipment.total_kien_hang?.toLocaleString() || 0}
+                  </Typography>
+                </Box>
               </Box>
 
               {/* Thông tin sản phẩm */}
@@ -2677,6 +2811,7 @@ const OutboundShipments: React.FC = () => {
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Tên sản phẩm</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>ĐVT</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Số lượng</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Kiện hàng</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Ghi chú</TableCell>
                           </TableRow>
                         </TableHead>
@@ -2688,6 +2823,7 @@ const OutboundShipments: React.FC = () => {
                               <TableCell>{item.product_name}</TableCell>
                               <TableCell>{item.unit}</TableCell>
                               <TableCell sx={{ fontWeight: 500, color: 'primary.main' }}>{item.quantity}</TableCell>
+                              <TableCell>{item.kien_hang || 0}</TableCell>
                               <TableCell>{item.notes || '-'}</TableCell>
                             </TableRow>
                           ))}
@@ -2759,6 +2895,10 @@ const OutboundShipments: React.FC = () => {
                               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>ĐVT:</Typography>
                                 <Typography variant="body2" sx={{ fontSize: '0.7rem' }}>{item.unit}</Typography>
+                              </Box>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.7rem' }}>Kiện hàng:</Typography>
+                                <Chip label={item.kien_hang || 0} color="warning" size="small" sx={{ fontSize: '0.7rem' }} />
                               </Box>
                               {item.notes && (
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
