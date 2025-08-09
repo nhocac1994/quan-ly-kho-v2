@@ -7,9 +7,9 @@ Tính năng "Xuất dự án" cho phép xuất hàng dựa trên đơn nhập m�
 
 ### 1. Tạo Phiếu Xuất Dự Án Mới
 1. Chọn **"Tạo phiếu xuất kho mới"**
-2. Chọn **"Khách hàng"** từ danh sách
+2. Chọn **"Khách hàng"** từ danh sách (có tính năng tìm kiếm)
 3. Chọn **"Loại xuất"** → **"Xuất dự án"**
-4. Chọn **"Nhà cung cấp"** (sẽ xuất hiện sau khi chọn "Xuất dự án")
+4. Chọn **"Nhà cung cấp"** (có tính năng tìm kiếm, chỉ hiển thị khi chọn "Xuất dự án")
 5. Hệ thống sẽ tự động load sản phẩm từ đơn nhập mới nhất của nhà cung cấp đó
 6. Điền thông tin còn lại và lưu phiếu
 
@@ -146,4 +146,38 @@ interface OutboundShipmentFormData {
 ### Giao Diện
 - **Desktop**: Hiển thị dạng grid với các cột rõ ràng
 - **Mobile**: Hiển thị dạng form dọc dễ sử dụng
-- **Responsive**: Tự động điều chỉnh theo kích thước màn hình 
+- **Responsive**: Tự động điều chỉnh theo kích thước màn hình
+
+## Tính Năng Tìm Kiếm Nâng Cao
+
+### Autocomplete Khách Hàng
+- **Tìm kiếm theo tên**: Tìm theo tên đầy đủ hoặc tên khách hàng
+- **Tìm kiếm theo loại**: Tìm theo loại khách hàng
+- **Hiển thị thông tin chi tiết**: Tên chính và loại khách hàng
+- **Placeholder**: "Gõ để tìm khách hàng..."
+
+### Autocomplete Nhà Cung Cấp
+- **Tìm kiếm theo tên**: Tìm theo tên nhà cung cấp
+- **Tìm kiếm theo tên đầy đủ**: Tìm theo tên đầy đủ nếu có
+- **Hiển thị thông tin chi tiết**: Tên chính và tên đầy đủ
+- **Placeholder**: "Gõ để tìm nhà cung cấp..."
+- **Chỉ hiển thị khi**: Chọn "Xuất dự án"
+
+### Lợi Ích Tìm Kiếm
+- **Tìm kiếm nhanh**: Không cần cuộn qua danh sách dài
+- **Tìm kiếm linh hoạt**: Tìm theo nhiều tiêu chí khác nhau
+- **Hiển thị thông tin rõ ràng**: Tên chính và thông tin bổ sung
+- **Trải nghiệm nhất quán**: Giống hệt như form nhập hàng
+- **Responsive**: Hoạt động tốt trên cả desktop và mobile
+
+### Cách Sử Dụng
+1. **Click vào ô tìm kiếm**: Khách hàng hoặc Nhà cung cấp
+2. **Gõ từ khóa**: Tên, loại, hoặc bất kỳ thông tin liên quan
+3. **Chọn từ danh sách**: Click vào kết quả phù hợp
+4. **Hoặc dùng phím mũi tên**: Navigate bằng keyboard
+
+### Tính Năng Nâng Cao
+- **Loading state**: Hiển thị "Đang tải..." khi chưa load xong
+- **No options**: Hiển thị "Không tìm thấy..." khi không có kết quả
+- **Case insensitive**: Tìm kiếm không phân biệt hoa thường
+- **Partial match**: Tìm kiếm theo từ khóa một phần 

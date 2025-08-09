@@ -1646,47 +1646,114 @@ const OutboundShipments: React.FC = () => {
                   }}
                 />
                 {/* Khách hàng */}
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Khách hàng</InputLabel>
-                  <Select
-                    value={formData.khach_hang_id}
-                    label="Khách hàng"
-                    onChange={(e) => handleCustomerChange(e.target.value)}
-                    sx={{
-                      '& .MuiSelect-select': {
-                        fontSize: { xs: '0.875rem', sm: '1rem' }
-                      }
-                    }}
-                  >
-                    {(customers || []).map((customer: any) => (
-                      <MenuItem key={customer.id} value={customer.id}>
-                        {customer.ten_day_du || customer.ten_khach_hang}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                
-                {/* Nhà cung cấp - chỉ hiển thị khi chọn "Xuất dự án" */}
-                {formData.loai_xuat === 'Xuất dự án' && (
-                  <FormControl size="small" fullWidth>
-                    <InputLabel>Nhà cung cấp</InputLabel>
-                    <Select
-                      value={formData.nha_cung_cap_id}
-                      label="Nhà cung cấp"
-                      onChange={(e) => handleSupplierChange(e.target.value)}
+                <Autocomplete
+                  size="small"
+                  options={customers || []}
+                  getOptionLabel={(option: any) => option.ten_day_du || option.ten_khach_hang || ''}
+                  value={customers?.find(c => c.id === formData.khach_hang_id) || null}
+                  onChange={(event, newValue) => {
+                    if (newValue) {
+                      handleCustomerChange(newValue.id);
+                    } else {
+                      handleCustomerChange('');
+                    }
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Khách hàng"
+                      placeholder="Gõ để tìm khách hàng..."
                       sx={{
-                        '& .MuiSelect-select': {
+                        '& .MuiOutlinedInput-root': {
                           fontSize: { xs: '0.875rem', sm: '1rem' }
                         }
                       }}
-                    >
-                      {(suppliers || []).map((supplier: any) => (
-                        <MenuItem key={supplier.id} value={supplier.id}>
-                          {supplier.ten_ncc}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                    />
+                  )}
+                  renderOption={(props, option: any) => {
+                    const { key, ...otherProps } = props;
+                    return (
+                      <Box component="li" key={key} {...otherProps}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                          <Typography variant="body2" fontWeight="medium">
+                            {option.ten_day_du || option.ten_khach_hang}
+                          </Typography>
+                          {option.loai_khach_hang && (
+                            <Typography variant="caption" color="text.secondary">
+                              {option.loai_khach_hang}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+                    );
+                  }}
+                  filterOptions={(options, { inputValue }) => {
+                    const filterValue = inputValue.toLowerCase();
+                    return options.filter((option: any) =>
+                      (option.ten_day_du && option.ten_day_du.toLowerCase().includes(filterValue)) ||
+                      (option.ten_khach_hang && option.ten_khach_hang.toLowerCase().includes(filterValue)) ||
+                      (option.loai_khach_hang && option.loai_khach_hang.toLowerCase().includes(filterValue))
+                    );
+                  }}
+                  noOptionsText="Không tìm thấy khách hàng"
+                  loading={!customers}
+                  loadingText="Đang tải khách hàng..."
+                />
+                
+                {/* Nhà cung cấp - chỉ hiển thị khi chọn "Xuất dự án" */}
+                {formData.loai_xuat === 'Xuất dự án' && (
+                  <Autocomplete
+                    size="small"
+                    options={suppliers || []}
+                    getOptionLabel={(option: any) => option.ten_ncc || ''}
+                    value={suppliers?.find(s => s.id === formData.nha_cung_cap_id) || null}
+                    onChange={(event, newValue) => {
+                      if (newValue) {
+                        handleSupplierChange(newValue.id);
+                      } else {
+                        handleSupplierChange('');
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Nhà cung cấp"
+                        placeholder="Gõ để tìm nhà cung cấp..."
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                          }
+                        }}
+                      />
+                    )}
+                    renderOption={(props, option: any) => {
+                      const { key, ...otherProps } = props;
+                      return (
+                        <Box component="li" key={key} {...otherProps}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="body2" fontWeight="medium">
+                              {option.ten_ncc}
+                            </Typography>
+                            {option.ten_day_du && option.ten_day_du !== option.ten_ncc && (
+                              <Typography variant="caption" color="text.secondary">
+                                {option.ten_day_du}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      );
+                    }}
+                    filterOptions={(options, { inputValue }) => {
+                      const filterValue = inputValue.toLowerCase();
+                      return options.filter((option: any) =>
+                        option.ten_ncc.toLowerCase().includes(filterValue) ||
+                        (option.ten_day_du && option.ten_day_du.toLowerCase().includes(filterValue))
+                      );
+                    }}
+                    noOptionsText="Không tìm thấy nhà cung cấp"
+                    loading={!suppliers}
+                    loadingText="Đang tải nhà cung cấp..."
+                  />
                 )}
                 
 
