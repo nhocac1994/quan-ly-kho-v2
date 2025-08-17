@@ -7,9 +7,43 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-
-
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Tối ưu chiều cao dòng cho toàn bộ ứng dụng - GIẢM THÊM */
+/* CHỈ ÁP DỤNG CHO BẢNG DỮ LIỆU, KHÔNG ẢNH HƯỞNG CÁC COMPONENT KHÁC */
+.MuiTableContainer-root .MuiTableRow-root {
+  height: 40px !important; /* Giảm từ 48px xuống 40px */
+}
+
+.MuiTableContainer-root .MuiTableRow-root.MuiTableRow-hover:hover {
+  height: 40px !important;
+}
+
+.MuiTableContainer-root .MuiTableCell-root {
+  padding: 4px 12px !important; /* Giảm padding từ 8px 16px */
+  line-height: 1.1 !important; /* Giảm line-height */
+}
+
+.MuiTableContainer-root .MuiTableCell-head {
+  padding: 6px 12px !important; /* Giảm padding header */
+  font-weight: 600 !important;
+  font-size: 0.875rem !important; /* Giảm font-size */
+}
+
+/* CHỈ GIỮ LẠI TỐI ƯU CHO BẢNG DỮ LIỆU, XÓA CÁC TỐI ƯU TOÀN CỤC KHÁC */
+
+/* Tối ưu cho mobile - CHỈ ÁP DỤNG CHO BẢNG DỮ LIỆU */
+@media (max-width: 600px) {
+  .MuiTableContainer-root .MuiTableRow-root {
+    height: 32px !important; /* Giảm từ 40px */
+  }
+  
+  .MuiTableContainer-root .MuiTableCell-root {
+    padding: 3px 8px !important; /* Giảm padding */
+  }
+}
+
+/* XÓA TẤT CẢ TỐI ƯU TOÀN CỤC KHÁC, CHỈ GIỮ LẠI TỐI ƯU CHO BẢNG DỮ LIỆU */

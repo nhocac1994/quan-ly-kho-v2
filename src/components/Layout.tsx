@@ -83,9 +83,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         sx={{
           background: '#667eea',
           color: 'white',
-          p: sidebarCollapsed ? 1 : 2,
+          p: sidebarCollapsed ? 1 : 2.3,
           textAlign: 'center',
-          minHeight: 65,
+          minHeight: 61,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -113,7 +113,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               backgroundColor: 'rgba(255,255,255,0.2)',
             },
             width: 24,
-            height: 24,
+            height: 20,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -140,7 +140,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     mx: sidebarCollapsed ? 0.5 : 1,
                     borderRadius: sidebarCollapsed ? 1 : 2,
                     justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                    minHeight: 48,
+                    minHeight: 44,
                     '&.Mui-selected': {
                       background: '#667eea',
                       color: 'white',
@@ -216,7 +216,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           transition: 'width 0.3s ease, margin-left 0.3s ease',
         }}
       >
-        <Toolbar sx={{ minHeight: 65 }}>
+        <Toolbar sx={{ minHeight: 61 }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"

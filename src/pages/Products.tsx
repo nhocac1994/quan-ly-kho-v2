@@ -504,7 +504,7 @@ const Products: React.FC = () => {
 
   return (
     <Box sx={{ 
-      p: { xs: 1, sm: 2, md: 3 }, 
+      p: { xs: 0, sm: 1, md: 2 }, 
       width: '100%', 
       maxWidth: { xs: '100%', sm: '100%' }, 
       mx: 'auto',
@@ -518,7 +518,7 @@ const Products: React.FC = () => {
         alignItems: { xs: 'flex-start', md: 'center' }, 
         mb: { xs: 1, sm: 2, md: 3 },
         gap: 2,
-        mt: 2
+        mt: 1
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <InventoryIcon sx={{ fontSize: { xs: 24, sm: 28, md: 32 }, color: 'primary.main' }} />
@@ -538,7 +538,7 @@ const Products: React.FC = () => {
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' },
-          gap: { xs: 1, sm: 2 },
+          gap: { xs: 0.5, sm: 1.5 },
           alignItems: { xs: 'stretch', sm: 'center' },
           width: { xs: '100%', sm: 'auto' },
           justifyContent: { xs: 'flex-end', sm: 'flex-end' }
@@ -767,7 +767,7 @@ const Products: React.FC = () => {
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'row', sm: 'row' },
-          gap: { xs: 2, sm: 3 }, 
+          gap: { xs: 1.5, sm: 2.5 }, 
           color: 'text.secondary', 
           fontSize: { xs: '0.75rem', sm: '0.875rem' },
           justifyContent: { xs: 'flex-end', sm: 'flex-end' }
@@ -1045,7 +1045,7 @@ const Products: React.FC = () => {
             ))}
           </Box>
           
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
             <TablePagination
               rowsPerPageOptions={[5, 10, 25, 50]}
               component="div"
@@ -1162,7 +1162,7 @@ const Products: React.FC = () => {
           />
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+        <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
           <Button
             variant="outlined"
             onClick={handleCloseDrawer}
@@ -1227,7 +1227,7 @@ const Products: React.FC = () => {
                 <Typography variant="body2" component="div">
                   • Hiển Thị phải là "Có" hoặc "Không"
                 </Typography>
-                <Typography variant="body2" component="div" sx={{ mt: 1, fontWeight: 'bold', color: 'warning.main' }}>
+                <Typography variant="body2" component="div" sx={{ mt: 0, fontWeight: 'bold', color: 'warning.main' }}>
                   • Sản phẩm có mã trùng sẽ được cập nhật thông tin mới
                 </Typography>
               </Alert>

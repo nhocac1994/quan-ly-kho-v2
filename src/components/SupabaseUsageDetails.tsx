@@ -341,7 +341,7 @@ const SupabaseUsageDetails: React.FC = () => {
       </Accordion>
 
       {/* Tips */}
-      <Card sx={{ mt: 2, bgcolor: '#fff3e0' }}>
+      <Card sx={{ mt: 1, bgcolor: '#fff3e0' }}>
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             <TrendingUpIcon color="warning" />

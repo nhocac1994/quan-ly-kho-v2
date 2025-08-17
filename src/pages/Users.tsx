@@ -187,7 +187,7 @@ const Users: React.FC = () => {
 
   return (
     <Box sx={{ 
-      p: { xs: 1, sm: 2, md: 3 }, 
+      p: { xs: 0, sm: 1, md: 2 }, 
       width: '100%', 
       maxWidth: '100%', 
       overflow: 'hidden', 
@@ -200,11 +200,11 @@ const Users: React.FC = () => {
         flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between', 
         alignItems: { xs: 'stretch', sm: 'center' }, 
-        mb: { xs: 2, sm: 3 },
-        gap: { xs: 2, sm: 0 },
+        mb: { xs: 1, sm: 2 },
+        gap: { xs: 1.5, sm: 1 },
         mt: { xs: 2, sm: 0 }
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1.5 } }}>
           <PersonIcon sx={{ 
             fontSize: { xs: 24, sm: 28, md: 32 }, 
             color: 'primary.main' 
@@ -225,7 +225,7 @@ const Users: React.FC = () => {
         
         <Box sx={{ 
           display: 'flex', 
-          gap: { xs: 1, sm: 2 }, 
+          gap: { xs: 0.5, sm: 1.5 }, 
           alignItems: 'center',
           flexWrap: 'wrap'
         }}>
@@ -298,11 +298,11 @@ const Users: React.FC = () => {
       <Box sx={{ 
         display: 'flex', 
         justifyContent: { xs: 'flex-end', sm: 'flex-end' }, 
-        mb: { xs: 2, sm: 2 }
+        mb: { xs: 1, sm: 2 }
       }}>
         <Box sx={{ 
           display: 'flex', 
-          gap: { xs: 2, sm: 3 }, 
+          gap: { xs: 1.5, sm: 2.5 }, 
           color: 'text.secondary', 
           fontSize: { xs: '0.75rem', sm: '0.875rem' },
           flexWrap: 'wrap',
@@ -508,7 +508,7 @@ const Users: React.FC = () => {
                     )}
 
                     {/* Permissions */}
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0 }}>
                       <Chip
                         label={`Xem: ${user.quyen_xem ? 'Có' : 'Không'}`}
                         color={user.quyen_xem ? 'success' : 'default'}
@@ -536,7 +536,7 @@ const Users: React.FC = () => {
                     </Box>
 
                     {/* Actions */}
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 0 }}>
                       <IconButton
                         size="small"
                         onClick={() => handleOpenDialog(user)}

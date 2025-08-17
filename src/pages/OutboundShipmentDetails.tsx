@@ -370,7 +370,7 @@ const OutboundShipmentDetails: React.FC = () => {
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/outbound-shipments')}
-          sx={{ mt: 2 }}
+          sx={{ mt: 1 }}
         >
           Quay lại
         </Button>
@@ -616,7 +616,7 @@ const OutboundShipmentDetails: React.FC = () => {
           {editingDetail ? 'Sửa Sản Phẩm' : 'Thêm Sản Phẩm'}
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
               label="Mã Sản Phẩm"
               value={formData.san_pham_id}

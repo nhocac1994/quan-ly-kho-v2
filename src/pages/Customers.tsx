@@ -448,18 +448,18 @@ const Customers: React.FC = () => {
   );
 
   return (
-    <Box sx={{ p: { xs: 1, sm: 2, md: 3 }, width: '100%', maxWidth: '100%', overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
+    <Box sx={{ p: { xs: 0, sm: 1, md: 2 }, width: '100%', maxWidth: '100%', overflow: 'hidden', mx: 'auto',height: '100vh-80px' }}>
       {/* Header */}
       <Box sx={{ 
         display: 'flex', 
         flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between', 
         alignItems: { xs: 'stretch', sm: 'center' }, 
-        mb: { xs: 2, sm: 3 },
-        gap: { xs: 2, sm: 0 },
+        mb: { xs: 1, sm: 2 },
+        gap: { xs: 1.5, sm: 1 },
         mt: { xs: 2, sm: 0 }
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1.5 } }}>
           <PeopleIcon sx={{ fontSize: { xs: 24, sm: 28, md: 32 }, color: 'primary.main' }} />
           <Typography 
             variant="h4" 
@@ -478,7 +478,7 @@ const Customers: React.FC = () => {
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' },
-          gap: { xs: 1, sm: 2 }, 
+          gap: { xs: 0.5, sm: 1.5 }, 
           alignItems: { xs: 'stretch', sm: 'center' },
           width: { xs: '100%', sm: 'auto' }
         }}>
@@ -509,7 +509,7 @@ const Customers: React.FC = () => {
           
           <Box sx={{ 
             display: 'flex', 
-            gap: { xs: 1, sm: 2 },
+            gap: { xs: 0.5, sm: 1.5 },
             justifyContent: { xs: 'flex-end', sm: 'flex-start' }
           }}>
             <Tooltip title="Import Excel">
@@ -631,11 +631,11 @@ const Customers: React.FC = () => {
         justifyContent: { xs: 'flex-end', sm: 'flex-end' }, 
         mb: { xs: 1, sm: 2 },
         flexWrap: 'wrap',
-        gap: { xs: 1, sm: 0 }
+        gap: { xs: 0.5, sm: 1 }
       }}>
         <Box sx={{ 
           display: 'flex', 
-          gap: { xs: 2, sm: 3 }, 
+          gap: { xs: 1.5, sm: 2.5 }, 
           color: 'text.secondary', 
           fontSize: { xs: '0.75rem', sm: '0.875rem' },
           justifyContent: { xs: 'flex-end', sm: 'flex-end' }
@@ -884,14 +884,14 @@ const Customers: React.FC = () => {
                     )}
 
                     {/* Actions */}
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 0 }}>
                       <IconButton
                         size="small"
                         color="info"
                         onClick={() => navigate(`/customers/${customer.ten_khach_hang}`)}
                         sx={{ 
                           width: 32, 
-                          height: 32,
+                          height: 28,
                           '& .MuiSvgIcon-root': { fontSize: '1rem' }
                         }}
                       >
@@ -902,7 +902,7 @@ const Customers: React.FC = () => {
                         onClick={() => handleOpenDrawer(customer)}
                         sx={{ 
                           width: 32, 
-                          height: 32,
+                          height: 28,
                           '& .MuiSvgIcon-root': { fontSize: '1rem' }
                         }}
                       >
@@ -914,7 +914,7 @@ const Customers: React.FC = () => {
                         onClick={() => handleDelete(customer.id)}
                         sx={{ 
                           width: 32, 
-                          height: 32,
+                          height: 28,
                           '& .MuiSvgIcon-root': { fontSize: '1rem' }
                         }}
                       >
@@ -1047,7 +1047,7 @@ const Customers: React.FC = () => {
           borderTop: '1px solid #e0e0e0',
           display: 'flex',
           gap: 1,
-          mb:{xs:2,sm:0}
+          mb: { xs: 1, sm: 2 }
         }}>
           <Button 
             onClick={handleCloseDrawer}
@@ -1108,7 +1108,7 @@ const Customers: React.FC = () => {
                 <Typography variant="body2" component="div">
                   • Hiển Thị phải là "Có" hoặc "Không"
                 </Typography>
-                <Typography variant="body2" component="div" sx={{ mt: 1, fontWeight: 'bold', color: 'warning.main' }}>
+                <Typography variant="body2" component="div" sx={{ mt: 0, fontWeight: 'bold', color: 'warning.main' }}>
                   • Khách hàng có tên trùng sẽ được cập nhật thông tin mới
                 </Typography>
               </Alert>

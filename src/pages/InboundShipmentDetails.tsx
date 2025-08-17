@@ -188,7 +188,7 @@ const InboundShipmentDetails: React.FC = () => {
         <Typography variant="h6" color="error">
           Không tìm thấy thông tin phiếu nhập kho
         </Typography>
-        <Button onClick={() => navigate('/inbound')} sx={{ mt: 2 }}>
+        <Button onClick={() => navigate('/inbound')} sx={{ mt: 1 }}>
           Quay lại danh sách
         </Button>
       </Box>
@@ -197,14 +197,14 @@ const InboundShipmentDetails: React.FC = () => {
 
   return (
     <Box sx={{ 
-      p: { xs: 0, sm: 2, md: 3 }, 
+      p: { xs: 0, sm: 1, md: 2 }, 
       width: '100%', 
       maxWidth: '100%',
       overflow: 'auto', 
       mx: 'auto',
       display: 'flex',
       flexDirection: 'column',
-      gap: { xs: 1, sm: 3 },
+      gap: { xs: 0.5, sm: 2.5 },
       minHeight: '100vh',
       bgcolor: '#f5f5f5'
     }}>
@@ -233,8 +233,8 @@ const InboundShipmentDetails: React.FC = () => {
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' },
           alignItems: { xs: 'stretch', sm: 'center' }, 
-          gap: { xs: 1, sm: 2 }, 
-          mb: { xs: 2, sm: 3 },
+          gap: { xs: 0.5, sm: 1.5 }, 
+          mb: { xs: 1, sm: 2 },
           flexWrap: 'wrap' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: { xs: 1, sm: 2 } }}>
             <IconButton onClick={() => navigate('/inbound')}>
@@ -251,7 +251,7 @@ const InboundShipmentDetails: React.FC = () => {
             gap: 1,
             justifyContent: { xs: 'center', sm: 'flex-end' },
             flexWrap: 'wrap',
-            mb: { xs: 1, sm: 3 }
+            mb: { xs: 1, sm: 2 }
           }}>
             <Button
               variant="contained"
@@ -326,7 +326,7 @@ const InboundShipmentDetails: React.FC = () => {
         <Box sx={{ 
           display: 'grid', 
           gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, 
-          gap: { xs: 1, sm: 2 }, 
+          gap: { xs: 0.5, sm: 1.5 }, 
           mb: 3 
         }}>
           <Card sx={{ borderRadius: 2 }}>
@@ -375,7 +375,7 @@ const InboundShipmentDetails: React.FC = () => {
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' },
-          gap: { xs: 1, sm: 2 }, 
+          gap: { xs: 0.5, sm: 1.5 }, 
           mb: 2 
         }}>
           <TextField
@@ -673,7 +673,7 @@ const InboundShipmentDetails: React.FC = () => {
           {editingDetail ? 'Sửa Chi Tiết Nhập Kho' : 'Thêm Chi Tiết Mới'}
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 0 }}>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField
                 fullWidth

@@ -247,7 +247,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
 
   return (
     <Box sx={{ 
-      p: { xs: 1, sm: 2, md: 3 }, 
+      p: { xs: 0, sm: 1, md: 2 }, 
       width: '100%', 
       maxWidth: '100%', 
       overflow: 'hidden', 
@@ -261,7 +261,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
         flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between', 
         alignItems: { xs: 'stretch', sm: 'center' }, 
-        gap: { xs: 2, sm: 0 },
+        gap: { xs: 1.5, sm: 1 },
         mb: 2 
       }}>
         <Box sx={{ display: {xs:'none',sm:'flex'}, alignItems: 'center', gap: 2 }}>
@@ -278,7 +278,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' },
-          gap: { xs: 1, sm: 2 }, 
+          gap: { xs: 0.5, sm: 1.5 }, 
           alignItems: { xs: 'stretch', sm: 'center' },
           width: { xs: '100%', sm: 'auto' }
         }}>
@@ -392,7 +392,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
       }}>
         <Box sx={{ 
           display: 'flex', 
-          gap: { xs: 2, sm: 3 }, 
+          gap: { xs: 1.5, sm: 2.5 }, 
           color: 'text.secondary', 
           fontSize: { xs: '0.75rem', sm: '0.875rem' },
           flexWrap: 'wrap',
@@ -832,7 +832,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = () => {
           justifyContent: 'center', 
           alignItems: 'center', 
           gap: 1, 
-          mt: 2,
+          mt: 1,
           flexWrap: 'wrap'
         }}>
           <Button

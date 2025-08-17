@@ -46,7 +46,7 @@ const RealtimeStatus: React.FC = () => {
         </Box>
         
         {!allConnected && (
-          <Typography variant="body2" sx={{ mt: 1 }}>
+          <Typography variant="body2" sx={{ mt: 0 }}>
             Để có realtime sync giữa các thiết bị, vui lòng chạy script SQL trong Supabase Dashboard:
             <br />
             <code style={{ backgroundColor: '#f5f5f5', padding: '4px 8px', borderRadius: '4px' }}>
@@ -56,7 +56,7 @@ const RealtimeStatus: React.FC = () => {
         )}
         
         {allConnected && (
-          <Typography variant="body2" sx={{ mt: 1 }}>
+          <Typography variant="body2" sx={{ mt: 0 }}>
             ✅ Realtime đã được bật! Dữ liệu sẽ tự động cập nhật giữa các thiết bị.
           </Typography>
         )}

@@ -153,7 +153,7 @@ const SupabaseUsageMonitor: React.FC = () => {
             <StorageIcon color="primary" />
             <Typography variant="h6">Đang tải thông tin sử dụng...</Typography>
           </Box>
-          <LinearProgress sx={{ mt: 2 }} />
+          <LinearProgress sx={{ mt: 1 }} />
         </CardContent>
       </Card>
     );
@@ -243,7 +243,7 @@ const SupabaseUsageMonitor: React.FC = () => {
               variant="determinate" 
               value={Math.min(usageData.storage.percentage, 100)}
               sx={{ 
-                height: 8, 
+                height: 20, 
                 borderRadius: 4,
                 backgroundColor: '#e0e0e0',
                 '& .MuiLinearProgress-bar': {
@@ -252,7 +252,7 @@ const SupabaseUsageMonitor: React.FC = () => {
               }}
             />
             
-            <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+            <Typography variant="caption" sx={{ mt: 0, display: 'block' }}>
               {usageData.storage.percentage.toFixed(1)}% đã sử dụng
             </Typography>
           </CardContent>
@@ -292,7 +292,7 @@ const SupabaseUsageMonitor: React.FC = () => {
               variant="determinate" 
               value={Math.min(usageData.bandwidth.percentage, 100)}
               sx={{ 
-                height: 8, 
+                height: 20, 
                 borderRadius: 4,
                 backgroundColor: '#e0e0e0',
                 '& .MuiLinearProgress-bar': {
@@ -301,7 +301,7 @@ const SupabaseUsageMonitor: React.FC = () => {
               }}
             />
             
-            <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+            <Typography variant="caption" sx={{ mt: 0, display: 'block' }}>
               {usageData.bandwidth.percentage.toFixed(1)}% đã sử dụng
             </Typography>
           </CardContent>
@@ -341,7 +341,7 @@ const SupabaseUsageMonitor: React.FC = () => {
               variant="determinate" 
               value={Math.min(usageData.requests.percentage, 100)}
               sx={{ 
-                height: 8, 
+                height: 20, 
                 borderRadius: 4,
                 backgroundColor: '#e0e0e0',
                 '& .MuiLinearProgress-bar': {
@@ -350,7 +350,7 @@ const SupabaseUsageMonitor: React.FC = () => {
               }}
             />
             
-            <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+            <Typography variant="caption" sx={{ mt: 0, display: 'block' }}>
               {usageData.requests.percentage.toFixed(1)}% đã sử dụng
             </Typography>
           </CardContent>
@@ -358,7 +358,7 @@ const SupabaseUsageMonitor: React.FC = () => {
       </Box>
 
       {/* Warnings */}
-      <Box sx={{ mt: 2 }}>
+      <Box sx={{ mt: 1 }}>
         {(usageData.storage.percentage >= 75 || 
           usageData.bandwidth.percentage >= 75 || 
           usageData.requests.percentage >= 75) && (
@@ -383,7 +383,7 @@ const SupabaseUsageMonitor: React.FC = () => {
       </Box>
 
       {/* Info */}
-      <Paper sx={{ p: 2, mt: 2, bgcolor: '#f5f5f5' }}>
+      <Paper sx={{ p: 2, mt: 1, bgcolor: '#f5f5f5' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <InfoIcon color="info" />
           <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -393,7 +393,7 @@ const SupabaseUsageMonitor: React.FC = () => {
         <Typography variant="body2" color="text.secondary">
           • <strong>Lưu trữ:</strong> 500MB | • <strong>Băng thông:</strong> 2GB/tháng | • <strong>API Requests:</strong> 50,000/tháng
         </Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0 }}>
           Dữ liệu được ước tính dựa trên số lượng records và hoạt động hiện tại. 
           Để có thông tin chính xác, vui lòng kiểm tra Supabase Dashboard.
         </Typography>

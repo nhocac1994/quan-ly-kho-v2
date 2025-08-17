@@ -192,7 +192,7 @@ const ProductDetail: React.FC = () => {
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/products')}
-          sx={{ mt: 2 }}
+          sx={{ mt: 1 }}
         >
           Quay lại
         </Button>
@@ -206,21 +206,21 @@ const ProductDetail: React.FC = () => {
 
   return (
     <Box sx={{ 
-      p: { xs: 1, sm: 2, md: 3 }, 
+      p: { xs: 0, sm: 1, md: 2 }, 
       width: '100%', 
       maxWidth: { xs: '100%', sm: '100%' }, 
       overflow: 'hidden', 
       mx: { xs: 0, sm: 'auto' },
       display: 'flex',
       flexDirection: 'column',
-      gap: { xs: 1, sm: 3 },
+      gap: { xs: 0.5, sm: 2.5 },
     }}>
       {/* Header */}
       <Box sx={{ 
         display: 'flex', 
         alignItems: 'center', 
-        gap: { xs: 1, sm: 2 }, 
-        mb: { xs: 0, sm: 3 },
+        gap: { xs: 0.5, sm: 1.5 }, 
+        mb: { xs: 1, sm: 2 },
         flexWrap: 'wrap',
         width: '100%',
         p: { xs: 2, sm: 0 },
@@ -256,11 +256,11 @@ const ProductDetail: React.FC = () => {
 
       {/* Product Info Card */}
       <Card sx={{ 
-        mb: { xs: 0, sm: 3 },
+        mb: { xs: 1, sm: 2 },
         borderRadius: { xs: 2, sm: 3 }
       }}>
-        <CardContent sx={{ p: { xs: 1, sm: 3 } }}>
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 1, sm: 3 } }}>
+        <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 0.5, sm: 2.5 } }}>
             <Box sx={{ flex: 1 }}>
               <Typography 
                 variant="h6" 
@@ -322,7 +322,7 @@ const ProductDetail: React.FC = () => {
             
             <Box sx={{ flex: 1 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 } }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1.5 }, flexWrap: 'wrap' }}>
                   <Typography 
                     variant="h5" 
                     color="primary"
@@ -341,7 +341,7 @@ const ProductDetail: React.FC = () => {
                   />
                 </Box>
                 
-                <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', gap: { xs: 1.5, sm: 2.5 }, flexWrap: 'wrap' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <TrendingUpIcon color="success" sx={{ fontSize: { xs: 14, sm: 16 } }} />
                     <Typography 
@@ -362,7 +362,7 @@ const ProductDetail: React.FC = () => {
                   </Box>
                 </Box>
 
-                <Box sx={{ display: 'flex', gap: { xs: 2, sm: 2 }, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', gap: { xs: 1.5, sm: 1.5 }, flexWrap: 'wrap' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <LocalShippingIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary' }} />
                     <Typography 

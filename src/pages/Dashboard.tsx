@@ -139,7 +139,7 @@ const Dashboard: React.FC = () => {
                     sx={{ 
                       bgcolor: 'rgba(255,255,255,0.2)', 
                       width: 36, 
-                      height: 36,
+                      height: 32,
                       '& .MuiSvgIcon-root': { fontSize: 18, color: 'white' }
                     }}
                   >
@@ -175,7 +175,7 @@ const Dashboard: React.FC = () => {
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Avatar sx={{ bgcolor: 'warning.main', mr: 2, width: 32, height: 32 }}>
+                <Avatar sx={{ bgcolor: 'warning.main', mr: 2, width: 32, height: 28 }}>
                   <WarningIcon sx={{ fontSize: 18 }} />
                 </Avatar>
                 <Box>
@@ -206,7 +206,7 @@ const Dashboard: React.FC = () => {
                         variant="determinate" 
                         value={Math.min((product.sl_ton / 10) * 100, 100)} 
                         sx={{ 
-                          height: 6, 
+                          height: 20, 
                           borderRadius: 3,
                           bgcolor: 'grey.200',
                           '& .MuiLinearProgress-bar': {
@@ -234,7 +234,7 @@ const Dashboard: React.FC = () => {
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Avatar sx={{ bgcolor: 'info.main', mr: 2, width: 32, height: 32 }}>
+                <Avatar sx={{ bgcolor: 'info.main', mr: 2, width: 32, height: 28 }}>
                   <InfoIcon sx={{ fontSize: 18 }} />
                 </Avatar>
                 <Box>

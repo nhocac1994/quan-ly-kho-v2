@@ -5,6 +5,9 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
 
+// Import CSS tối ưu
+import './components/compact-table.css';
+
 // Context
 import { InventoryProvider } from './context/InventoryContext';
 

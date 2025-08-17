@@ -1123,14 +1123,14 @@ const OutboundShipments: React.FC = () => {
   }, [shipmentHeaders, searchTerm]);
 
   return (
-    <Box sx={{ p: { xs: 1, sm: 2, md: 3 }, width: '100%', maxWidth: '100%', overflow: 'hidden', mx: 'auto' }}>
+    <Box sx={{ p: { xs: 0, sm: 1, md: 2 }, width: '100%', maxWidth: '100%', overflow: 'hidden', mx: 'auto' }}>
       {/* Header */}
       <Box sx={{ 
         display: 'flex', 
         flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between', 
         alignItems: { xs: 'stretch', sm: 'center' }, 
-        gap: { xs: 2, sm: 0 },
+        gap: { xs: 1.5, sm: 1 },
         mb: 3,
         mt: { xs: 2, md: 0 }
       }}>
@@ -1148,7 +1148,7 @@ const OutboundShipments: React.FC = () => {
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' },
-          gap: { xs: 1, sm: 2 }, 
+          gap: { xs: 0.5, sm: 1.5 }, 
           alignItems: { xs: 'stretch', sm: 'center' },
           width: { xs: '100%', sm: 'auto' }
         }}>
@@ -1259,7 +1259,7 @@ const OutboundShipments: React.FC = () => {
       }}>
         <Box sx={{ 
           display: 'flex', 
-          gap: { xs: 2, sm: 3 }, 
+          gap: { xs: 1.5, sm: 2.5 }, 
           color: 'text.secondary', 
           fontSize: { xs: '0.65rem', sm: '0.875rem' },
           flexWrap: 'wrap',
@@ -1477,7 +1477,7 @@ const OutboundShipments: React.FC = () => {
           justifyContent: 'flex-end', 
           alignItems: 'center', 
           gap: 1, 
-          mt: 2,
+          mt: 1,
           flexWrap: 'wrap'
         }}>
           <Button
@@ -2175,7 +2175,7 @@ const OutboundShipments: React.FC = () => {
                   
                   {/* Desktop Table View */}
                   <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
-                    <TableContainer component={Paper} sx={{ mt: 1, boxShadow: 1, borderRadius: 1 }}>
+                    <TableContainer component={Paper} sx={{ mt: 0, boxShadow: 1, borderRadius: 1 }}>
                       <Table size="small">
                         <TableHead>
                           <TableRow>
@@ -2206,7 +2206,7 @@ const OutboundShipments: React.FC = () => {
                                     width: 80,
                                     '& .MuiOutlinedInput-root': {
                                       fontSize: '0.75rem',
-                                      height: 32,
+                                      height: 28,
                                     }
                                   }}
                                   inputProps={{ 
@@ -2225,7 +2225,7 @@ const OutboundShipments: React.FC = () => {
                                     width: 80,
                                     '& .MuiOutlinedInput-root': {
                                       fontSize: '0.75rem',
-                                      height: 32,
+                                      height: 28,
                                     }
                                   }}
                                   inputProps={{ 
@@ -2245,7 +2245,7 @@ const OutboundShipments: React.FC = () => {
                                     width: 120,
                                     '& .MuiOutlinedInput-root': {
                                       fontSize: '0.75rem',
-                                      height: 32,
+                                      height: 28,
                                     }
                                   }}
                                 />
@@ -2274,7 +2274,7 @@ const OutboundShipments: React.FC = () => {
 
                   {/* Mobile Card View */}
                   <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 0 }}>
                       {productItems.map((item, index) => (
                         <Card key={item.id} sx={{ 
                           borderRadius: 1,
@@ -2340,7 +2340,7 @@ const OutboundShipments: React.FC = () => {
                                     width: '100%',
                                     '& .MuiOutlinedInput-root': {
                                       fontSize: '0.7rem',
-                                      height: 28,
+                                      height: 24,
                                     }
                                   }}
                                   inputProps={{ 
@@ -2363,7 +2363,7 @@ const OutboundShipments: React.FC = () => {
                                     width: '100%',
                                     '& .MuiOutlinedInput-root': {
                                       fontSize: '0.7rem',
-                                      height: 28,
+                                      height: 24,
                                     }
                                   }}
                                   inputProps={{ 
@@ -2385,7 +2385,7 @@ const OutboundShipments: React.FC = () => {
                                   width: '100%',
                                   '& .MuiOutlinedInput-root': {
                                     fontSize: '0.7rem',
-                                    height: 28,
+                                    height: 24,
                                   }
                                 }}
                               />
@@ -2403,7 +2403,7 @@ const OutboundShipments: React.FC = () => {
               {/* Summary khi có sản phẩm */}
               {productItems.length > 0 && (
                 <Box sx={{ 
-                  mt: 2, 
+                  mt: 1, 
                   p: 2, 
                   bgcolor: '#e8f5e8', 
                   borderRadius: 1,
@@ -2415,7 +2415,7 @@ const OutboundShipments: React.FC = () => {
                   }}>
                     Tổng kết phiếu xuất kho:
                   </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 0 }}>
                     <Typography variant="body2" color="text.secondary" sx={{
                       fontSize: { xs: '0.75rem', sm: '0.875rem' }
                     }}>
@@ -2433,7 +2433,7 @@ const OutboundShipments: React.FC = () => {
               {/* Thông báo khi chưa có sản phẩm */}
               {productItems.length === 0 && (
                 <Box sx={{ 
-                  mt: 2, 
+                  mt: 1, 
                   p: 3, 
                   textAlign: 'center', 
                   bgcolor: '#f5f5f5', 
@@ -2468,7 +2468,7 @@ const OutboundShipments: React.FC = () => {
                 fontWeight: 500,
                 px: { xs: 1, sm: 2 },
                 py: { xs: 0.75, sm: 0.5 },
-                mb: {xs:2,sm:0},
+                mb: { xs: 1, sm: 2 },
                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
                 borderColor: 'primary.main',
                 color: 'primary.main',
@@ -2494,7 +2494,7 @@ const OutboundShipments: React.FC = () => {
                 fontWeight: 500,
                 px: { xs: 1, sm: 2 },
                 py: { xs: 0.75, sm: 0.5 },
-                mb:{xs:2,sm:0},
+                mb: { xs: 1, sm: 2 },
                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
                 boxShadow: 1,
                 flex: { xs: 1, sm: 'none' },
@@ -2575,7 +2575,7 @@ const OutboundShipments: React.FC = () => {
               flexDirection: { xs: 'column', sm: 'column' },
               justifyContent: 'space-between', 
               alignItems: { xs: 'stretch', sm: 'flex-end' },
-              gap: { xs: 1, sm: 0 }
+              gap: { xs: 0.5, sm: 1 }
             }}>
               <Box sx={{ 
                 display: 'flex', 
@@ -2789,7 +2789,7 @@ const OutboundShipments: React.FC = () => {
                 Thông tin sản phẩm
               </Typography>
               {/* Danh sách sản phẩm */}
-              <Box sx={{ mt: 3 }}>
+              <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle1" sx={{ 
                   mb: 2, 
                   fontWeight: 'bold', 
@@ -2936,7 +2936,7 @@ const OutboundShipments: React.FC = () => {
               </Box>
 
               {/* Thông tin bổ sung */}
-              <Box sx={{ mt: 3 }}>
+              <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle1" sx={{ 
                   mb: 2, 
                   fontWeight: 'bold', 
@@ -3093,7 +3093,7 @@ const OutboundShipments: React.FC = () => {
             display: 'flex', 
             flexDirection: { xs: 'column', sm: 'row' },
             alignItems: { xs: 'stretch', sm: 'center' }, 
-            gap: { xs: 1, sm: 2 } 
+            gap: { xs: 0.5, sm: 1.5 } 
           }}>
             <Button
               variant="outlined"
@@ -3366,7 +3366,7 @@ const OutboundShipments: React.FC = () => {
             {/* Hiển thị chế độ tạo hàng loạt cho Import Excel */}
             {importBulkCreateMode && (
               <Box sx={{ 
-                mt: 2, 
+                mt: 1, 
                 p: 1.5, 
                 bgcolor: '#e8f5e8', 
                 borderRadius: 1,
@@ -3465,7 +3465,7 @@ const OutboundShipments: React.FC = () => {
               </TableContainer>
               {importData.length > 10 && (
                 <Typography variant="body2" color="text.secondary" sx={{ 
-                  mt: 1, 
+                  mt: 0, 
                   textAlign: 'center',
                   fontSize: { xs: '0.75rem', sm: '0.875rem' }
                 }}>
@@ -3478,7 +3478,7 @@ const OutboundShipments: React.FC = () => {
         <DialogActions sx={{ 
           p: { xs: 1.5, sm: 2 },
           flexDirection: { xs: 'column', sm: 'row' },
-          gap: { xs: 1, sm: 0 }
+          gap: { xs: 0.5, sm: 1 }
         }}>
           <Button 
             onClick={() => setOpenImportDialog(false)}

@@ -431,7 +431,7 @@ const Suppliers: React.FC = () => {
 
   return (
     <Box sx={{ 
-      p: { xs: 1, sm: 2, md: 3 }, 
+      p: { xs: 0, sm: 1, md: 2 }, 
       width: '100%', 
       maxWidth: '100%', 
       overflow: 'hidden', 
@@ -444,11 +444,11 @@ const Suppliers: React.FC = () => {
         flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between', 
         alignItems: { xs: 'stretch', sm: 'center' }, 
-        mb: { xs: 2, sm: 3 },
-        gap: { xs: 2, sm: 0 },
+        mb: { xs: 1, sm: 2 },
+        gap: { xs: 1.5, sm: 1 },
         mt: { xs: 2, sm: 0 }
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1.5 } }}>
           <BusinessIcon sx={{ 
             fontSize: { xs: 24, sm: 28, md: 32 }, 
             color: 'primary.main' 
@@ -469,7 +469,7 @@ const Suppliers: React.FC = () => {
         
         <Box sx={{ 
           display: 'flex', 
-          gap: { xs: 1, sm: 2 }, 
+          gap: { xs: 0.5, sm: 1.5 }, 
           alignItems: 'center',
           justifyContent: { xs: 'flex-end', sm: 'flex-end' },
           flexWrap: 'wrap'
@@ -615,11 +615,11 @@ const Suppliers: React.FC = () => {
       <Box sx={{ 
         display: 'flex', 
         justifyContent: { xs: 'flex-end', sm: 'flex-end' }, 
-        mb: { xs: 2, sm: 2 }
+        mb: { xs: 1, sm: 2 }
       }}>
         <Box sx={{ 
           display: 'flex', 
-          gap: { xs: 2, sm: 3 }, 
+          gap: { xs: 1.5, sm: 2.5 }, 
           color: 'text.secondary', 
           fontSize: { xs: '0.75rem', sm: '0.875rem' },
           flexWrap: 'wrap',
@@ -866,7 +866,7 @@ const Suppliers: React.FC = () => {
                     )}
 
                     {/* Actions */}
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 0 }}>
                       <Tooltip title="Xem chi tiết">
                         <IconButton
                           size="small"
@@ -971,7 +971,7 @@ const Suppliers: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: 2,
-            mb:{xs:2,sm:0}
+            mb: { xs: 1, sm: 2 }
           }}>
             <BusinessIcon sx={{fontSize:{xs:'1.5rem',sm:'2rem'}}} />
             <Typography variant="h6" fontWeight="600" sx={{fontSize:{xs:'1rem',sm:'1.2rem'}}}>
@@ -1178,7 +1178,7 @@ const Suppliers: React.FC = () => {
             borderTop: '1px solid #e0e0e0',
             display: 'flex',
             gap: 1,
-            mb:{xs:2,sm:0}
+            mb: { xs: 1, sm: 2 }
           }}>
             <Button 
               onClick={handleCloseDrawer}
@@ -1240,7 +1240,7 @@ const Suppliers: React.FC = () => {
                 <Typography variant="body2" component="div">
                   • Hiển Thị phải là "Có" hoặc "Không"
                 </Typography>
-                <Typography variant="body2" component="div" sx={{ mt: 1, fontWeight: 'bold', color: 'warning.main' }}>
+                <Typography variant="body2" component="div" sx={{ mt: 0, fontWeight: 'bold', color: 'warning.main' }}>
                   • Nhà cung cấp có tên trùng sẽ được cập nhật thông tin mới
                 </Typography>
               </Alert>

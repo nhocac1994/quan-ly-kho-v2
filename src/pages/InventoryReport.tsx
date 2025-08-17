@@ -143,16 +143,19 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
         });
       }
 
-      report.push({
-        product_id: product.id,
-        product_code: product.san_pham_id,
-        product_name: `${product.ten_san_pham} (${product.dvt})`,
-        unit: product.dvt,
-        beginning_stock: beginningStock, // Cho phép số âm
-        inbound_quantity: inboundQuantity,
-        outbound_quantity: outboundQuantity,
-        ending_stock: endingStock, // Cho phép số âm
-      });
+      // CHỈ THÊM VÀO BÁO CÁO NHỮNG SẢN PHẨM CÓ PHÁT SINH XUẤT HOẶC NHẬP
+      if (inboundQuantity > 0 || outboundQuantity > 0) {
+        report.push({
+          product_id: product.id,
+          product_code: product.san_pham_id,
+          product_name: `${product.ten_san_pham} (${product.dvt})`,
+          unit: product.dvt,
+          beginning_stock: beginningStock, // Cho phép số âm
+          inbound_quantity: inboundQuantity,
+          outbound_quantity: outboundQuantity,
+          ending_stock: endingStock, // Cho phép số âm
+        });
+      }
     });
 
     return report.sort((a, b) => a.product_code.localeCompare(b.product_code));
@@ -358,7 +361,7 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
 
   return (
     <Box sx={{ 
-      p: { xs: 1, sm: 2, md: 3 }, 
+      p: { xs: 0, sm: 1, md: 2 }, 
       width: '100%', 
       maxWidth: '100%', 
       overflow: 'hidden', 
@@ -371,7 +374,7 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
         flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between', 
         alignItems: { xs: 'stretch', sm: 'center' }, 
-        gap: { xs: 2, sm: 0 },
+        gap: { xs: 1.5, sm: 1 },
         mb: 3 
       }}>
         <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 2 }}>
@@ -388,7 +391,7 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' },
-          gap: { xs: 1, sm: 2 }, 
+          gap: { xs: 0.5, sm: 1.5 }, 
           alignItems: { xs: 'stretch', sm: 'center' },
           width: { xs: '100%', sm: 'auto' }
         }}>
@@ -475,6 +478,22 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
           </Box>
         </Box>
       </Box>
+
+      {/* Thông báo về báo cáo */}
+      <Alert 
+        severity="info" 
+        sx={{ 
+          mb: 2,
+          borderRadius: 2,
+          '& .MuiAlert-message': {
+            fontSize: { xs: '0.8rem', sm: '0.875rem' }
+          }
+        }}
+      >
+        <Typography variant="body2">
+          <strong>Lưu ý:</strong> Báo cáo chỉ hiển thị những sản phẩm có phát sinh xuất hoặc nhập trong khoảng thời gian đã chọn.
+        </Typography>
+      </Alert>
 
       {/* Filter Dialog - Slide down from header */}
       <Slide direction="down" in={filterDialogOpen} mountOnEnter unmountOnExit>
@@ -569,7 +588,7 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
           
           {/* Debug Info */}
           <Box sx={{ 
-            mt: 2, 
+            mt: 1, 
             p: { xs: 1.5, sm: 2 }, 
             bgcolor: 'grey.50', 
             borderRadius: 1 
@@ -585,7 +604,8 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
               fontSize: { xs: '0.7rem', sm: '0.8rem' },
               lineHeight: { xs: 1.4, sm: 1.5 }
             }}>
-              • Số sản phẩm: {products.length} | 
+              • Tổng sản phẩm: {products.length} | 
+              • Sản phẩm có phát sinh: {inventoryReport.length} | 
               • Số phiếu: {shipmentHeaders.length} | 
               • Số items: {shipmentItems.length} |
               • Khoảng thời gian: {formatDate(dateFrom)} - {formatDate(dateTo)}
@@ -602,8 +622,27 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
         </Paper>
       </Slide>
 
+      {/* Thông báo khi không có dữ liệu */}
+      {inventoryReport.length === 0 && (
+        <Alert 
+          severity="warning" 
+          sx={{ 
+            mb: 2,
+            borderRadius: 2,
+            '& .MuiAlert-message': {
+              fontSize: { xs: '0.8rem', sm: '0.875rem' }
+            }
+          }}
+        >
+          <Typography variant="body2">
+            <strong>Không có dữ liệu:</strong> Trong khoảng thời gian từ {formatDate(dateFrom)} đến {formatDate(dateTo)} không có sản phẩm nào có phát sinh xuất hoặc nhập.
+          </Typography>
+        </Alert>
+      )}
+
       {/* Desktop Table View */}
-      <Paper sx={{ width: '100%', overflow: 'hidden', display: { xs: 'none', md: 'block' } }}>
+      {inventoryReport.length > 0 && (
+        <Paper sx={{ width: '100%', overflow: 'hidden', display: { xs: 'none', md: 'block' } }}>
         <TableContainer sx={{ maxHeight: 'calc(100vh - 180px)' }}>
           <Table stickyHeader size="small">
             <TableHead sx={{ 
@@ -625,18 +664,18 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
                 <TableCell sx={{ color: '#000', fontWeight: 'bold', width: 200, textAlign: 'right' }}>SL Xuất</TableCell>
                 <TableCell sx={{ color: '#000', fontWeight: 'bold', width: 200, textAlign: 'right' }}>Tồn cuối kỳ</TableCell>
               </TableRow>
-              </TableHead>
-              <TableHead>
-              {/* Summary Row - Sticky */}
+              
+              {/* Summary Row - Nằm sát với header */}
               <TableRow sx={{ 
-                backgroundColor: '#FFF8E1 !important', 
+                backgroundColor: '#FFD54F !important', 
                 position: 'sticky', 
-                top: 50, 
+                top: 10, 
                 zIndex: 999,
                 '& .MuiTableCell-root': {
-                  backgroundColor: '#FFF8E1 !important',
+                  backgroundColor: '#FFD54F !important',
                   color: '#000 !important',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  borderBottom: '4px solid #FFB300'
                 }
               }}>
                 <TableCell colSpan={2} sx={{ fontWeight: 'bold' }}>
@@ -655,7 +694,7 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
                   {formatValue(totals.ending_stock)}
                 </TableCell>
               </TableRow>
-            </TableHead>
+              </TableHead>
             <TableBody>
               
               {/* Data Rows */}
@@ -688,15 +727,17 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
             </TableBody>
           </Table>
         </TableContainer>
-      </Paper>
+        </Paper>
+      )}
 
       {/* Mobile Card View */}
+      {inventoryReport.length > 0 && (
       <Box sx={{ display: { xs: 'block', md: 'none' } }}>
         {/* Summary Card */}
         <Card sx={{ 
           mb: 2, 
-          bgcolor: '#FFF8E1',
-          border: '2px solid #FFB74D'
+          bgcolor: '#FFD54F',
+          border: '2px solid #FFB300'
         }}>
           <CardContent sx={{ p: 2 }}>
             <Typography variant="h6" sx={{ 
@@ -846,6 +887,7 @@ const InventoryReport: React.FC<InventoryReportProps> = () => {
           ))}
         </Box>
       </Box>
+      )}
     </Box>
   );
 };

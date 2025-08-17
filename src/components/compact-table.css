@@ -1,0 +1,135 @@
+/* Tối ưu chiều cao dòng cho bảng dữ liệu - COMPACT */
+/* CHỈ ÁP DỤNG CHO BẢNG DỮ LIỆU, KHÔNG ẢNH HƯỞNG CÁC COMPONENT KHÁC */
+
+/* Giảm chiều cao tối đa cho table rows */
+.MuiTableContainer-root .MuiTableRow-root {
+  height: 36px !important; /* Giảm thêm từ 40px */
+}
+
+.MuiTableContainer-root .MuiTableRow-root.MuiTableRow-hover:hover {
+  height: 36px !important;
+}
+
+/* Giảm padding cho table cells */
+.MuiTableContainer-root .MuiTableCell-root {
+  padding: 2px 8px !important; /* Giảm thêm padding */
+  line-height: 1.0 !important; /* Giảm line-height */
+  font-size: 0.875rem !important; /* Giảm font-size */
+}
+
+.MuiTableContainer-root .MuiTableCell-head {
+  padding: 4px 8px !important; /* Giảm padding header */
+  font-weight: 600 !important;
+  font-size: 0.8rem !important; /* Giảm font-size header */
+  background-color: #f5f5f5 !important;
+}
+
+/* Tối ưu cho các chip trong bảng */
+.MuiTableContainer-root .MuiTableCell-root .MuiChip-root {
+  height: 18px !important; /* Giảm chiều cao chip */
+  font-size: 0.65rem !important; /* Giảm font-size */
+  padding: 0 6px !important; /* Giảm padding */
+}
+
+.MuiTableContainer-root .MuiTableCell-root .MuiChip-sizeSmall {
+  height: 14px !important; /* Giảm chiều cao chip nhỏ */
+  font-size: 0.6rem !important;
+  padding: 0 4px !important;
+}
+
+/* Tối ưu cho các icon trong bảng */
+.MuiTableContainer-root .MuiTableCell-root .MuiSvgIcon-root {
+  font-size: 0.9rem !important; /* Giảm kích thước icon */
+}
+
+.MuiTableContainer-root .MuiTableCell-root .MuiIconButton-root {
+  padding: 2px !important; /* Giảm padding button */
+  min-width: 24px !important; /* Giảm kích thước button */
+  height: 24px !important; /* Giảm chiều cao button */
+}
+
+/* Tối ưu cho pagination */
+.MuiTableContainer-root .MuiTablePagination-root {
+  min-height: 32px !important; /* Giảm chiều cao */
+  padding: 4px 8px !important; /* Giảm padding */
+}
+
+.MuiTableContainer-root .MuiTablePagination-selectLabel,
+.MuiTableContainer-root .MuiTablePagination-displayedRows {
+  font-size: 0.75rem !important; /* Giảm font-size */
+}
+
+.MuiTableContainer-root .MuiTablePagination-select {
+  font-size: 0.75rem !important; /* Giảm font-size */
+  padding: 2px 4px !important; /* Giảm padding */
+}
+
+/* Tối ưu cho badge trong bảng */
+.MuiTableContainer-root .MuiTableCell-root .MuiBadge-badge {
+  font-size: 0.65rem !important; /* Giảm font-size */
+  min-width: 12px !important; /* Giảm kích thước */
+  height: 12px !important; /* Giảm kích thước */
+  padding: 0 2px !important; /* Giảm padding */
+}
+
+/* Tối ưu cho mobile */
+@media (max-width: 600px) {
+  .MuiTableContainer-root .MuiTableRow-root {
+    height: 28px !important; /* Giảm thêm cho mobile */
+  }
+  
+  .MuiTableContainer-root .MuiTableCell-root {
+    padding: 1px 4px !important; /* Giảm padding cho mobile */
+    font-size: 0.8rem !important; /* Giảm font-size cho mobile */
+  }
+  
+  .MuiTableContainer-root .MuiTableCell-head {
+    padding: 2px 4px !important; /* Giảm padding header cho mobile */
+    font-size: 0.75rem !important; /* Giảm font-size header cho mobile */
+  }
+  
+  .MuiTableContainer-root .MuiTableCell-root .MuiChip-root {
+    height: 16px !important; /* Giảm chiều cao chip cho mobile */
+    font-size: 0.6rem !important;
+  }
+  
+  .MuiTableContainer-root .MuiTableCell-root .MuiIconButton-root {
+    padding: 1px !important; /* Giảm padding button cho mobile */
+    min-width: 20px !important; /* Giảm kích thước button cho mobile */
+    height: 20px !important; /* Giảm chiều cao button cho mobile */
+  }
+  
+  .MuiTableContainer-root .MuiTableCell-root .MuiSvgIcon-root {
+    font-size: 0.8rem !important; /* Giảm kích thước icon cho mobile */
+  }
+}
+
+/* Tối ưu cho table container */
+.MuiTableContainer-root {
+  max-height: calc(100vh - 200px) !important; /* Tối ưu chiều cao tối đa */
+}
+
+/* Tối ưu cho table */
+.MuiTable-root {
+  border-collapse: collapse !important;
+}
+
+/* Tối ưu cho table body */
+.MuiTableBody-root .MuiTableRow-root:nth-child(even) {
+  background-color: #fafafa !important; /* Màu nền xen kẽ */
+}
+
+.MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: #f0f0f0 !important; /* Màu nền khi hover */
+}
+
+/* Tối ưu cho các text trong bảng */
+.MuiTableContainer-root .MuiTableCell-root .MuiTypography-root {
+  line-height: 1.0 !important; /* Giảm line-height */
+  font-size: 0.875rem !important; /* Giảm font-size */
+}
+
+.MuiTableContainer-root .MuiTableCell-root .MuiTypography-caption {
+  font-size: 0.75rem !important; /* Giảm font-size caption */
+  line-height: 1.0 !important;
+}

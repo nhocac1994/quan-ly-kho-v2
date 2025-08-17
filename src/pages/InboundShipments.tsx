@@ -950,7 +950,7 @@ const InboundShipments: React.FC = () => {
 
   return (
     <Box sx={{       
-    p: { xs: 1, sm: 2, md: 3 }, 
+    p: { xs: 0, sm: 1, md: 2 }, 
     width: '100%', 
     maxWidth: { xs: '100%', sm: '100%' }, 
     mx: 'auto',
@@ -963,7 +963,7 @@ const InboundShipments: React.FC = () => {
         alignItems: { xs: 'flex-start', md: 'center' }, 
         mb: { xs: 1, sm: 2, md: 3 },
         gap: 2,
-        mt: 2
+        mt: 1
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <ShippingIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: 'primary.main' }} />
@@ -979,7 +979,7 @@ const InboundShipments: React.FC = () => {
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'column', sm: 'row' },
-          gap: { xs: 1, sm: 2 },
+          gap: { xs: 0.5, sm: 1.5 },
           alignItems: { xs: 'stretch', sm: 'center' },
           width: { xs: '100%', sm: 'auto' },
           justifyContent: { xs: 'flex-end', sm: 'flex-end' }
@@ -1104,7 +1104,7 @@ const InboundShipments: React.FC = () => {
         <Box sx={{ 
           display: 'flex', 
           flexDirection: { xs: 'row', sm: 'row' },
-          gap: { xs: 2, sm: 3 }, 
+          gap: { xs: 1.5, sm: 2.5 }, 
           color: 'text.secondary', 
           fontSize: { xs: '0.65rem', sm: '0.875rem' },
           justifyContent: { xs: 'flex-end', sm: 'flex-end' }
@@ -1340,7 +1340,7 @@ const InboundShipments: React.FC = () => {
             ))}
         </Box>
         
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
           <TablePagination
             rowsPerPageOptions={[5, 10, 25, 50]}
             component="div"
@@ -1959,7 +1959,7 @@ const InboundShipments: React.FC = () => {
                                       width: 80,
                                       '& .MuiOutlinedInput-root': {
                                         fontSize: '0.75rem',
-                                        height: 32,
+                                        height: 28,
                                       }
                                     }}
                                     inputProps={{ 
@@ -1978,7 +1978,7 @@ const InboundShipments: React.FC = () => {
                                       width: 80,
                                       '& .MuiOutlinedInput-root': {
                                         fontSize: '0.75rem',
-                                        height: 32,
+                                        height: 28,
                                       }
                                     }}
                                     inputProps={{ 
@@ -1997,7 +1997,7 @@ const InboundShipments: React.FC = () => {
                                       width: 120,
                                       '& .MuiOutlinedInput-root': {
                                         fontSize: '0.75rem',
-                                        height: 32,
+                                        height: 28,
                                       }
                                     }}
                                   />
@@ -2086,7 +2086,7 @@ const InboundShipments: React.FC = () => {
                                       width: 80,
                                       '& .MuiOutlinedInput-root': {
                                         fontSize: '0.75rem',
-                                        height: 28,
+                                        height: 24,
                                       }
                                     }}
                                     inputProps={{ 
@@ -2106,7 +2106,7 @@ const InboundShipments: React.FC = () => {
                                       width: 80,
                                       '& .MuiOutlinedInput-root': {
                                         fontSize: '0.75rem',
-                                        height: 28,
+                                        height: 24,
                                       }
                                     }}
                                     inputProps={{ 
@@ -2126,7 +2126,7 @@ const InboundShipments: React.FC = () => {
                                       width: 120,
                                       '& .MuiOutlinedInput-root': {
                                         fontSize: '0.75rem',
-                                        height: 28,
+                                        height: 24,
                                       }
                                     }}
                                   />
@@ -2145,7 +2145,7 @@ const InboundShipments: React.FC = () => {
                     display: 'flex', 
                     flexDirection: { xs: 'column', sm: 'row' },
                     justifyContent: 'space-between', 
-                    mt: 1,
+                    mt: 0,
                     gap: { xs: 0.5, sm: 0 }
                   }}>
                     <Typography variant="body2" color="text.secondary" sx={{ 
@@ -2190,7 +2190,7 @@ const InboundShipments: React.FC = () => {
                 fontWeight: 500,
                 px: { xs: 1, sm: 2 },
                 py: { xs: 0.75, sm: 0.5 },
-                mb: { xs: 2, sm: 0 },
+                mb: { xs: 1, sm: 2 },
                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
                 minWidth: { xs: 'auto', sm: 'auto' },
                 flex: { xs: 1, sm: 'none' },
@@ -2216,7 +2216,7 @@ const InboundShipments: React.FC = () => {
                 fontWeight: 500,
                 px: { xs: 1, sm: 2 },
                 py: { xs: 0.75, sm: 0.5 },
-                mb: { xs: 2, sm: 0 },
+                mb: { xs: 1, sm: 2 },
                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
                 minWidth: { xs: 'auto', sm: 'auto' },
                 flex: { xs: 1, sm: 'none' },
@@ -2292,7 +2292,7 @@ const InboundShipments: React.FC = () => {
               flexDirection: { xs: 'column', sm: 'column' },
               justifyContent: 'space-between', 
               alignItems: { xs: 'stretch', sm: 'flex-end' },
-              gap: { xs: 1, sm: 0 }
+              gap: { xs: 0.5, sm: 1 }
             }}>
               <Box sx={{ 
                 display: 'flex', 
@@ -2618,7 +2618,7 @@ const InboundShipments: React.FC = () => {
               </Box>
 
               {/* Thông tin bổ sung */}
-              <Box sx={{ mt: 3 }}>
+              <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle1" sx={{ 
                   mb: 2, 
                   fontWeight: 'bold', 
@@ -2759,7 +2759,7 @@ const InboundShipments: React.FC = () => {
             display: 'flex', 
             flexDirection: { xs: 'column', sm: 'row' },
             alignItems: { xs: 'stretch', sm: 'center' }, 
-            gap: { xs: 1, sm: 2 } 
+            gap: { xs: 0.5, sm: 1.5 } 
           }}>
             <Button
               variant="outlined"
